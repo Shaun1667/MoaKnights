@@ -1,0 +1,22 @@
+{
+    "name": "MoaKnights.Editor",
+    "rootNamespace": "MoaKnights.EditorTools",
+    "references": [
+        "MoaKnights.Core",
+        "MoaKnights.Localization",
+        "MoaKnights.Game",
+        "Unity.TextMeshPro",
+        "Unity.TextMeshPro.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

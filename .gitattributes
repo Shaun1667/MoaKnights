@@ -1,0 +1,23 @@
+* text=auto
+
+# Unity YAML — line endings fixed so Windows/other PCs do not produce noise diffs
+*.unity text eol=lf
+*.prefab text eol=lf
+*.asset text eol=lf
+*.meta text eol=lf
+*.mat text eol=lf
+*.anim text eol=lf
+*.controller text eol=lf
+*.asmdef text eol=lf
+*.inputactions text eol=lf
+*.csv text eol=lf
+
+# Binary
+*.png binary
+*.jpg binary
+*.ttf binary
+*.otf binary
+*.fbx binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
