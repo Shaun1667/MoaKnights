@@ -12,7 +12,7 @@ MoaKnights — 3D 타워 디펜스 RPG. 격자 맵에 코스트로 능력자를 
 |---|---|---|
 | GDD.md | 기획 | 초안 (2026-11-09) |
 | TASKS.md | 진행 요약 · 작업 순서 · 일지 | 사용 중 |
-| BALANCE.md | 수치 표 | 코스트 · 틱 |
+| BALANCE.md | 수치 표 | 코스트 · 틱 · 디펜스 · 적 · 등장 |
 | Docs/Source/MY_DEV_GUIDE.md | 협업 표준 가이드 원본 | 고치지 않음 |
 
 ## 협업 방식
@@ -62,13 +62,14 @@ MoaKnights/Assets/MoaKnights/
 - 규칙 코드는 글을 만들지 않는다. 이벤트와 값만 내보내고, 글은 화면 계층이 표에서 만든다.
 - 개발자 디버그 기능은 `MoaKnights/Debug/Debug Window`에 섹션으로, 게임 쪽 진입점은 `GameRoot.DebugXxx`, 상태를 바꾸면 [상태 변경] 표시.
 - 씬 연결은 `GameRoot` 한 곳. 싱글턴 금지.
-- 전투 수치는 `BattleBalanceAsset`(`Data/Balance/BattleBalance.asset`) 한 곳, 새 수치 = BALANCE 표 + 필드 + 검산 테스트.
+- 전투 수치는 `BattleBalanceAsset`(`Data/Balance/BattleBalance.asset`) 한 곳, 새 수치 = BALANCE 표 + 필드 + 검산 테스트. 스테이지마다 다른 등장 표만 `StageAsset`에 둔다.
+- 규칙이 쓰는 값은 `BattleDefinitionFactory`가 에셋에서 `BattleDefinition`으로 바꾼다. 규칙 코드의 시간과 위치는 정수(틱, 진행도)이고 실수는 화면 보간에만 쓴다.
 - 에셋 · 씬 생성은 `MoaKnights/Setup/Run All` 한 곳(`ProjectSetup`), 몇 번 실행해도 같은 결과. 데이터 에셋은 없을 때만 만들고, `NewScene` 뒤에 불러와 씬에 연결한다.
 - 시뮬레이션은 `Simulation.Step` 한 곳에서만 진행, 새 시스템 = Step에 순서대로 추가. 실제 시간 → 틱, 배속, 일시정지는 `TickClock` 한 곳.
 - 판 상태는 `World` 한 곳, 새 상태 = 필드 + `WorldSnapshot` 필드 + `SnapshotVersion` 증가 + 왕복 테스트.
 - 난수는 `World.Rng(RngStream.X)`로만, `UnityEngine.Random` · `System.Random` 금지. 새 용도 = enum 끝에 추가.
-- 맵은 `GridMap.Parse` 한 곳, 데이터 `StageAsset`(글자 격자: `#` 막힘, `.` 지상, `H` 언덕, `S` 입구, `E` 출구), 새 스테이지 = 에셋 하나.
-- 전투 화면 표현값은 `BattleViewAsset` 한 곳, 새 칸 종류 = 표 한 줄. 그리기는 `MapView`, 카메라는 `BattleCameraRig`.
+- 맵은 `GridMap.Parse` 한 곳, 데이터 `StageAsset`(글자 격자: `#` 막힘, `.` 지상, `H` 언덕, `S` 입구, `E` 출구), 새 스테이지 = 에셋 하나. 적의 길은 `EnemyRoute.Parse` 한 곳, 꺾이는 칸을 `6,3 3,3 3,1`처럼 적고 입구에서 출구까지 지상 칸만 지난다.
+- 전투 화면 표현값은 `BattleViewAsset` 한 곳, 새 칸 종류 = 표 한 줄. 그리기는 `MapView` · `EnemyView` · `BattleHud`, 카메라는 `BattleCameraRig`.
 - enum은 끝에만 추가한다.
 
 ## 핵심 설계 규칙 (변경 금지)

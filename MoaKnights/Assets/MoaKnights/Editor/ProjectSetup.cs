@@ -36,6 +36,10 @@ namespace MoaKnights.EditorTools
             "#HHHHH#",
         };
 
+        // 입구에서 아래로 내려갔다가 왼쪽으로 돌아 올라와 출구로 간다.
+        private const string Stage01Route = "6,3 3,3 3,1 1,1 1,3 0,3";
+        private const string FirstEnemyId = "dizes_01";
+
         [MenuItem("MoaKnights/Setup/Run All")]
         public static void RunAll()
         {
@@ -71,22 +75,57 @@ namespace MoaKnights.EditorTools
             FillIfZero(so.FindProperty("_costRegenSeconds"), 2f);
             FillIfZero(so.FindProperty("_maxCost"), 99);
             FillIfZero(so.FindProperty("_ticksPerSecond"), 30);
+            FillIfZero(so.FindProperty("_defenseHp"), 10);
+
+            var enemies = so.FindProperty("_enemies");
+            if (enemies.arraySize == 0)
+            {
+                enemies.arraySize = 1;
+                var row = enemies.GetArrayElementAtIndex(0);
+                row.FindPropertyRelative("Id").stringValue = FirstEnemyId;
+                row.FindPropertyRelative("SpeedCellsPerSecond").floatValue = 1f;
+                row.FindPropertyRelative("LeakDamage").intValue = 1;
+            }
+
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
         }
 
         private static StageAsset EnsureStage()
         {
-            var existing = AssetDatabase.LoadAssetAtPath<StageAsset>(StagePath);
-            if (existing != null) return existing;
-
             var asset = LoadOrCreate<StageAsset>(StagePath);
             var so = new SerializedObject(asset);
-            so.FindProperty("_id").stringValue = "stage_01";
+
+            var id = so.FindProperty("_id");
+            if (string.IsNullOrEmpty(id.stringValue)) id.stringValue = "stage_01";
+
             var rows = so.FindProperty("_mapRows");
-            rows.arraySize = Stage01Rows.Length;
-            for (var i = 0; i < Stage01Rows.Length; i++)
-                rows.GetArrayElementAtIndex(i).stringValue = Stage01Rows[i];
+            if (rows.arraySize == 0)
+            {
+                rows.arraySize = Stage01Rows.Length;
+                for (var i = 0; i < Stage01Rows.Length; i++)
+                    rows.GetArrayElementAtIndex(i).stringValue = Stage01Rows[i];
+            }
+
+            var routes = so.FindProperty("_routes");
+            if (routes.arraySize == 0)
+            {
+                routes.arraySize = 1;
+                routes.GetArrayElementAtIndex(0).stringValue = Stage01Route;
+            }
+
+            var groups = so.FindProperty("_spawnGroups");
+            if (groups.arraySize == 0)
+            {
+                groups.arraySize = 1;
+                var group = groups.GetArrayElementAtIndex(0);
+                group.FindPropertyRelative("EnemyId").stringValue = FirstEnemyId;
+                group.FindPropertyRelative("RouteIndex").intValue = 0;
+                group.FindPropertyRelative("StartSeconds").floatValue = 0f;
+                group.FindPropertyRelative("IntervalSeconds").floatValue = 2f;
+                group.FindPropertyRelative("Count").intValue = 10;
+            }
+
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
         }
@@ -94,8 +133,29 @@ namespace MoaKnights.EditorTools
         private static BattleViewAsset EnsureView()
         {
             var existing = AssetDatabase.LoadAssetAtPath<BattleViewAsset>(ViewPath);
-            if (existing != null) return existing;
+            var asset = existing != null ? existing : CreateView();
 
+            var so = new SerializedObject(asset);
+            var enemies = so.FindProperty("_enemies");
+            if (enemies.arraySize == 0)
+            {
+                enemies.arraySize = 1;
+                var row = enemies.GetArrayElementAtIndex(0);
+                row.FindPropertyRelative("Id").stringValue = FirstEnemyId;
+                row.FindPropertyRelative("Color").colorValue = new Color(0.62f, 0.25f, 0.85f);
+                row.FindPropertyRelative("Size").floatValue = 0.35f;
+            }
+
+            FillIfZero(so.FindProperty("_damageNumberSeconds"), 1f);
+            var damageColor = so.FindProperty("_damageNumberColor");
+            if (Mathf.Approximately(damageColor.colorValue.a, 0f)) damageColor.colorValue = new Color(1f, 0.35f, 0.3f);
+
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return asset;
+        }
+
+        private static BattleViewAsset CreateView()
+        {
             var asset = LoadOrCreate<BattleViewAsset>(ViewPath);
             var so = new SerializedObject(asset);
             so.FindProperty("_cellMaterial").objectReferenceValue = EnsureGreyboxMaterial();
@@ -147,6 +207,7 @@ namespace MoaKnights.EditorTools
             var cameraRig = cameraObject.gameObject.AddComponent<BattleCameraRig>();
 
             var mapView = new GameObject("MapView", typeof(MapView)).GetComponent<MapView>();
+            var enemyView = new GameObject("EnemyView", typeof(EnemyView)).GetComponent<EnemyView>();
 
             var canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasGo.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
@@ -156,7 +217,14 @@ namespace MoaKnights.EditorTools
             scaler.matchWidthOrHeight = 0.5f;
 
             var title = CreateLabel(canvasGo.transform, "TitleLabel", new Vector2(0, -50), 48);
-            var status = CreateLabel(canvasGo.transform, "StatusLabel", new Vector2(0, -110), 28);
+            var defenseHp = CreateLabel(canvasGo.transform, "DefenseHpLabel", new Vector2(0, -110), 32);
+            var damage = CreateLabel(canvasGo.transform, "DamageLabel", new Vector2(0, -165), 40);
+
+            var hud = canvasGo.AddComponent<BattleHud>();
+            var hudSo = new SerializedObject(hud);
+            hudSo.FindProperty("_defenseHpLabel").objectReferenceValue = defenseHp;
+            hudSo.FindProperty("_damageLabel").objectReferenceValue = damage;
+            hudSo.ApplyModifiedPropertiesWithoutUndo();
 
             var rootGo = new GameObject("GameRoot", typeof(GameRoot));
             var so = new SerializedObject(rootGo.GetComponent<GameRoot>());
@@ -168,8 +236,9 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_view").objectReferenceValue = AssetDatabase.LoadAssetAtPath<BattleViewAsset>(ViewPath);
             so.FindProperty("_mapView").objectReferenceValue = mapView;
             so.FindProperty("_cameraRig").objectReferenceValue = cameraRig;
+            so.FindProperty("_enemyView").objectReferenceValue = enemyView;
+            so.FindProperty("_hud").objectReferenceValue = hud;
             so.FindProperty("_titleLabel").objectReferenceValue = title;
-            so.FindProperty("_statusLabel").objectReferenceValue = status;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.SaveScene(scene, ScenePath);

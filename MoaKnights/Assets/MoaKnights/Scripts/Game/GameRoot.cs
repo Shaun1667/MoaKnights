@@ -1,4 +1,3 @@
-using MoaKnights.Core.Map;
 using MoaKnights.Core.Sim;
 using MoaKnights.Localization;
 using TMPro;
@@ -22,8 +21,9 @@ namespace MoaKnights.Game
         [SerializeField] private BattleViewAsset _view;
         [SerializeField] private MapView _mapView;
         [SerializeField] private BattleCameraRig _cameraRig;
+        [SerializeField] private EnemyView _enemyView;
+        [SerializeField] private BattleHud _hud;
         [SerializeField] private TMP_Text _titleLabel;
-        [SerializeField] private TMP_Text _statusLabel;
 
         private TMP_FontAsset _runtimeFont;
         private TickClock _clock;
@@ -39,17 +39,18 @@ namespace MoaKnights.Game
             var seed = _pendingSeed ?? NewSeed();
             _pendingSeed = null;
 
-            var map = GridMap.Parse(_stage.MapRows);
-            Simulation = new Simulation(World.Create(seed, _stage.Id), map);
+            var definition = BattleDefinitionFactory.Create(_stage, _balance);
+            Simulation = new Simulation(World.Create(seed, _stage.Id, definition.DefenseHp), definition);
             _clock = new TickClock(_balance.TicksPerSecond);
 
-            _mapView.Build(map, _view);
+            _mapView.Build(definition.Map, _view);
             _cameraRig.Frame(_mapView.WorldBounds, _view);
+            _enemyView.Bind(Simulation, _clock, _mapView, _view);
 
             // 폰트 에셋을 런타임에 만들어 글자 데이터 변경이 커밋에 섞이지 않게 한다.
             _runtimeFont = TMP_FontAsset.CreateFontAsset(_font);
             ShowText(_titleLabel, "ui.title.game");
-            ShowText(_statusLabel, "ui.boot.ready");
+            _hud.Bind(Simulation, _view, _runtimeFont);
         }
 
         private void Update()

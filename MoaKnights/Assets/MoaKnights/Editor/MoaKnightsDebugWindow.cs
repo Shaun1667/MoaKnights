@@ -36,6 +36,8 @@ namespace MoaKnights.EditorTools
             DrawClockSection(root);
             EditorGUILayout.Space();
             DrawMapSection(root);
+            EditorGUILayout.Space();
+            DrawEnemySection(root);
             EditorGUILayout.EndScrollView();
         }
 
@@ -84,6 +86,26 @@ namespace MoaKnights.EditorTools
             EditorGUILayout.LabelField("지상 / 언덕 / 막힘",
                 map.Count(CellType.Ground) + " / " + map.Count(CellType.Hill) + " / " + map.Count(CellType.Blocked));
             EditorGUILayout.LabelField("입구 / 출구", string.Join(" ", map.Entrances) + " / " + string.Join(" ", map.Exits));
+        }
+
+        private static void DrawEnemySection(GameRoot root)
+        {
+            EditorGUILayout.LabelField("적 · 디펜스 (Enemy)", EditorStyles.boldLabel);
+            var world = root.Simulation.World;
+            var definition = root.Simulation.Definition;
+
+            EditorGUILayout.LabelField("디펜스 HP", world.DefenseHp + " / " + definition.DefenseHp);
+            EditorGUILayout.LabelField("경로 수", definition.Routes.Count.ToString());
+            EditorGUILayout.LabelField("나온 적 / 전체", world.NextSpawnIndex + " / " + definition.Spawns.Count);
+            EditorGUILayout.LabelField("살아 있는 적", world.Enemies.Count.ToString());
+
+            foreach (var enemy in world.Enemies)
+            {
+                var route = definition.Routes[enemy.RouteIndex];
+                var cells = enemy.Progress / (float)definition.UnitsPerCell;
+                EditorGUILayout.LabelField("#" + enemy.Id + " " + enemy.DefinitionId,
+                    "경로 " + enemy.RouteIndex + "  " + cells.ToString("0.0") + " / " + route.Length + "칸");
+            }
         }
     }
 }

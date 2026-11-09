@@ -12,27 +12,29 @@ namespace MoaKnights.Tests
 
         private static readonly string[] SmallMap = { "#H.", "S.E" };
 
+        private static World NewWorld(int seed, string stageId = "s") => World.Create(seed, stageId, 10);
+
         [Test]
         public void SameSeed_GivesSameSequence()
         {
-            var a = World.Create(1234, "s");
-            var b = World.Create(1234, "s");
+            var a = NewWorld(1234);
+            var b = NewWorld(1234);
             CollectionAssert.AreEqual(Draw(a.Rng(RngStream.Combat), 16), Draw(b.Rng(RngStream.Combat), 16));
         }
 
         [Test]
         public void DifferentSeed_GivesDifferentSequence()
         {
-            var a = World.Create(1, "s");
-            var b = World.Create(2, "s");
+            var a = NewWorld(1);
+            var b = NewWorld(2);
             CollectionAssert.AreNotEqual(Draw(a.Rng(RngStream.Combat), 16), Draw(b.Rng(RngStream.Combat), 16));
         }
 
         [Test]
         public void Streams_AreIndependent()
         {
-            var a = World.Create(7, "s");
-            var b = World.Create(7, "s");
+            var a = NewWorld(7);
+            var b = NewWorld(7);
             Draw(a.Rng(RngStream.Visual), 100);
             CollectionAssert.AreEqual(Draw(a.Rng(RngStream.Combat), 16), Draw(b.Rng(RngStream.Combat), 16));
         }
@@ -40,7 +42,7 @@ namespace MoaKnights.Tests
         [Test]
         public void NextInt_StaysInRange()
         {
-            var random = World.Create(9, "s").Rng(RngStream.Item);
+            var random = NewWorld(9).Rng(RngStream.Item);
             for (var i = 0; i < 1000; i++)
             {
                 var value = random.NextInt(6);
@@ -51,8 +53,10 @@ namespace MoaKnights.Tests
         [Test]
         public void Snapshot_RoundTrip_ContinuesIdentically()
         {
-            var original = World.Create(42, "stage_x");
-            var simulation = new Simulation(original, GridMap.Parse(SmallMap));
+            var map = GridMap.Parse(SmallMap);
+            var definition = new BattleDefinition(map, 30, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0]);
+            var original = NewWorld(42, "stage_x");
+            var simulation = new Simulation(original, definition);
             for (var i = 0; i < 50; i++) simulation.Step();
             original.AllocateEntityId();
             original.Rng(RngStream.Combat).NextUInt64();
@@ -69,7 +73,7 @@ namespace MoaKnights.Tests
         [Test]
         public void Snapshot_RejectsOtherVersion()
         {
-            var snapshot = World.Create(1, "s").ToSnapshot();
+            var snapshot = NewWorld(1).ToSnapshot();
             snapshot.Version = World.SnapshotVersion + 1;
             Assert.Throws<System.NotSupportedException>(() => World.FromSnapshot(snapshot));
         }
@@ -77,7 +81,7 @@ namespace MoaKnights.Tests
         [Test]
         public void EntityIds_AreUnique()
         {
-            var world = World.Create(1, "s");
+            var world = NewWorld(1);
             Assert.AreNotEqual(world.AllocateEntityId(), world.AllocateEntityId());
         }
 

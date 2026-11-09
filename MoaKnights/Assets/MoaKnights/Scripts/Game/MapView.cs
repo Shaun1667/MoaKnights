@@ -8,10 +8,16 @@ namespace MoaKnights.Game
     {
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 
+        private GridMap _map;
+        private BattleViewAsset _view;
+
         public Bounds WorldBounds { get; private set; }
 
         public void Build(GridMap map, BattleViewAsset view)
         {
+            _map = map;
+            _view = view;
+
             var block = new MaterialPropertyBlock();
             var bounds = new Bounds(transform.position, Vector3.zero);
 
@@ -32,6 +38,13 @@ namespace MoaKnights.Game
             }
 
             WorldBounds = bounds;
+        }
+
+        /// <summary>칸 윗면 가운데의 월드 좌표. 칸 위에 올라서는 것을 그릴 때 쓴다.</summary>
+        public Vector3 CellTop(GridPos pos)
+        {
+            var height = _view.TryGetCell(_map[pos], out var visual) ? visual.Height : 0f;
+            return transform.TransformPoint(CellCenter(pos.X, pos.Y, _map, _view) + Vector3.up * height);
         }
 
         private GameObject CreateCell(int x, int y, GridMap map, BattleViewAsset view, BattleViewAsset.CellVisual visual, MaterialPropertyBlock block)

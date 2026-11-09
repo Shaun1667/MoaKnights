@@ -3,7 +3,8 @@
 ## 0. 데이터 에셋 위치
 | 표 | 에셋 | 코드 |
 |---|---|---|
-| 1. 코스트 · 2. 시간 | `Assets/MoaKnights/Data/Balance/BattleBalance.asset` | `BattleBalanceAsset` |
+| 1. 코스트 · 2. 시간 · 3. 디펜스 · 적 | `Assets/MoaKnights/Data/Balance/BattleBalance.asset` | `BattleBalanceAsset` |
+| 4. 등장 (스테이지마다) | `Assets/MoaKnights/Data/Stages/Stage01.asset` | `StageAsset` |
 
 ## 1. 코스트
 | 번호 | 항목 | 값 | 출처 |
@@ -18,4 +19,23 @@
 |---|---|---|---|
 | 2-1 | 초당 틱 | 30 | 결정 2026-11-09, 사용자 |
 
-검산: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`.
+## 3. 디펜스 · 적 (임시값 — 원본 수치를 못 읽음, GDD 9-5)
+| 번호 | 항목 | 값 | 출처 |
+|---|---|---|---|
+| 3-1 | 디펜스 HP | 10 | 결정 2026-11-09, 사용자 (임시) |
+| 3-2 | `dizes_01` 속도 (칸/초) | 1 | 착수 질문에 제시, 2026-11-09 사용자 (임시) |
+| 3-3 | `dizes_01` 누수 피해 | 1 | 결정 2026-11-09, 사용자 (임시) |
+
+속도는 소수 둘째 자리까지 쓴다. 규칙 코드에서는 정수로 바뀐다 (1.00칸/초 = 틱당 100, 한 칸 = 초당 틱 x 100).
+
+## 4. 등장 — Stage01 (임시값)
+| 번호 | 항목 | 값 | 출처 |
+|---|---|---|---|
+| 4-1 | 적 수 | 10 (`dizes_01`) | 결정 2026-11-09, 사용자 (임시) |
+| 4-2 | 등장 간격 (초) | 2 | 착수 질문에 제시, 2026-11-09 사용자 (임시) |
+| 4-3 | 첫 등장 (초) | 0 | 정한 것 (Claude, 확인 필요) |
+| 4-4 | 경로 | `6,3 3,3 3,1 1,1 1,3 0,3` (10칸) | 원본 `게임설명.png`를 따름 |
+
+검산: 능력자가 없으면 10마리가 모두 샌다. 마지막 적은 18초에 나와 10칸을 지나 28초에 새고, HP는 그때 0이 된다.
+
+검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`.

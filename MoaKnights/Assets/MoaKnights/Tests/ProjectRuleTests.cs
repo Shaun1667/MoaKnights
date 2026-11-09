@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using MoaKnights.Core.Map;
+using MoaKnights.Core.Sim;
 using MoaKnights.Game;
 using MoaKnights.Localization;
 using NUnit.Framework;
@@ -71,6 +72,51 @@ namespace MoaKnights.Tests
             Assert.AreEqual(2f, balance.CostRegenSeconds);
             Assert.AreEqual(99, balance.MaxCost);
             Assert.AreEqual(30, balance.TicksPerSecond);
+            Assert.AreEqual(10, balance.DefenseHp);
+
+            var enemy = balance.Enemies.Single(e => e.Id == "dizes_01");
+            Assert.AreEqual(1f, enemy.SpeedCellsPerSecond);
+            Assert.AreEqual(1, enemy.LeakDamage);
+        }
+
+        [Test]
+        public void EveryStage_BuildsBattleDefinition()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            foreach (var guid in AssetDatabase.FindAssets("t:StageAsset"))
+            {
+                var stage = AssetDatabase.LoadAssetAtPath<StageAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                Assert.DoesNotThrow(() => BattleDefinitionFactory.Create(stage, balance), stage.name);
+            }
+        }
+
+        /// <summary>BALANCE 4번 검산: 능력자가 없으면 10마리가 모두 새고, 마지막 한 마리가 28초에 HP를 0으로 만든다.</summary>
+        [Test]
+        public void Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            var stage = AssetDatabase.LoadAssetAtPath<StageAsset>("Assets/MoaKnights/Data/Stages/Stage01.asset");
+            var definition = BattleDefinitionFactory.Create(stage, balance);
+            var simulation = new Simulation(World.Create(1, stage.Id, definition.DefenseHp), definition);
+
+            Assert.AreEqual(10, definition.Routes[0].Length);
+            Assert.AreEqual(10, definition.Spawns.Count);
+
+            while (simulation.World.Tick < 28 * balance.TicksPerSecond) simulation.Step();
+            Assert.AreEqual(1, simulation.World.DefenseHp);
+
+            simulation.Step();
+            Assert.AreEqual(0, simulation.World.DefenseHp);
+            CollectionAssert.IsEmpty(simulation.World.Enemies);
+        }
+
+        [Test]
+        public void BattleView_HasRowForEveryEnemy()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            var view = AssetDatabase.LoadAssetAtPath<BattleViewAsset>("Assets/MoaKnights/Data/View/BattleView.asset");
+            foreach (var enemy in balance.Enemies)
+                Assert.IsTrue(view.TryGetEnemy(enemy.Id, out _), enemy.Id);
         }
 
         [Test]

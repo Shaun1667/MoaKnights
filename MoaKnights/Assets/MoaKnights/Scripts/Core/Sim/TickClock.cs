@@ -14,6 +14,9 @@ namespace MoaKnights.Core.Sim
         public int Speed { get; private set; } = 1;
         public bool Paused { get; set; }
 
+        /// <summary>다음 틱까지 지난 비율(0~1). 화면 보간 전용이고 규칙에 쓰지 않는다.</summary>
+        public float TickFraction => (float)_pendingTicks;
+
         public TickClock(int ticksPerSecond)
         {
             if (ticksPerSecond <= 0) throw new ArgumentOutOfRangeException(nameof(ticksPerSecond));

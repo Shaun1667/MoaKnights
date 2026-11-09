@@ -29,6 +29,13 @@ MonoBehaviour:
   - Type: 4
     Color: {r: 0.15, g: 0.4, b: 0.8, a: 1}
     Height: 0.25
+  _enemies:
+  - Id: dizes_01
+    Prefab: {fileID: 0}
+    Color: {r: 0.62, g: 0.25, b: 0.85, a: 1}
+    Size: 0.35
+  _damageNumberColor: {r: 1, g: 0.35, b: 0.3, a: 1}
+  _damageNumberSeconds: 1
   _cellSize: 1
   _cellGap: 0.04
   _cameraPitch: 50

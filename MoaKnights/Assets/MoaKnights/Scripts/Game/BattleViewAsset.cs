@@ -16,8 +16,21 @@ namespace MoaKnights.Game
             public float Height;
         }
 
+        /// <summary>적 한 종류의 모습. 프리팹이 없으면 그레이박스 캡슐로 그린다.</summary>
+        [Serializable]
+        public struct EnemyVisual
+        {
+            public string Id;
+            public GameObject Prefab;
+            public Color Color;
+            public float Size;
+        }
+
         [SerializeField] private Material _cellMaterial;
         [SerializeField] private CellVisual[] _cells;
+        [SerializeField] private EnemyVisual[] _enemies;
+        [SerializeField] private Color _damageNumberColor;
+        [SerializeField] private float _damageNumberSeconds;
         [SerializeField] private float _cellSize;
         [SerializeField] private float _cellGap;
         [SerializeField] private float _cameraPitch;
@@ -32,6 +45,20 @@ namespace MoaKnights.Game
         public float CameraYaw => _cameraYaw;
         public float CameraDistance => _cameraDistance;
         public float CameraPadding => _cameraPadding;
+        public Color DamageNumberColor => _damageNumberColor;
+        public float DamageNumberSeconds => _damageNumberSeconds;
+
+        public bool TryGetEnemy(string id, out EnemyVisual visual)
+        {
+            foreach (var enemy in _enemies)
+            {
+                if (enemy.Id != id) continue;
+                visual = enemy;
+                return true;
+            }
+            visual = default;
+            return false;
+        }
 
         public bool TryGetCell(CellType type, out CellVisual visual)
         {

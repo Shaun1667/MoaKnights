@@ -1,3 +1,4 @@
 key,ko,en
 ui.title.game,MoaKnights,MoaKnights
-ui.boot.ready,전투 준비 중,Preparing for battle
+ui.hud.defense_hp,디펜스 HP {0} / {1},Defense HP {0} / {1}
+ui.hud.damage,-{0},-{0}

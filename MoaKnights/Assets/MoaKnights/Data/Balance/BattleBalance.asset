@@ -16,3 +16,8 @@ MonoBehaviour:
   _costRegenSeconds: 2
   _maxCost: 99
   _ticksPerSecond: 30
+  _defenseHp: 10
+  _enemies:
+  - Id: dizes_01
+    SpeedCellsPerSecond: 1
+    LeakDamage: 1
