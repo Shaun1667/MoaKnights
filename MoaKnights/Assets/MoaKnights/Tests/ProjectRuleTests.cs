@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using MoaKnights.Core.Map;
 using MoaKnights.Game;
 using MoaKnights.Localization;
 using NUnit.Framework;
@@ -69,6 +70,38 @@ namespace MoaKnights.Tests
             Assert.AreEqual(20, balance.StartCost);
             Assert.AreEqual(2f, balance.CostRegenSeconds);
             Assert.AreEqual(99, balance.MaxCost);
+            Assert.AreEqual(30, balance.TicksPerSecond);
+        }
+
+        [Test]
+        public void EveryStage_HasValidMapAndUniqueId()
+        {
+            var stages = AssetDatabase.FindAssets("t:StageAsset")
+                .Select(guid => AssetDatabase.LoadAssetAtPath<StageAsset>(AssetDatabase.GUIDToAssetPath(guid)))
+                .ToArray();
+
+            CollectionAssert.IsNotEmpty(stages);
+            CollectionAssert.AllItemsAreUnique(stages.Select(s => s.Id).ToArray());
+            foreach (var stage in stages)
+                Assert.DoesNotThrow(() => GridMap.Parse(stage.MapRows), stage.name);
+        }
+
+        [Test]
+        public void BattleScene_GameRootHasNoEmptyReferences()
+        {
+            var scene = File.ReadAllText(Path.Combine(Application.dataPath, "MoaKnights", "Scenes", "Battle.unity"));
+            var block = Regex.Match(scene, @"MoaKnights\.Game\.GameRoot\s+((?:\s*_\w+: .*\n?)+)");
+            Assert.IsTrue(block.Success, "GameRoot not found in Battle.unity");
+            StringAssert.DoesNotMatch(@"\{fileID: 0\}", block.Groups[1].Value);
+        }
+
+        [Test]
+        public void BattleView_HasRowForEveryCellType()
+        {
+            var view = AssetDatabase.LoadAssetAtPath<BattleViewAsset>("Assets/MoaKnights/Data/View/BattleView.asset");
+            Assert.IsNotNull(view);
+            foreach (CellType type in System.Enum.GetValues(typeof(CellType)))
+                Assert.IsTrue(view.TryGetCell(type, out _), type.ToString());
         }
     }
 }

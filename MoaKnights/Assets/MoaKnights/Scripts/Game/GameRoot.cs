@@ -1,4 +1,5 @@
-using MoaKnights.Core;
+using MoaKnights.Core.Map;
+using MoaKnights.Core.Sim;
 using MoaKnights.Localization;
 using TMPro;
 using UnityEngine;
@@ -17,25 +18,44 @@ namespace MoaKnights.Game
         [SerializeField] private TextAsset _textTable;
         [SerializeField] private Font _font;
         [SerializeField] private BattleBalanceAsset _balance;
+        [SerializeField] private StageAsset _stage;
+        [SerializeField] private BattleViewAsset _view;
+        [SerializeField] private MapView _mapView;
+        [SerializeField] private BattleCameraRig _cameraRig;
         [SerializeField] private TMP_Text _titleLabel;
         [SerializeField] private TMP_Text _statusLabel;
 
         private TMP_FontAsset _runtimeFont;
+        private TickClock _clock;
 
-        public RunContext Run { get; private set; }
+        public Simulation Simulation { get; private set; }
+        public TickClock Clock => _clock;
         public BattleBalanceAsset Balance => _balance;
 
         private void Awake()
         {
             Text.Load(TextTable.Parse(_textTable.text), DefaultLanguage);
 
-            Run = new RunContext(_pendingSeed ?? NewSeed());
+            var seed = _pendingSeed ?? NewSeed();
             _pendingSeed = null;
+
+            var map = GridMap.Parse(_stage.MapRows);
+            Simulation = new Simulation(World.Create(seed, _stage.Id), map);
+            _clock = new TickClock(_balance.TicksPerSecond);
+
+            _mapView.Build(map, _view);
+            _cameraRig.Frame(_mapView.WorldBounds, _view);
 
             // 폰트 에셋을 런타임에 만들어 글자 데이터 변경이 커밋에 섞이지 않게 한다.
             _runtimeFont = TMP_FontAsset.CreateFontAsset(_font);
             ShowText(_titleLabel, "ui.title.game");
             ShowText(_statusLabel, "ui.boot.ready");
+        }
+
+        private void Update()
+        {
+            var ticks = _clock.Advance(Time.unscaledDeltaTime);
+            for (var i = 0; i < ticks; i++) Simulation.Step();
         }
 
         private void OnDestroy()
@@ -53,8 +73,17 @@ namespace MoaKnights.Game
 
         public void DebugRestart(bool keepSeed)
         {
-            _pendingSeed = keepSeed ? Run.Seed : NewSeed();
+            _pendingSeed = keepSeed ? Simulation.World.Seed : NewSeed();
             SceneManager.LoadScene(gameObject.scene.buildIndex);
+        }
+
+        public void DebugSetPaused(bool paused) => _clock.Paused = paused;
+
+        public void DebugSetSpeed(int speed) => _clock.SetSpeed(speed);
+
+        public void DebugStepTicks(int ticks)
+        {
+            for (var i = 0; i < ticks; i++) Simulation.Step();
         }
     }
 }

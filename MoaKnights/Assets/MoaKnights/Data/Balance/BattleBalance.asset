@@ -15,3 +15,4 @@ MonoBehaviour:
   _startCost: 20
   _costRegenSeconds: 2
   _maxCost: 99
+  _ticksPerSecond: 30

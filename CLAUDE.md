@@ -12,7 +12,7 @@ MoaKnights — 3D 타워 디펜스 RPG. 격자 맵에 코스트로 능력자를 
 |---|---|---|
 | GDD.md | 기획 | 초안 (2026-11-09) |
 | TASKS.md | 진행 요약 · 작업 순서 · 일지 | 사용 중 |
-| BALANCE.md | 수치 표 | 코스트만 |
+| BALANCE.md | 수치 표 | 코스트 · 틱 |
 | Docs/Source/MY_DEV_GUIDE.md | 협업 표준 가이드 원본 | 고치지 않음 |
 
 ## 협업 방식
@@ -35,6 +35,7 @@ MoaKnights — 3D 타워 디펜스 RPG. 격자 맵에 코스트로 능력자를 
 | 렌더 | URP 17.3 (PC_RPAsset), 리니어 색 공간 | 확정 2026-11-09, 변경 금지 |
 | 플랫폼 | PC 우선 (Windows) | 결정 2026-11-09, 사용자 |
 | 그래픽 | 전부 3D 모델 (그레이박스로 시작) | 결정 2026-11-09, 사용자 |
+| 시점 | 비스듬한 쿼터뷰 (직교 카메라) | 결정 2026-11-09, 사용자 |
 | 입력 | Input System 패키지 | 프로젝트 기본값, 변경 금지 |
 | UI | uGUI + TextMeshPro | 정한 것 (Claude, 확인 필요) |
 | 폰트 | Noto Sans KR (OFL 라이선스) | 정한 것 (Claude, 확인 필요) |
@@ -49,8 +50,10 @@ MoaKnights/Assets/MoaKnights/
   Editor/                디버그 창 · Setup 메뉴 (MoaKnights.Editor, 빌드 제외)
   Tests/                 EditMode 테스트 (MoaKnights.Tests)
   Data/Balance/          수치 데이터 에셋
+  Data/Stages/           스테이지(맵 글자 격자)
+  Data/View/             전투 화면 표현값
   Data/Text/text.csv     화면 글 전부
-  Fonts/  Scenes/
+  Art/Greybox/  Fonts/  Scenes/
 ```
 
 ## 코딩 규칙
@@ -60,7 +63,12 @@ MoaKnights/Assets/MoaKnights/
 - 개발자 디버그 기능은 `MoaKnights/Debug/Debug Window`에 섹션으로, 게임 쪽 진입점은 `GameRoot.DebugXxx`, 상태를 바꾸면 [상태 변경] 표시.
 - 씬 연결은 `GameRoot` 한 곳. 싱글턴 금지.
 - 전투 수치는 `BattleBalanceAsset`(`Data/Balance/BattleBalance.asset`) 한 곳, 새 수치 = BALANCE 표 + 필드 + 검산 테스트.
-- 에셋 · 씬 생성은 `MoaKnights/Setup/Run All` 한 곳(`ProjectSetup`), 몇 번 실행해도 같은 결과.
+- 에셋 · 씬 생성은 `MoaKnights/Setup/Run All` 한 곳(`ProjectSetup`), 몇 번 실행해도 같은 결과. 데이터 에셋은 없을 때만 만들고, `NewScene` 뒤에 불러와 씬에 연결한다.
+- 시뮬레이션은 `Simulation.Step` 한 곳에서만 진행, 새 시스템 = Step에 순서대로 추가. 실제 시간 → 틱, 배속, 일시정지는 `TickClock` 한 곳.
+- 판 상태는 `World` 한 곳, 새 상태 = 필드 + `WorldSnapshot` 필드 + `SnapshotVersion` 증가 + 왕복 테스트.
+- 난수는 `World.Rng(RngStream.X)`로만, `UnityEngine.Random` · `System.Random` 금지. 새 용도 = enum 끝에 추가.
+- 맵은 `GridMap.Parse` 한 곳, 데이터 `StageAsset`(글자 격자: `#` 막힘, `.` 지상, `H` 언덕, `S` 입구, `E` 출구), 새 스테이지 = 에셋 하나.
+- 전투 화면 표현값은 `BattleViewAsset` 한 곳, 새 칸 종류 = 표 한 줄. 그리기는 `MapView`, 카메라는 `BattleCameraRig`.
 - enum은 끝에만 추가한다.
 
 ## 핵심 설계 규칙 (변경 금지)
