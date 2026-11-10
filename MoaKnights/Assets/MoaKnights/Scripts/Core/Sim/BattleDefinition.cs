@@ -41,17 +41,43 @@ namespace MoaKnights.Core.Sim
         }
     }
 
+    /// <summary>코스트 규칙. 회복은 틱 단위 정수다.</summary>
+    public sealed class CostRules
+    {
+        public int Start { get; }
+        public int Max { get; }
+
+        /// <summary>코스트 1이 차는 데 걸리는 틱.</summary>
+        public int RegenTicks { get; }
+
+        public CostRules(int start, int max, int regenTicks)
+        {
+            if (max <= 0) throw new ArgumentOutOfRangeException(nameof(max));
+            if (start < 0 || start > max) throw new ArgumentOutOfRangeException(nameof(start));
+            if (regenTicks <= 0) throw new ArgumentOutOfRangeException(nameof(regenTicks));
+            Start = start;
+            Max = max;
+            RegenTicks = regenTicks;
+        }
+    }
+
     /// <summary>한 판 동안 변하지 않는 규칙 입력. 변하는 것은 World에 둔다.</summary>
     public sealed class BattleDefinition
     {
         private const int UnitsPerCellPerTicksPerSecond = 100;
 
         private readonly Dictionary<string, EnemyDefinition> _enemies = new Dictionary<string, EnemyDefinition>();
+        private readonly Dictionary<string, UnitDefinition> _units = new Dictionary<string, UnitDefinition>();
+        private readonly List<UnitDefinition> _unitOrder = new List<UnitDefinition>();
 
         public GridMap Map { get; }
         public int TicksPerSecond { get; }
         public int DefenseHp { get; }
+        public CostRules Cost { get; }
         public IReadOnlyList<EnemyRoute> Routes { get; }
+
+        /// <summary>이 판에 나오는 능력자. 카드 순서와 같다.</summary>
+        public IReadOnlyList<UnitDefinition> Units => _unitOrder;
 
         /// <summary>시각 순서로 정렬된 등장 목록. 같은 시각이면 받은 순서를 지킨다.</summary>
         public IReadOnlyList<SpawnEvent> Spawns { get; }
@@ -65,7 +91,9 @@ namespace MoaKnights.Core.Sim
             int defenseHp,
             IEnumerable<EnemyDefinition> enemies,
             IReadOnlyList<EnemyRoute> routes,
-            IEnumerable<SpawnEvent> spawns)
+            IEnumerable<SpawnEvent> spawns,
+            CostRules cost,
+            IEnumerable<UnitDefinition> units)
         {
             if (ticksPerSecond <= 0) throw new ArgumentOutOfRangeException(nameof(ticksPerSecond));
             if (defenseHp <= 0) throw new ArgumentOutOfRangeException(nameof(defenseHp));
@@ -73,7 +101,15 @@ namespace MoaKnights.Core.Sim
             Map = map;
             TicksPerSecond = ticksPerSecond;
             DefenseHp = defenseHp;
+            Cost = cost ?? throw new ArgumentNullException(nameof(cost));
             Routes = routes;
+
+            foreach (var unit in units)
+            {
+                if (_units.ContainsKey(unit.Id)) throw new ArgumentException("Duplicate unit id: " + unit.Id);
+                _units.Add(unit.Id, unit);
+                _unitOrder.Add(unit);
+            }
 
             foreach (var enemy in enemies)
             {
@@ -93,5 +129,7 @@ namespace MoaKnights.Core.Sim
         }
 
         public EnemyDefinition Enemy(string id) => _enemies[id];
+
+        public bool TryGetUnit(string id, out UnitDefinition unit) => _units.TryGetValue(id ?? string.Empty, out unit);
     }
 }

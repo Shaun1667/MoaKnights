@@ -22,6 +22,8 @@ namespace MoaKnights.Tests
         private const string BentRoute = "4,1 4,0 0,0 0,1";
         private const int BentRouteLength = 6;
 
+        private static readonly CostRules Cost = new CostRules(20, 99, 60);
+
         private static GridMap Map() => GridMap.Parse(BentMap);
 
         private static BattleDefinition Definition(int defenseHp, int leakDamage, int speed, params long[] spawnTicks)
@@ -33,11 +35,13 @@ namespace MoaKnights.Tests
                 defenseHp,
                 new[] { new EnemyDefinition(EnemyId, speed, leakDamage) },
                 new[] { EnemyRoute.Parse(map, BentRoute) },
-                spawnTicks.Select(t => new SpawnEvent(t, EnemyId, 0)));
+                spawnTicks.Select(t => new SpawnEvent(t, EnemyId, 0)),
+                new CostRules(20, 99, 60),
+                new UnitDefinition[0]);
         }
 
         private static Simulation NewSimulation(BattleDefinition definition, int seed = 1) =>
-            new Simulation(World.Create(seed, "s", definition.DefenseHp), definition);
+            new Simulation(World.Create(seed, "s", definition.DefenseHp, definition.Cost.Start), definition);
 
         private static void Run(Simulation simulation, int steps)
         {
@@ -176,9 +180,9 @@ namespace MoaKnights.Tests
             var routes = new[] { EnemyRoute.Parse(map, BentRoute) };
 
             Assert.Throws<System.ArgumentException>(() =>
-                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, "none", 0) }));
+                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, "none", 0) }, Cost, new UnitDefinition[0]));
             Assert.Throws<System.ArgumentException>(() =>
-                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, EnemyId, 5) }));
+                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, EnemyId, 5) }, Cost, new UnitDefinition[0]));
         }
 
         [Test]

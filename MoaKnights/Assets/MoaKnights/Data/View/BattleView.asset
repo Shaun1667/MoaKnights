@@ -34,8 +34,28 @@ MonoBehaviour:
     Prefab: {fileID: 0}
     Color: {r: 0.62, g: 0.25, b: 0.85, a: 1}
     Size: 0.35
+  _units:
+  - Id: melee_01
+    Prefab: {fileID: 0}
+    Color: {r: 0.95, g: 0.7, b: 0.2, a: 1}
+    Size: 0.45
+  - Id: ranged_01
+    Prefab: {fileID: 0}
+    Color: {r: 0.2, g: 0.75, b: 0.85, a: 1}
+    Size: 0.4
   _damageNumberColor: {r: 1, g: 0.35, b: 0.3, a: 1}
   _damageNumberSeconds: 1
+  _messageSeconds: 1.5
+  _directionMarkerColor: {r: 0.95, g: 0.95, b: 0.9, a: 1}
+  _previewValidColor: {r: 0.35, g: 0.85, b: 0.45, a: 1}
+  _previewInvalidColor: {r: 0.9, g: 0.25, b: 0.2, a: 1}
+  _directionDragPixels: 24
+  _cardSize: {x: 160, y: 190}
+  _cardSpacing: 16
+  _cardColor: {r: 0.9, g: 0.88, b: 0.82, a: 1}
+  _cardDisabledColor: {r: 0.45, g: 0.45, b: 0.45, a: 1}
+  _cardTextColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
+  _cameraBottomReserve: 0.22
   _cellSize: 1
   _cellGap: 0.04
   _cameraPitch: 50

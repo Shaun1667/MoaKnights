@@ -27,8 +27,6 @@ namespace MoaKnights.Game
         private void Fit()
         {
             var rotation = Quaternion.Euler(_view.CameraPitch, _view.CameraYaw, 0f);
-            transform.SetPositionAndRotation(_target.center - rotation * Vector3.forward * _view.CameraDistance, rotation);
-
             var right = rotation * Vector3.right;
             var up = rotation * Vector3.up;
             var halfWidth = 0f;
@@ -42,9 +40,16 @@ namespace MoaKnights.Game
                 halfHeight = Mathf.Max(halfHeight, Mathf.Abs(Vector3.Dot(corner, up)));
             }
 
+            // 아래쪽 reserve 비율은 카드 줄 자리다. 남은 위쪽에 맵이 들어가게 크기를 키우고 그만큼 카메라를 내린다.
+            var reserve = Mathf.Clamp(_view.CameraBottomReserve, 0f, 0.9f);
             _fittedAspect = _camera.aspect;
             _camera.orthographic = true;
-            _camera.orthographicSize = Mathf.Max(halfHeight, halfWidth / _fittedAspect) + _view.CameraPadding;
+            _camera.orthographicSize = Mathf.Max(
+                (halfHeight + _view.CameraPadding) / (1f - reserve),
+                halfWidth / _fittedAspect + _view.CameraPadding);
+
+            var center = _target.center - up * (reserve * _camera.orthographicSize);
+            transform.SetPositionAndRotation(center - rotation * Vector3.forward * _view.CameraDistance, rotation);
         }
     }
 }

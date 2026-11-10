@@ -12,7 +12,7 @@ namespace MoaKnights.Tests
 
         private static readonly string[] SmallMap = { "#H.", "S.E" };
 
-        private static World NewWorld(int seed, string stageId = "s") => World.Create(seed, stageId, 10);
+        private static World NewWorld(int seed, string stageId = "s") => World.Create(seed, stageId, 10, 20);
 
         [Test]
         public void SameSeed_GivesSameSequence()
@@ -54,7 +54,7 @@ namespace MoaKnights.Tests
         public void Snapshot_RoundTrip_ContinuesIdentically()
         {
             var map = GridMap.Parse(SmallMap);
-            var definition = new BattleDefinition(map, 30, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0]);
+            var definition = new BattleDefinition(map, 30, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0], new CostRules(20, 99, 60), new UnitDefinition[0]);
             var original = NewWorld(42, "stage_x");
             var simulation = new Simulation(original, definition);
             for (var i = 0; i < 50; i++) simulation.Step();

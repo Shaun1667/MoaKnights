@@ -3,7 +3,7 @@
 ## 0. 데이터 에셋 위치
 | 표 | 에셋 | 코드 |
 |---|---|---|
-| 1. 코스트 · 2. 시간 · 3. 디펜스 · 적 | `Assets/MoaKnights/Data/Balance/BattleBalance.asset` | `BattleBalanceAsset` |
+| 1. 코스트 · 2. 시간 · 3. 디펜스 · 적 · 5. 능력자 | `Assets/MoaKnights/Data/Balance/BattleBalance.asset` | `BattleBalanceAsset` |
 | 4. 등장 (스테이지마다) | `Assets/MoaKnights/Data/Stages/Stage01.asset` | `StageAsset` |
 
 ## 1. 코스트
@@ -13,6 +13,8 @@
 | 1-2 | 1 회복에 걸리는 초 | 2 | 기획서, 작업 시트 |
 | 1-3 | 최대 코스트 | 99 | 작업 시트 |
 | 1-4 | 직접 퇴각 환급 비율 | 1/2, 내림 | 작업 시트 (코드 미구현, 에셋 없음) |
+
+규칙 코드에서는 회복이 틱 정수다: 2초 x 초당 30틱 = 60틱에 1. 최대치에서는 쌓이지 않고, 쓰고 나면 처음부터 다시 찬다.
 
 ## 2. 시간
 | 번호 | 항목 | 값 | 출처 |
@@ -38,4 +40,12 @@
 
 검산: 능력자가 없으면 10마리가 모두 샌다. 마지막 적은 18초에 나와 10칸을 지나 28초에 새고, HP는 그때 0이 된다.
 
-검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`.
+## 5. 능력자 (임시값 — 원본 수치를 못 읽음, GDD 9-5)
+| 번호 | 항목 | 값 | 출처 |
+|---|---|---|---|
+| 5-1 | `melee_01` 코스트 · 칸 | 10 · 지상 | 결정 2026-11-10, 사용자 (임시) |
+| 5-2 | `ranged_01` 코스트 · 칸 | 12 · 언덕 | 결정 2026-11-10, 사용자 (임시) |
+
+검산: 시작 20으로 하나는 바로 놓고, 둘째는 2초마다 1씩 차서 둘 다 놓으려면 22가 필요하다 (시작 후 4초).
+
+검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`.

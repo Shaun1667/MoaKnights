@@ -1,9 +1,12 @@
 using MoaKnights.Core.Map;
+using MoaKnights.Core.Sim;
 using MoaKnights.Game;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -39,6 +42,8 @@ namespace MoaKnights.EditorTools
         // 입구에서 아래로 내려갔다가 왼쪽으로 돌아 올라와 출구로 간다.
         private const string Stage01Route = "6,3 3,3 3,1 1,1 1,3 0,3";
         private const string FirstEnemyId = "dizes_01";
+        private const string MeleeUnitId = "melee_01";
+        private const string RangedUnitId = "ranged_01";
 
         [MenuItem("MoaKnights/Setup/Run All")]
         public static void RunAll()
@@ -87,8 +92,23 @@ namespace MoaKnights.EditorTools
                 row.FindPropertyRelative("LeakDamage").intValue = 1;
             }
 
+            var units = so.FindProperty("_units");
+            if (units.arraySize == 0)
+            {
+                units.arraySize = 2;
+                SetUnitRow(units.GetArrayElementAtIndex(0), MeleeUnitId, 10, UnitTerrain.Ground);
+                SetUnitRow(units.GetArrayElementAtIndex(1), RangedUnitId, 12, UnitTerrain.Hill);
+            }
+
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
+        }
+
+        private static void SetUnitRow(SerializedProperty row, string id, int cost, UnitTerrain terrain)
+        {
+            row.FindPropertyRelative("Id").stringValue = id;
+            row.FindPropertyRelative("Cost").intValue = cost;
+            row.FindPropertyRelative("Terrain").enumValueIndex = (int)terrain;
         }
 
         private static StageAsset EnsureStage()
@@ -147,11 +167,43 @@ namespace MoaKnights.EditorTools
             }
 
             FillIfZero(so.FindProperty("_damageNumberSeconds"), 1f);
-            var damageColor = so.FindProperty("_damageNumberColor");
-            if (Mathf.Approximately(damageColor.colorValue.a, 0f)) damageColor.colorValue = new Color(1f, 0.35f, 0.3f);
+            FillIfEmpty(so.FindProperty("_damageNumberColor"), new Color(1f, 0.35f, 0.3f));
+
+            var units = so.FindProperty("_units");
+            if (units.arraySize == 0)
+            {
+                units.arraySize = 2;
+                SetUnitVisual(units.GetArrayElementAtIndex(0), MeleeUnitId, new Color(0.95f, 0.70f, 0.20f), 0.45f);
+                SetUnitVisual(units.GetArrayElementAtIndex(1), RangedUnitId, new Color(0.20f, 0.75f, 0.85f), 0.40f);
+            }
+
+            FillIfZero(so.FindProperty("_messageSeconds"), 1.5f);
+            FillIfEmpty(so.FindProperty("_directionMarkerColor"), new Color(0.95f, 0.95f, 0.90f));
+            FillIfEmpty(so.FindProperty("_previewValidColor"), new Color(0.35f, 0.85f, 0.45f));
+            FillIfEmpty(so.FindProperty("_previewInvalidColor"), new Color(0.90f, 0.25f, 0.20f));
+            FillIfZero(so.FindProperty("_directionDragPixels"), 24f);
+            var cardSize = so.FindProperty("_cardSize");
+            if (cardSize.vector2Value == Vector2.zero) cardSize.vector2Value = new Vector2(160f, 190f);
+            FillIfZero(so.FindProperty("_cardSpacing"), 16f);
+            FillIfEmpty(so.FindProperty("_cardColor"), new Color(0.90f, 0.88f, 0.82f));
+            FillIfEmpty(so.FindProperty("_cardDisabledColor"), new Color(0.45f, 0.45f, 0.45f));
+            FillIfEmpty(so.FindProperty("_cardTextColor"), new Color(0.10f, 0.10f, 0.10f));
+            FillIfZero(so.FindProperty("_cameraBottomReserve"), 0.22f);
 
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
+        }
+
+        private static void SetUnitVisual(SerializedProperty row, string id, Color color, float size)
+        {
+            row.FindPropertyRelative("Id").stringValue = id;
+            row.FindPropertyRelative("Color").colorValue = color;
+            row.FindPropertyRelative("Size").floatValue = size;
+        }
+
+        private static void FillIfEmpty(SerializedProperty property, Color value)
+        {
+            if (Mathf.Approximately(property.colorValue.a, 0f)) property.colorValue = value;
         }
 
         private static BattleViewAsset CreateView()
@@ -208,6 +260,9 @@ namespace MoaKnights.EditorTools
 
             var mapView = new GameObject("MapView", typeof(MapView)).GetComponent<MapView>();
             var enemyView = new GameObject("EnemyView", typeof(EnemyView)).GetComponent<EnemyView>();
+            var unitView = new GameObject("UnitView", typeof(UnitView)).GetComponent<UnitView>();
+            var placement = new GameObject("PlacementController", typeof(PlacementController)).GetComponent<PlacementController>();
+            new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
 
             var canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasGo.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
@@ -220,10 +275,17 @@ namespace MoaKnights.EditorTools
             var defenseHp = CreateLabel(canvasGo.transform, "DefenseHpLabel", new Vector2(0, -110), 32);
             var damage = CreateLabel(canvasGo.transform, "DamageLabel", new Vector2(0, -165), 40);
 
+            // 아래쪽: 카드 줄, 그 위에 코스트, 다시 그 위에 배치 안내 글.
+            var cost = CreateLabel(canvasGo.transform, "CostLabel", new Vector2(0, 245), 32, bottom: true);
+            var message = CreateLabel(canvasGo.transform, "MessageLabel", new Vector2(0, 295), 30, bottom: true);
+            var cardBar = CreateCardBar(canvasGo.transform);
+
             var hud = canvasGo.AddComponent<BattleHud>();
             var hudSo = new SerializedObject(hud);
             hudSo.FindProperty("_defenseHpLabel").objectReferenceValue = defenseHp;
             hudSo.FindProperty("_damageLabel").objectReferenceValue = damage;
+            hudSo.FindProperty("_costLabel").objectReferenceValue = cost;
+            hudSo.FindProperty("_messageLabel").objectReferenceValue = message;
             hudSo.ApplyModifiedPropertiesWithoutUndo();
 
             var rootGo = new GameObject("GameRoot", typeof(GameRoot));
@@ -237,6 +299,9 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_mapView").objectReferenceValue = mapView;
             so.FindProperty("_cameraRig").objectReferenceValue = cameraRig;
             so.FindProperty("_enemyView").objectReferenceValue = enemyView;
+            so.FindProperty("_unitView").objectReferenceValue = unitView;
+            so.FindProperty("_cardBar").objectReferenceValue = cardBar;
+            so.FindProperty("_placement").objectReferenceValue = placement;
             so.FindProperty("_hud").objectReferenceValue = hud;
             so.FindProperty("_titleLabel").objectReferenceValue = title;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -245,12 +310,32 @@ namespace MoaKnights.EditorTools
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
         }
 
-        private static TextMeshProUGUI CreateLabel(Transform parent, string name, Vector2 position, float size)
+        private static CardBar CreateCardBar(Transform parent)
+        {
+            var go = new GameObject("CardBar", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(CardBar));
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 0f);
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 20f);
+            rect.sizeDelta = new Vector2(0f, 200f);
+
+            var layout = go.GetComponent<HorizontalLayoutGroup>();
+            layout.childAlignment = TextAnchor.LowerCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            return go.GetComponent<CardBar>();
+        }
+
+        private static TextMeshProUGUI CreateLabel(Transform parent, string name, Vector2 position, float size, bool bottom = false)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(parent, false);
             var rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, bottom ? 0f : 1f);
             rect.anchoredPosition = position;
             rect.sizeDelta = new Vector2(1600, 80);
 

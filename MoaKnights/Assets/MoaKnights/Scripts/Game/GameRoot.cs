@@ -22,6 +22,9 @@ namespace MoaKnights.Game
         [SerializeField] private MapView _mapView;
         [SerializeField] private BattleCameraRig _cameraRig;
         [SerializeField] private EnemyView _enemyView;
+        [SerializeField] private UnitView _unitView;
+        [SerializeField] private CardBar _cardBar;
+        [SerializeField] private PlacementController _placement;
         [SerializeField] private BattleHud _hud;
         [SerializeField] private TMP_Text _titleLabel;
 
@@ -40,17 +43,20 @@ namespace MoaKnights.Game
             _pendingSeed = null;
 
             var definition = BattleDefinitionFactory.Create(_stage, _balance);
-            Simulation = new Simulation(World.Create(seed, _stage.Id, definition.DefenseHp), definition);
+            Simulation = new Simulation(World.Create(seed, _stage.Id, definition.DefenseHp, definition.Cost.Start), definition);
             _clock = new TickClock(_balance.TicksPerSecond);
 
             _mapView.Build(definition.Map, _view);
             _cameraRig.Frame(_mapView.WorldBounds, _view);
             _enemyView.Bind(Simulation, _clock, _mapView, _view);
+            _unitView.Bind(Simulation, _mapView, _view);
 
             // 폰트 에셋을 런타임에 만들어 글자 데이터 변경이 커밋에 섞이지 않게 한다.
             _runtimeFont = TMP_FontAsset.CreateFontAsset(_font);
             ShowText(_titleLabel, "ui.title.game");
-            _hud.Bind(Simulation, _view, _runtimeFont);
+            _cardBar.Bind(Simulation, _view, _runtimeFont);
+            _placement.Bind(Simulation, _mapView, _view, _cameraRig.GetComponent<Camera>(), _cardBar);
+            _hud.Bind(Simulation, _view, _runtimeFont, _placement);
         }
 
         private void Update()
@@ -81,6 +87,8 @@ namespace MoaKnights.Game
         public void DebugSetPaused(bool paused) => _clock.Paused = paused;
 
         public void DebugSetSpeed(int speed) => _clock.SetSpeed(speed);
+
+        public void DebugAddCost(int amount) => Simulation.World.ChangeCost(amount, Simulation.Definition.Cost);
 
         public void DebugStepTicks(int ticks)
         {

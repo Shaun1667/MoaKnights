@@ -26,11 +26,33 @@ namespace MoaKnights.Game
             public float Size;
         }
 
+        /// <summary>능력자 한 종류의 모습. 프리팹이 없으면 그레이박스 상자와 방향 표시로 그린다.</summary>
+        [Serializable]
+        public struct UnitVisual
+        {
+            public string Id;
+            public GameObject Prefab;
+            public Color Color;
+            public float Size;
+        }
+
         [SerializeField] private Material _cellMaterial;
         [SerializeField] private CellVisual[] _cells;
         [SerializeField] private EnemyVisual[] _enemies;
+        [SerializeField] private UnitVisual[] _units;
         [SerializeField] private Color _damageNumberColor;
         [SerializeField] private float _damageNumberSeconds;
+        [SerializeField] private float _messageSeconds;
+        [SerializeField] private Color _directionMarkerColor;
+        [SerializeField] private Color _previewValidColor;
+        [SerializeField] private Color _previewInvalidColor;
+        [SerializeField] private float _directionDragPixels;
+        [SerializeField] private Vector2 _cardSize;
+        [SerializeField] private float _cardSpacing;
+        [SerializeField] private Color _cardColor;
+        [SerializeField] private Color _cardDisabledColor;
+        [SerializeField] private Color _cardTextColor;
+        [SerializeField] private float _cameraBottomReserve;
         [SerializeField] private float _cellSize;
         [SerializeField] private float _cellGap;
         [SerializeField] private float _cameraPitch;
@@ -47,6 +69,34 @@ namespace MoaKnights.Game
         public float CameraPadding => _cameraPadding;
         public Color DamageNumberColor => _damageNumberColor;
         public float DamageNumberSeconds => _damageNumberSeconds;
+        public float MessageSeconds => _messageSeconds;
+        public Color DirectionMarkerColor => _directionMarkerColor;
+        public Color PreviewValidColor => _previewValidColor;
+        public Color PreviewInvalidColor => _previewInvalidColor;
+
+        /// <summary>방향을 고를 때 이만큼(화면 픽셀) 끌어야 방향이 바뀐다.</summary>
+        public float DirectionDragPixels => _directionDragPixels;
+
+        public Vector2 CardSize => _cardSize;
+        public float CardSpacing => _cardSpacing;
+        public Color CardColor => _cardColor;
+        public Color CardDisabledColor => _cardDisabledColor;
+        public Color CardTextColor => _cardTextColor;
+
+        /// <summary>카드 줄이 차지하는 화면 아래쪽 비율(0~1). 카메라가 이만큼 맵을 위로 올린다.</summary>
+        public float CameraBottomReserve => _cameraBottomReserve;
+
+        public bool TryGetUnit(string id, out UnitVisual visual)
+        {
+            foreach (var unit in _units)
+            {
+                if (unit.Id != id) continue;
+                visual = unit;
+                return true;
+            }
+            visual = default;
+            return false;
+        }
 
         public bool TryGetEnemy(string id, out EnemyVisual visual)
         {

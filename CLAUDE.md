@@ -66,10 +66,13 @@ MoaKnights/Assets/MoaKnights/
 - 규칙이 쓰는 값은 `BattleDefinitionFactory`가 에셋에서 `BattleDefinition`으로 바꾼다. 규칙 코드의 시간과 위치는 정수(틱, 진행도)이고 실수는 화면 보간에만 쓴다.
 - 에셋 · 씬 생성은 `MoaKnights/Setup/Run All` 한 곳(`ProjectSetup`), 몇 번 실행해도 같은 결과. 데이터 에셋은 없을 때만 만들고, `NewScene` 뒤에 불러와 씬에 연결한다.
 - 시뮬레이션은 `Simulation.Step` 한 곳에서만 진행, 새 시스템 = Step에 순서대로 추가. 실제 시간 → 틱, 배속, 일시정지는 `TickClock` 한 곳.
+- 플레이어 명령(배치 등)은 시간을 진행하지 않으므로 `Simulation.TryXxx`로 바로 처리하고 결과 enum을 돌려준다 (일시정지 중에도 받는다). 미리보기는 같은 판정의 `CheckXxx`를 쓴다.
+- 이벤트 호출 `X?.Invoke(...)`의 인자에 상태 변경을 넣지 않는다 — 구독자가 없으면 인자가 계산되지 않는다 (1-2 무한 루프 원인).
+- 입력은 Input System (`Mouse.current` 등)과 uGUI EventSystem(`InputSystemUIInputModule`)만 쓴다.
 - 판 상태는 `World` 한 곳, 새 상태 = 필드 + `WorldSnapshot` 필드 + `SnapshotVersion` 증가 + 왕복 테스트.
 - 난수는 `World.Rng(RngStream.X)`로만, `UnityEngine.Random` · `System.Random` 금지. 새 용도 = enum 끝에 추가.
 - 맵은 `GridMap.Parse` 한 곳, 데이터 `StageAsset`(글자 격자: `#` 막힘, `.` 지상, `H` 언덕, `S` 입구, `E` 출구), 새 스테이지 = 에셋 하나. 적의 길은 `EnemyRoute.Parse` 한 곳, 꺾이는 칸을 `6,3 3,3 3,1`처럼 적고 입구에서 출구까지 지상 칸만 지난다.
-- 전투 화면 표현값은 `BattleViewAsset` 한 곳, 새 칸 종류 = 표 한 줄. 그리기는 `MapView` · `EnemyView` · `BattleHud`, 카메라는 `BattleCameraRig`.
+- 전투 화면 표현값은 `BattleViewAsset` 한 곳, 새 칸 종류 = 표 한 줄. 그리기는 `MapView` · `EnemyView` · `UnitView` · `CardBar` · `BattleHud`, 배치 입력은 `PlacementController`, 카메라는 `BattleCameraRig`.
 - enum은 끝에만 추가한다.
 
 ## 핵심 설계 규칙 (변경 금지)

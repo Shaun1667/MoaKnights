@@ -4,7 +4,9 @@
     "references": [
         "MoaKnights.Core",
         "MoaKnights.Localization",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Unity.InputSystem",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

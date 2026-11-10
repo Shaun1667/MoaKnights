@@ -38,6 +38,8 @@ namespace MoaKnights.EditorTools
             DrawMapSection(root);
             EditorGUILayout.Space();
             DrawEnemySection(root);
+            EditorGUILayout.Space();
+            DrawUnitSection(root);
             EditorGUILayout.EndScrollView();
         }
 
@@ -86,6 +88,23 @@ namespace MoaKnights.EditorTools
             EditorGUILayout.LabelField("지상 / 언덕 / 막힘",
                 map.Count(CellType.Ground) + " / " + map.Count(CellType.Hill) + " / " + map.Count(CellType.Blocked));
             EditorGUILayout.LabelField("입구 / 출구", string.Join(" ", map.Entrances) + " / " + string.Join(" ", map.Exits));
+        }
+
+        private static void DrawUnitSection(GameRoot root)
+        {
+            EditorGUILayout.LabelField("코스트 · 능력자 (Unit)", EditorStyles.boldLabel);
+            var world = root.Simulation.World;
+            var cost = root.Simulation.Definition.Cost;
+
+            EditorGUILayout.LabelField("코스트", world.Cost + " / " + cost.Max + "  (다음 1까지 " + world.CostRegenTicks + " / " + cost.RegenTicks + "틱)");
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("[상태 변경] 코스트 +10")) root.DebugAddCost(10);
+            if (GUILayout.Button("[상태 변경] 코스트 0으로")) root.DebugAddCost(-world.Cost);
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.LabelField("배치된 능력자", world.Units.Count.ToString());
+            foreach (var unit in world.Units)
+                EditorGUILayout.LabelField("#" + unit.Id + " " + unit.DefinitionId, unit.Cell + "  " + unit.Direction);
         }
 
         private static void DrawEnemySection(GameRoot root)

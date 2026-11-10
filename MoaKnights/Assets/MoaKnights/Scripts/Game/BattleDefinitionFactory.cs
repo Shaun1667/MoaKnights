@@ -35,7 +35,15 @@ namespace MoaKnights.Game
                 }
             }
 
-            return new BattleDefinition(map, ticksPerSecond, balance.DefenseHp, enemies, routes, spawns);
+            var cost = new CostRules(
+                balance.StartCost,
+                balance.MaxCost,
+                Mathf.RoundToInt(balance.CostRegenSeconds * ticksPerSecond));
+
+            var units = new List<UnitDefinition>();
+            foreach (var row in balance.Units) units.Add(new UnitDefinition(row.Id, row.Cost, row.Terrain));
+
+            return new BattleDefinition(map, ticksPerSecond, balance.DefenseHp, enemies, routes, spawns, cost, units);
         }
     }
 }

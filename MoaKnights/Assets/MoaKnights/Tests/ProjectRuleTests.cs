@@ -77,6 +77,50 @@ namespace MoaKnights.Tests
             var enemy = balance.Enemies.Single(e => e.Id == "dizes_01");
             Assert.AreEqual(1f, enemy.SpeedCellsPerSecond);
             Assert.AreEqual(1, enemy.LeakDamage);
+
+            var melee = balance.Units.Single(u => u.Id == "melee_01");
+            Assert.AreEqual(10, melee.Cost);
+            Assert.AreEqual(UnitTerrain.Ground, melee.Terrain);
+            var ranged = balance.Units.Single(u => u.Id == "ranged_01");
+            Assert.AreEqual(12, ranged.Cost);
+            Assert.AreEqual(UnitTerrain.Hill, ranged.Terrain);
+        }
+
+        /// <summary>BALANCE 1번 검산: 2초에 1 회복 = 초당 30틱에서 60틱.</summary>
+        [Test]
+        public void CostRegen_IsTwoSecondsInTicks()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            var stage = AssetDatabase.LoadAssetAtPath<StageAsset>("Assets/MoaKnights/Data/Stages/Stage01.asset");
+            var cost = BattleDefinitionFactory.Create(stage, balance).Cost;
+            Assert.AreEqual(20, cost.Start);
+            Assert.AreEqual(99, cost.Max);
+            Assert.AreEqual(60, cost.RegenTicks);
+        }
+
+        [Test]
+        public void EveryUnit_HasViewRowAndNameText()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            var view = AssetDatabase.LoadAssetAtPath<BattleViewAsset>("Assets/MoaKnights/Data/View/BattleView.asset");
+            var table = TextTable.Parse(File.ReadAllText(TextCsvPath));
+            CollectionAssert.IsNotEmpty(balance.Units);
+            foreach (var unit in balance.Units)
+            {
+                Assert.IsTrue(view.TryGetUnit(unit.Id, out _), unit.Id);
+                Assert.IsTrue(table.Contains("unit." + unit.Id + ".name"), unit.Id);
+            }
+        }
+
+        [Test]
+        public void BattleScene_HudAndCardBarHaveNoEmptyReferences()
+        {
+            var scene = File.ReadAllText(Path.Combine(Application.dataPath, "MoaKnights", "Scenes", "Battle.unity"));
+            var block = Regex.Match(scene, @"MoaKnights\.Game\.BattleHud\s+((?:\s*_\w+: .*\n?)+)");
+            Assert.IsTrue(block.Success, "BattleHud not found in Battle.unity");
+            StringAssert.DoesNotMatch(@"\{fileID: 0\}", block.Groups[1].Value);
+            StringAssert.Contains("MoaKnights.Game.CardBar", scene);
+            StringAssert.Contains("InputSystemUIInputModule", scene);
         }
 
         [Test]
@@ -97,7 +141,7 @@ namespace MoaKnights.Tests
             var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
             var stage = AssetDatabase.LoadAssetAtPath<StageAsset>("Assets/MoaKnights/Data/Stages/Stage01.asset");
             var definition = BattleDefinitionFactory.Create(stage, balance);
-            var simulation = new Simulation(World.Create(1, stage.Id, definition.DefenseHp), definition);
+            var simulation = new Simulation(World.Create(1, stage.Id, definition.DefenseHp, definition.Cost.Start), definition);
 
             Assert.AreEqual(10, definition.Routes[0].Length);
             Assert.AreEqual(10, definition.Spawns.Count);

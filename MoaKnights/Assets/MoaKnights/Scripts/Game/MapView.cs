@@ -47,6 +47,47 @@ namespace MoaKnights.Game
             return transform.TransformPoint(CellCenter(pos.X, pos.Y, _map, _view) + Vector3.up * height);
         }
 
+        /// <summary>
+        /// 화면 광선이 닿는 칸을 찾는다. 칸 윗면만 보며, 여러 칸에 닿으면 카메라에 가장 가까운 칸이다.
+        /// 콜라이더 없이 계산하므로 칸 오브젝트를 바꿔도 영향이 없다.
+        /// </summary>
+        public bool TryPickCell(Ray ray, out GridPos cell)
+        {
+            cell = default;
+            var best = float.MaxValue;
+            var half = _view.CellSize * 0.5f;
+
+            for (var y = 0; y < _map.Height; y++)
+            {
+                for (var x = 0; x < _map.Width; x++)
+                {
+                    var pos = new GridPos(x, y);
+                    var top = CellTop(pos);
+                    var plane = new Plane(transform.up, top);
+                    if (!plane.Raycast(ray, out var distance) || distance >= best) continue;
+
+                    var local = transform.InverseTransformPoint(ray.GetPoint(distance)) - transform.InverseTransformPoint(top);
+                    if (Mathf.Abs(local.x) > half || Mathf.Abs(local.z) > half) continue;
+
+                    best = distance;
+                    cell = pos;
+                }
+            }
+
+            return best < float.MaxValue;
+        }
+
+        /// <summary>칸 윗면 높이의 수평면에서 광선이 닿는 점. 방향을 고를 때 쓴다.</summary>
+        public bool TryPointOnCellPlane(Ray ray, GridPos cell, out Vector3 point)
+        {
+            var top = CellTop(cell);
+            var plane = new Plane(transform.up, top);
+            point = default;
+            if (!plane.Raycast(ray, out var distance)) return false;
+            point = ray.GetPoint(distance);
+            return true;
+        }
+
         private GameObject CreateCell(int x, int y, GridMap map, BattleViewAsset view, BattleViewAsset.CellVisual visual, MaterialPropertyBlock block)
         {
             var cell = GameObject.CreatePrimitive(PrimitiveType.Cube);

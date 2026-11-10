@@ -21,3 +21,10 @@ MonoBehaviour:
   - Id: dizes_01
     SpeedCellsPerSecond: 1
     LeakDamage: 1
+  _units:
+  - Id: melee_01
+    Cost: 10
+    Terrain: 0
+  - Id: ranged_01
+    Cost: 12
+    Terrain: 1
