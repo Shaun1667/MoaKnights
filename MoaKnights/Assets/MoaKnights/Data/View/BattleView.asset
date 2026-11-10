@@ -44,7 +44,7 @@ MonoBehaviour:
     Size: 0.45
   _units:
   - Id: melee_01
-    Prefab: {fileID: 0}
+    Prefab: {fileID: 655007039319250345, guid: fae8ad07d67cf9845b96d2d7f218e808, type: 3}
     Color: {r: 0.95, g: 0.7, b: 0.2, a: 1}
     Size: 0.45
   - Id: ranged_01

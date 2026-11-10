@@ -78,7 +78,7 @@ namespace MoaKnights.Game
             var model = UnitModel.Create(transform, "Unit_" + unit.Id, visual, _view);
             model.Place(_mapView.CellTop(unit.Cell), unit.Direction);
 
-            var top = visual.Size * 1.2f;
+            var top = model.TopHeight;
             var bar = new HealthBar(model.Root.transform, top + _view.HpBarSize.y * 2f, _view.HpBarUnitColor, _view);
             var spBar = new HealthBar(model.Root.transform, top + _view.HpBarSize.y * 4f, _view.SpColor, _view);
             var actor = new Actor { Model = model, HealthBar = bar, SpBar = spBar, TopHeight = top, Size = visual.Size };

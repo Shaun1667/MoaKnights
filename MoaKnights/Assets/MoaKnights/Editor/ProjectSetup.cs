@@ -26,6 +26,8 @@ namespace MoaKnights.EditorTools
         private const string CatalogPath = Root + "/Data/Stages/StageCatalog.asset";
         private const string ViewPath = Root + "/Data/View/BattleView.asset";
         private const string GreyboxMaterialPath = Root + "/Art/Greybox/Greybox.mat";
+        private const string UnitArtFolder = Root + "/Art/Units";
+        private static readonly string[] UnitModelParts = { "body", "outfit" };
         private const string TextTablePath = Root + "/Data/Text/text.csv";
         private const string FontPath = Root + "/Fonts/NotoSansKR-VF.ttf";
         private const string ScenePath = Root + "/Scenes/Battle.unity";
@@ -438,6 +440,7 @@ namespace MoaKnights.EditorTools
             SetUnitLookIfNew(unitLooks, HealerUnitId, new Color(0.45f, 0.90f, 0.55f), 0.36f);
             SetUnitLookIfNew(unitLooks, SniperUnitId, new Color(0.85f, 0.85f, 0.95f), 0.34f);
             SetUnitLookIfNew(unitLooks, VanguardUnitId, new Color(0.90f, 0.40f, 0.30f), 0.40f);
+            FillUnitPrefabs(unitLooks);
 
             FillIfZero(so.FindProperty("_damageNumberSeconds"), 1f);
             FillIfEmpty(so.FindProperty("_damageNumberColor"), new Color(1f, 0.35f, 0.3f));
@@ -491,6 +494,66 @@ namespace MoaKnights.EditorTools
             row.FindPropertyRelative("Prefab").objectReferenceValue = null;
             row.FindPropertyRelative("Color").colorValue = color;
             row.FindPropertyRelative("Size").floatValue = size;
+        }
+
+        /// <summary>
+        /// Art/Units/&lt;id&gt;/&lt;id&gt;.fbx가 있는 능력자는 프리팹을 만들어(없을 때만) 비어 있는 모습 칸에 넣는다.
+        /// FBX는 Tools/Blender/combine_character.py가 만든 것: 재질 이름 body · outfit, 텍스처 &lt;id&gt;_&lt;재질&gt;_albedo.png, 앞이 +X.
+        /// </summary>
+        private static void FillUnitPrefabs(SerializedProperty units)
+        {
+            for (var i = 0; i < units.arraySize; i++)
+            {
+                var row = units.GetArrayElementAtIndex(i);
+                var prefab = row.FindPropertyRelative("Prefab");
+                if (prefab.objectReferenceValue != null) continue;
+                var made = EnsureUnitPrefab(row.FindPropertyRelative("Id").stringValue);
+                if (made != null) prefab.objectReferenceValue = made;
+            }
+        }
+
+        private static GameObject EnsureUnitPrefab(string id)
+        {
+            var folder = UnitArtFolder + "/" + id;
+            var fbxPath = folder + "/" + id + ".fbx";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath) == null) return null;
+
+            var prefabPath = folder + "/" + id + ".prefab";
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (existing != null) return existing;
+
+            // 재질: 부위마다 URP Lit, 없을 때만 만든다. FBX의 같은 이름 재질을 이것으로 바꿔 끼운다.
+            var importer = (ModelImporter)AssetImporter.GetAtPath(fbxPath);
+            importer.importAnimation = false;
+            importer.animationType = ModelImporterAnimationType.None;
+            importer.importCameras = false;
+            importer.importLights = false;
+            importer.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
+            importer.materialLocation = ModelImporterMaterialLocation.InPrefab;
+            foreach (var part in UnitModelParts)
+                importer.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), part), EnsureUnitMaterial(folder, id, part));
+            importer.SaveAndReimport();
+
+            var root = new GameObject(id);
+            var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath));
+            model.transform.SetParent(root.transform, false);
+            var prefabAsset = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+            return prefabAsset;
+        }
+
+        private static Material EnsureUnitMaterial(string folder, string id, string part)
+        {
+            var path = folder + "/" + id + "_" + part + ".mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material != null) return material;
+
+            material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(folder + "/" + id + "_" + part + "_albedo.png");
+            material.SetTexture("_BaseMap", texture);
+            material.SetFloat("_Smoothness", 0.1f);
+            AssetDatabase.CreateAsset(material, path);
+            return material;
         }
 
         private static void SetEnemyLookIfNew(SerializedProperty enemies, string id, Color color, float size)
