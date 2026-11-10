@@ -33,6 +33,8 @@ namespace MoaKnights.EditorTools
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
             DrawRunSection(root);
             EditorGUILayout.Space();
+            DrawStageSection(root);
+            EditorGUILayout.Space();
             DrawClockSection(root);
             EditorGUILayout.Space();
             DrawMapSection(root);
@@ -56,6 +58,25 @@ namespace MoaKnights.EditorTools
             EditorGUILayout.LabelField("스테이지", root.Simulation.World.StageId);
             if (GUILayout.Button("[상태 변경] 재시작 (같은 시드)")) root.DebugRestart(keepSeed: true);
             if (GUILayout.Button("[상태 변경] 재시작 (새 시드)")) root.DebugRestart(keepSeed: false);
+        }
+
+        private static void DrawStageSection(GameRoot root)
+        {
+            EditorGUILayout.LabelField("스테이지 · 승패 (Stage)", EditorStyles.boldLabel);
+            var simulation = root.Simulation;
+            EditorGUILayout.LabelField("지금", (root.StageIndex + 1) + " / " + root.Catalog.Count + "  (" + simulation.World.StageId + ")");
+            EditorGUILayout.LabelField("결과", simulation.World.Outcome + (simulation.IsOver ? "  별 " + simulation.Stars() : ""));
+
+            EditorGUILayout.BeginHorizontal();
+            for (var i = 0; i < root.Catalog.Count; i++)
+                if (GUILayout.Button("[상태 변경] " + (i + 1))) root.LoadStage(i);
+            EditorGUILayout.EndHorizontal();
+
+            if (GUILayout.Button("[상태 변경] 디펜스 HP -10 (패배 확인용, 1틱 진행)"))
+            {
+                root.DebugDamageDefense(10);
+                root.DebugStepTicks(1);
+            }
         }
 
         private static void DrawClockSection(GameRoot root)

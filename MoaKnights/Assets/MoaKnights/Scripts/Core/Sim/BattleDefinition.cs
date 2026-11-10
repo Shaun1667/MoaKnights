@@ -95,6 +95,9 @@ namespace MoaKnights.Core.Sim
         public int DefenseHp { get; }
         public CostRules Cost { get; }
         public DeployRules Deploy { get; }
+
+        /// <summary>별 2개 기준: 남은 디펜스 HP가 최대의 이 퍼센트 이상. 새지 않으면 3개, 아래면 1개.</summary>
+        public int TwoStarHpPercent { get; }
         public IReadOnlyList<EnemyRoute> Routes { get; }
 
         /// <summary>이 판에 나오는 능력자. 카드 순서와 같다.</summary>
@@ -115,7 +118,8 @@ namespace MoaKnights.Core.Sim
             IEnumerable<SpawnEvent> spawns,
             CostRules cost,
             IEnumerable<UnitDefinition> units,
-            DeployRules deploy)
+            DeployRules deploy,
+            int twoStarHpPercent)
         {
             if (ticksPerSecond <= 0) throw new ArgumentOutOfRangeException(nameof(ticksPerSecond));
             if (defenseHp <= 0) throw new ArgumentOutOfRangeException(nameof(defenseHp));
@@ -125,6 +129,8 @@ namespace MoaKnights.Core.Sim
             DefenseHp = defenseHp;
             Cost = cost ?? throw new ArgumentNullException(nameof(cost));
             Deploy = deploy ?? throw new ArgumentNullException(nameof(deploy));
+            if (twoStarHpPercent < 0 || twoStarHpPercent > 100) throw new ArgumentOutOfRangeException(nameof(twoStarHpPercent));
+            TwoStarHpPercent = twoStarHpPercent;
             Routes = routes;
 
             foreach (var unit in units)

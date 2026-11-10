@@ -42,6 +42,11 @@ namespace MoaKnights.Core.Sim
         /// <summary>스킬로 회복했을 때. 값은 실제로 오른 HP.</summary>
         public event Action<Unit, int> UnitHealed;
 
+        /// <summary>판이 끝났을 때 한 번 온다.</summary>
+        public event Action<BattleOutcome> BattleEnded;
+
+        public bool IsOver => World.Outcome != BattleOutcome.None;
+
         public Simulation(World world, BattleDefinition definition)
         {
             World = world;
@@ -51,18 +56,46 @@ namespace MoaKnights.Core.Sim
         /// <summary>한 틱: 코스트 회복 → 스킬 시간 · 자연 SP → 능력자 공격 → 막힌 적의 반격 → 적 이동(저지 · 누수) → 등장.</summary>
         public void Step()
         {
+            if (IsOver) return;
+
             World.RegenCost(Definition.Cost);
             UpdateSkills();
             UnitsAttack();
             EnemiesAttack();
             MoveEnemies();
             SpawnEnemies();
+            CheckOutcome();
             World.AdvanceTick();
+        }
+
+        /// <summary>
+        /// 패배: 디펜스 HP 0. 승리: 모든 적이 나왔고 판에 적이 없으며 HP가 남음 (결정 2026-11-10, 사용자).
+        /// 등장 목록이 비어 있으면 승리로 치지 않는다 (시험용 판).
+        /// </summary>
+        private void CheckOutcome()
+        {
+            var outcome = BattleOutcome.None;
+            if (World.DefenseHp <= 0) outcome = BattleOutcome.Defeat;
+            else if (Definition.Spawns.Count > 0 && World.NextSpawnIndex >= Definition.Spawns.Count && World.Enemies.Count == 0)
+                outcome = BattleOutcome.Victory;
+            if (outcome == BattleOutcome.None) return;
+
+            World.End(outcome);
+            BattleEnded?.Invoke(outcome);
+        }
+
+        /// <summary>별 0~3. 판이 끝나기 전이나 패배면 0. 새지 않으면 3, HP가 기준 이상이면 2, 아니면 1.</summary>
+        public int Stars()
+        {
+            if (World.Outcome != BattleOutcome.Victory) return 0;
+            if (World.DefenseHp >= Definition.DefenseHp) return 3;
+            return World.DefenseHp * 100 >= Definition.DefenseHp * Definition.TwoStarHpPercent ? 2 : 1;
         }
 
         /// <summary>상태를 바꾸지 않고 배치 가능 여부만 본다. 미리보기와 TryPlaceUnit이 같은 판정을 쓴다.</summary>
         public PlacementResult CheckPlacement(string unitId, GridPos cell)
         {
+            if (IsOver) return PlacementResult.BattleOver;
             if (!Definition.TryGetUnit(unitId, out var unit)) return PlacementResult.UnknownUnit;
             if (!Map.InBounds(cell)) return PlacementResult.OutOfBounds;
             if (!unit.CanStandOn(Map[cell])) return PlacementResult.WrongTerrain;
@@ -89,6 +122,7 @@ namespace MoaKnights.Core.Sim
         /// <summary>판 위의 같은 능력자에 겹칠 수 있는지만 본다. 방향 · 칸은 바뀌지 않는다.</summary>
         public PlacementResult CheckStack(string unitId)
         {
+            if (IsOver) return PlacementResult.BattleOver;
             if (!Definition.TryGetUnit(unitId, out var unit)) return PlacementResult.UnknownUnit;
             var placed = World.UnitOf(unitId);
             if (placed == null) return PlacementResult.NotDeployed;
@@ -119,6 +153,7 @@ namespace MoaKnights.Core.Sim
         /// <summary>직접 퇴각. 들인 코스트의 일부를 돌려받고, 재배치 쿨타임이 시작된다.</summary>
         public PlacementResult TryRetreat(int unitEntityId)
         {
+            if (IsOver) return PlacementResult.BattleOver;
             var unit = World.UnitById(unitEntityId);
             if (unit == null) return PlacementResult.NotDeployed;
 
@@ -176,6 +211,7 @@ namespace MoaKnights.Core.Sim
         /// <summary>스킬을 쓸 수 있는지만 본다.</summary>
         public PlacementResult CheckSkill(int unitEntityId)
         {
+            if (IsOver) return PlacementResult.BattleOver;
             var unit = World.UnitById(unitEntityId);
             if (unit == null) return PlacementResult.NotDeployed;
             if (unit.IsSkillActive) return PlacementResult.SkillActive;

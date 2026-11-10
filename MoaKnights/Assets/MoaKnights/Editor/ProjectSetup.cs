@@ -20,7 +20,10 @@ namespace MoaKnights.EditorTools
     {
         private const string Root = "Assets/MoaKnights";
         private const string BalancePath = Root + "/Data/Balance/BattleBalance.asset";
-        private const string StagePath = Root + "/Data/Stages/Stage01.asset";
+        private const string Stage01Path = Root + "/Data/Stages/Stage01.asset";
+        private const string Stage02Path = Root + "/Data/Stages/Stage02.asset";
+        private const string Stage03Path = Root + "/Data/Stages/Stage03.asset";
+        private const string CatalogPath = Root + "/Data/Stages/StageCatalog.asset";
         private const string ViewPath = Root + "/Data/View/BattleView.asset";
         private const string GreyboxMaterialPath = Root + "/Art/Greybox/Greybox.mat";
         private const string TextTablePath = Root + "/Data/Text/text.csv";
@@ -42,6 +45,35 @@ namespace MoaKnights.EditorTools
         // 입구에서 아래로 내려갔다가 왼쪽으로 돌아 올라와 출구로 간다.
         private const string Stage01Route = "6,3 3,3 3,1 1,1 1,3 0,3";
         private const string FirstEnemyId = "dizes_01";
+        private const string FastEnemyId = "dizes_fast";
+        private const string TankEnemyId = "dizes_tank";
+
+        // 스테이지 2: 입구 하나, 길 두 갈래가 출구 앞에서 만난다. 스테이지 3: 입구 둘이 가운데에서 합친다 (결정 2026-11-10, 사용자).
+        private static readonly string[] Stage02Rows =
+        {
+            "#HHHHHHH#",
+            "H.......H",
+            "H.HHHHH.H",
+            "S.HHHHH.E",
+            "H.HHHHH.H",
+            "H.......H",
+            "#HHHHHHH#",
+        };
+
+        private static readonly string[] Stage02Routes = { "0,3 1,3 1,5 7,5 7,3 8,3", "0,3 1,3 1,1 7,1 7,3 8,3" };
+
+        private static readonly string[] Stage03Rows =
+        {
+            "S...HHHH#",
+            "HHH.HHHH#",
+            "HHH.HHHHH",
+            "HHH.....E",
+            "HHH.HHHHH",
+            "HHH.HHHH#",
+            "S...HHHH#",
+        };
+
+        private static readonly string[] Stage03Routes = { "0,6 3,6 3,3 8,3", "0,0 3,0 3,3 8,3" };
         private const string MeleeUnitId = "melee_01";
         private const string RangedUnitId = "ranged_01";
 
@@ -66,7 +98,7 @@ namespace MoaKnights.EditorTools
             }
 
             EnsureBalance();
-            EnsureStage();
+            EnsureStages();
             EnsureView();
             AssetDatabase.SaveAssets();
             BuildBattleScene();
@@ -119,6 +151,25 @@ namespace MoaKnights.EditorTools
                 if (row.FindPropertyRelative("Id").stringValue == FirstEnemyId) FillCombat(row, 60, 10, 1.5f, -1, null);
             }
 
+            // 3-1 새 적 (BALANCE 3번). 행이 없을 때만 만든다.
+            var fast = RowById(enemies, FastEnemyId, out var fastCreated);
+            if (fastCreated)
+            {
+                fast.FindPropertyRelative("SpeedCellsPerSecond").floatValue = 2f;
+                fast.FindPropertyRelative("LeakDamage").intValue = 1;
+                SetEnemyCombat(fast, 30, 5, 1f);
+            }
+
+            var tank = RowById(enemies, TankEnemyId, out var tankCreated);
+            if (tankCreated)
+            {
+                tank.FindPropertyRelative("SpeedCellsPerSecond").floatValue = 0.6f;
+                tank.FindPropertyRelative("LeakDamage").intValue = 2;
+                SetEnemyCombat(tank, 150, 15, 1.5f);
+            }
+
+            FillIfZero(so.FindProperty("_twoStarHpPercent"), 50);
+
             // SP · 스킬 (BALANCE 7번). 비어 있는 행에만 넣는다.
             for (var i = 0; i < units.arraySize; i++)
             {
@@ -170,6 +221,14 @@ namespace MoaKnights.EditorTools
             for (var i = 0; i < values.Length; i++) array.GetArrayElementAtIndex(i).intValue = values[i];
         }
 
+        /// <summary>새로 만든 적 행에 쓴다. 배열을 늘리면 Unity가 마지막 행 값을 복사하므로 조건 없이 덮어쓴다.</summary>
+        private static void SetEnemyCombat(SerializedProperty row, int maxHp, int attack, float interval)
+        {
+            row.FindPropertyRelative("MaxHp").intValue = maxHp;
+            row.FindPropertyRelative("Attack").intValue = attack;
+            row.FindPropertyRelative("AttackIntervalSeconds").floatValue = interval;
+        }
+
         private static void FillCombat(SerializedProperty row, int maxHp, int attack, float interval, int blockCount, string[] range)
         {
             if (row.FindPropertyRelative("MaxHp").intValue != 0) return;
@@ -191,43 +250,112 @@ namespace MoaKnights.EditorTools
             row.FindPropertyRelative("Terrain").enumValueIndex = (int)terrain;
         }
 
-        private static StageAsset EnsureStage()
+        /// <summary>스테이지 셋과 목록. 비어 있는 칸에만 값을 넣는다 (맵 · 길 · 등장 표는 에셋에서 고친다).</summary>
+        private static void EnsureStages()
         {
-            var asset = LoadOrCreate<StageAsset>(StagePath);
+            var stage01 = EnsureStage(Stage01Path, "stage_01", Stage01Rows, new[] { Stage01Route }, new[]
+            {
+                new Spawn(FirstEnemyId, 0, 0f, 2f, 10),
+            });
+            var stage02 = EnsureStage(Stage02Path, "stage_02", Stage02Rows, Stage02Routes, new[]
+            {
+                new Spawn(FirstEnemyId, 0, 0f, 3f, 8),
+                new Spawn(FirstEnemyId, 1, 1.5f, 3f, 8),
+                new Spawn(FastEnemyId, 0, 20f, 4f, 3),
+                new Spawn(FastEnemyId, 1, 22f, 4f, 3),
+            });
+            var stage03 = EnsureStage(Stage03Path, "stage_03", Stage03Rows, Stage03Routes, new[]
+            {
+                new Spawn(FirstEnemyId, 0, 0f, 3f, 6),
+                new Spawn(FirstEnemyId, 1, 1.5f, 3f, 6),
+                new Spawn(TankEnemyId, 0, 15f, 10f, 2),
+                new Spawn(TankEnemyId, 1, 20f, 10f, 2),
+                new Spawn(FastEnemyId, 0, 30f, 2f, 4),
+            });
+
+            var catalog = LoadOrCreate<StageCatalogAsset>(CatalogPath);
+            var so = new SerializedObject(catalog);
+            var list = so.FindProperty("_stages");
+            if (list.arraySize == 0)
+            {
+                var stages = new[] { stage01, stage02, stage03 };
+                list.arraySize = stages.Length;
+                for (var i = 0; i < stages.Length; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = stages[i];
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private readonly struct Spawn
+        {
+            public readonly string EnemyId;
+            public readonly int Route;
+            public readonly float Start;
+            public readonly float Interval;
+            public readonly int Count;
+
+            public Spawn(string enemyId, int route, float start, float interval, int count)
+            {
+                EnemyId = enemyId;
+                Route = route;
+                Start = start;
+                Interval = interval;
+                Count = count;
+            }
+        }
+
+        private static StageAsset EnsureStage(string path, string stageId, string[] mapRows, string[] routeList, Spawn[] spawns)
+        {
+            var asset = LoadOrCreate<StageAsset>(path);
             var so = new SerializedObject(asset);
 
             var id = so.FindProperty("_id");
-            if (string.IsNullOrEmpty(id.stringValue)) id.stringValue = "stage_01";
+            if (string.IsNullOrEmpty(id.stringValue)) id.stringValue = stageId;
 
-            var rows = so.FindProperty("_mapRows");
-            if (rows.arraySize == 0)
-            {
-                rows.arraySize = Stage01Rows.Length;
-                for (var i = 0; i < Stage01Rows.Length; i++)
-                    rows.GetArrayElementAtIndex(i).stringValue = Stage01Rows[i];
-            }
-
-            var routes = so.FindProperty("_routes");
-            if (routes.arraySize == 0)
-            {
-                routes.arraySize = 1;
-                routes.GetArrayElementAtIndex(0).stringValue = Stage01Route;
-            }
+            FillIfEmpty(so.FindProperty("_mapRows"), mapRows);
+            FillIfEmpty(so.FindProperty("_routes"), routeList);
 
             var groups = so.FindProperty("_spawnGroups");
             if (groups.arraySize == 0)
             {
-                groups.arraySize = 1;
-                var group = groups.GetArrayElementAtIndex(0);
-                group.FindPropertyRelative("EnemyId").stringValue = FirstEnemyId;
-                group.FindPropertyRelative("RouteIndex").intValue = 0;
-                group.FindPropertyRelative("StartSeconds").floatValue = 0f;
-                group.FindPropertyRelative("IntervalSeconds").floatValue = 2f;
-                group.FindPropertyRelative("Count").intValue = 10;
+                groups.arraySize = spawns.Length;
+                for (var i = 0; i < spawns.Length; i++)
+                {
+                    var group = groups.GetArrayElementAtIndex(i);
+                    group.FindPropertyRelative("EnemyId").stringValue = spawns[i].EnemyId;
+                    group.FindPropertyRelative("RouteIndex").intValue = spawns[i].Route;
+                    group.FindPropertyRelative("StartSeconds").floatValue = spawns[i].Start;
+                    group.FindPropertyRelative("IntervalSeconds").floatValue = spawns[i].Interval;
+                    group.FindPropertyRelative("Count").intValue = spawns[i].Count;
+                }
             }
 
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
+        }
+
+        private static void FillIfEmpty(SerializedProperty array, string[] values)
+        {
+            if (array.arraySize != 0) return;
+            array.arraySize = values.Length;
+            for (var i = 0; i < values.Length; i++) array.GetArrayElementAtIndex(i).stringValue = values[i];
+        }
+
+        /// <summary>이 ID의 행을 찾고, 없으면 끝에 하나 더한다. 새로 만들었으면 created = true.</summary>
+        private static SerializedProperty RowById(SerializedProperty array, string id, out bool created)
+        {
+            for (var i = 0; i < array.arraySize; i++)
+            {
+                var row = array.GetArrayElementAtIndex(i);
+                if (row.FindPropertyRelative("Id").stringValue != id) continue;
+                created = false;
+                return row;
+            }
+
+            array.arraySize++;
+            var added = array.GetArrayElementAtIndex(array.arraySize - 1);
+            added.FindPropertyRelative("Id").stringValue = id;
+            created = true;
+            return added;
         }
 
         private static BattleViewAsset EnsureView()
@@ -245,6 +373,13 @@ namespace MoaKnights.EditorTools
                 row.FindPropertyRelative("Color").colorValue = new Color(0.62f, 0.25f, 0.85f);
                 row.FindPropertyRelative("Size").floatValue = 0.35f;
             }
+
+            SetEnemyLookIfNew(enemies, FastEnemyId, new Color(0.95f, 0.45f, 0.75f), 0.28f);
+            SetEnemyLookIfNew(enemies, TankEnemyId, new Color(0.40f, 0.18f, 0.55f), 0.45f);
+            FillIfEmpty(so.FindProperty("_victoryColor"), new Color(1.00f, 0.85f, 0.35f));
+            FillIfEmpty(so.FindProperty("_defeatColor"), new Color(0.90f, 0.35f, 0.30f));
+            FillIfEmpty(so.FindProperty("_starOnColor"), new Color(1.00f, 0.85f, 0.30f));
+            FillIfEmpty(so.FindProperty("_starOffColor"), new Color(0.30f, 0.30f, 0.33f));
 
             FillIfZero(so.FindProperty("_damageNumberSeconds"), 1f);
             FillIfEmpty(so.FindProperty("_damageNumberColor"), new Color(1f, 0.35f, 0.3f));
@@ -289,6 +424,14 @@ namespace MoaKnights.EditorTools
 
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
+        }
+
+        private static void SetEnemyLookIfNew(SerializedProperty enemies, string id, Color color, float size)
+        {
+            var row = RowById(enemies, id, out var created);
+            if (!created) return;
+            row.FindPropertyRelative("Color").colorValue = color;
+            row.FindPropertyRelative("Size").floatValue = size;
         }
 
         private static void SetUnitVisual(SerializedProperty row, string id, Color color, float size)
@@ -380,6 +523,10 @@ namespace MoaKnights.EditorTools
             var unitActions = CreateUnitActionPanel(canvasGo.transform);
             var speedControls = CreateSpeedControls(canvasGo.transform);
 
+            // 판이 끝나면 뜨는 창들은 맨 나중에 만들어 다른 UI 위에 그린다.
+            var result = CreateResultPanel(canvasGo.transform);
+            var stageSelect = CreateStageSelectPanel(canvasGo.transform);
+
             var hud = canvasGo.AddComponent<BattleHud>();
             var hudSo = new SerializedObject(hud);
             hudSo.FindProperty("_defenseHpLabel").objectReferenceValue = defenseHp;
@@ -394,7 +541,7 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_font").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Font>(FontPath);
             // NewScene이 메모리의 에셋을 내리므로 데이터 에셋은 씬을 만든 뒤에 불러온다.
             so.FindProperty("_balance").objectReferenceValue = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>(BalancePath);
-            so.FindProperty("_stage").objectReferenceValue = AssetDatabase.LoadAssetAtPath<StageAsset>(StagePath);
+            so.FindProperty("_catalog").objectReferenceValue = AssetDatabase.LoadAssetAtPath<StageCatalogAsset>(CatalogPath);
             so.FindProperty("_view").objectReferenceValue = AssetDatabase.LoadAssetAtPath<BattleViewAsset>(ViewPath);
             so.FindProperty("_mapView").objectReferenceValue = mapView;
             so.FindProperty("_cameraRig").objectReferenceValue = cameraRig;
@@ -405,6 +552,8 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_damageNumbers").objectReferenceValue = damageNumbers;
             so.FindProperty("_unitActions").objectReferenceValue = unitActions;
             so.FindProperty("_speedControls").objectReferenceValue = speedControls;
+            so.FindProperty("_result").objectReferenceValue = result;
+            so.FindProperty("_stageSelect").objectReferenceValue = stageSelect;
             so.FindProperty("_hud").objectReferenceValue = hud;
             so.FindProperty("_titleLabel").objectReferenceValue = title;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -448,6 +597,151 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_skillLabel").objectReferenceValue = skillLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
             return actions;
+        }
+
+        /// <summary>
+        /// 결과 창: 화면을 어둡게 덮고 가운데 상자에 제목 · 별 셋 · 버튼 셋. 레이아웃 그룹 없이 절대 위치라 씬을 열어도 값이 바뀌지 않는다.
+        /// </summary>
+        private static ResultPanel CreateResultPanel(Transform parent)
+        {
+            var host = new GameObject("Result", typeof(RectTransform), typeof(ResultPanel));
+            host.transform.SetParent(parent, false);
+            Stretch(host.GetComponent<RectTransform>());
+
+            var root = CreateDim(host.transform, "Root");
+            var box = CreateBox(root.transform, "Box", new Vector2(620f, 380f));
+
+            var title = CreateText(box, "Title", new Vector2(0f, 120f), new Vector2(560f, 90f), 60);
+            var stars = new Image[3];
+            for (var i = 0; i < stars.Length; i++)
+            {
+                var star = new GameObject("Star" + (i + 1), typeof(RectTransform), typeof(Image));
+                star.transform.SetParent(box, false);
+                var rect = star.GetComponent<RectTransform>();
+                rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.sizeDelta = new Vector2(44f, 44f);
+                rect.anchoredPosition = new Vector2((i - 1) * 80f, 20f);
+                rect.localRotation = Quaternion.Euler(0f, 0f, 45f);
+                stars[i] = star.GetComponent<Image>();
+            }
+
+            var retry = CreateButtonAt(box, "RetryButton", new Vector2(-195f, -110f), new Vector2(180f, 60f), out var retryLabel);
+            var next = CreateButtonAt(box, "NextButton", new Vector2(0f, -110f), new Vector2(180f, 60f), out var nextLabel);
+            var select = CreateButtonAt(box, "SelectButton", new Vector2(195f, -110f), new Vector2(180f, 60f), out var selectLabel);
+
+            var panel = host.GetComponent<ResultPanel>();
+            var so = new SerializedObject(panel);
+            so.FindProperty("_root").objectReferenceValue = root;
+            so.FindProperty("_titleLabel").objectReferenceValue = title;
+            var starList = so.FindProperty("_stars");
+            starList.arraySize = stars.Length;
+            for (var i = 0; i < stars.Length; i++) starList.GetArrayElementAtIndex(i).objectReferenceValue = stars[i];
+            so.FindProperty("_retryButton").objectReferenceValue = retry;
+            so.FindProperty("_retryLabel").objectReferenceValue = retryLabel;
+            so.FindProperty("_nextButton").objectReferenceValue = next;
+            so.FindProperty("_nextLabel").objectReferenceValue = nextLabel;
+            so.FindProperty("_selectButton").objectReferenceValue = select;
+            so.FindProperty("_selectLabel").objectReferenceValue = selectLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return panel;
+        }
+
+        /// <summary>
+        /// 스테이지 선택 창. 목록 칸에만 세로 레이아웃 그룹을 두고, 스테이지 버튼은 런타임에 닫기 버튼을 복제해 만든다 (씬에는 저장되지 않음).
+        /// </summary>
+        private static StageSelectPanel CreateStageSelectPanel(Transform parent)
+        {
+            var host = new GameObject("StageSelect", typeof(RectTransform), typeof(StageSelectPanel));
+            host.transform.SetParent(parent, false);
+            Stretch(host.GetComponent<RectTransform>());
+
+            var root = CreateDim(host.transform, "Root");
+            var box = CreateBox(root.transform, "Box", new Vector2(520f, 520f));
+            var title = CreateText(box, "Title", new Vector2(0f, 205f), new Vector2(460f, 70f), 44);
+
+            var list = new GameObject("List", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            list.transform.SetParent(box, false);
+            var listRect = list.GetComponent<RectTransform>();
+            listRect.anchorMin = listRect.anchorMax = new Vector2(0.5f, 0.5f);
+            listRect.sizeDelta = new Vector2(420f, 280f);
+            listRect.anchoredPosition = new Vector2(0f, 10f);
+            var layout = list.GetComponent<VerticalLayoutGroup>();
+            layout.spacing = 10f;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            var close = CreateButtonAt(box, "CloseButton", new Vector2(0f, -200f), new Vector2(200f, 60f), out var closeLabel);
+            var element = close.gameObject.AddComponent<LayoutElement>();
+            element.preferredHeight = 60f;   // 복제한 스테이지 버튼이 목록에서 쓰는 높이
+
+            var panel = host.GetComponent<StageSelectPanel>();
+            var so = new SerializedObject(panel);
+            so.FindProperty("_root").objectReferenceValue = root;
+            so.FindProperty("_titleLabel").objectReferenceValue = title;
+            so.FindProperty("_list").objectReferenceValue = listRect;
+            so.FindProperty("_closeButton").objectReferenceValue = close;
+            so.FindProperty("_closeLabel").objectReferenceValue = closeLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return panel;
+        }
+
+        private static void Stretch(RectTransform rect)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+        }
+
+        /// <summary>화면 전체를 어둡게 덮어 뒤의 클릭을 막는 판.</summary>
+        private static GameObject CreateDim(Transform parent, string name)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            Stretch(go.GetComponent<RectTransform>());
+            go.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.6f);
+            return go;
+        }
+
+        private static RectTransform CreateBox(Transform parent, string name, Vector2 size)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = size;
+            go.GetComponent<Image>().color = new Color(0.10f, 0.11f, 0.13f, 0.97f);
+            return rect;
+        }
+
+        private static TextMeshProUGUI CreateText(Transform parent, string name, Vector2 position, Vector2 size, float fontSize)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = size;
+            rect.anchoredPosition = position;
+            var label = go.GetComponent<TextMeshProUGUI>();
+            label.alignment = TextAlignmentOptions.Center;
+            label.fontSize = fontSize;
+            label.color = Color.white;
+            label.raycastTarget = false;
+            PinTextStyle(label);
+            return label;
+        }
+
+        /// <summary>CreateButton을 레이아웃 없이 가운데 기준 절대 위치 · 크기로 놓는다.</summary>
+        private static Button CreateButtonAt(Transform parent, string name, Vector2 position, Vector2 size, out TextMeshProUGUI label)
+        {
+            var button = CreateButton(parent, name, out label);
+            var rect = button.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = size;
+            rect.anchoredPosition = position;
+            return button;
         }
 
         /// <summary>오른쪽 위 일시정지 · 배속 버튼.</summary>

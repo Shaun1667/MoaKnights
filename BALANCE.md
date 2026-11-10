@@ -4,7 +4,8 @@
 | 표 | 에셋 | 코드 |
 |---|---|---|
 | 1. 코스트 · 2. 시간 · 3. 디펜스 · 적 · 5. 능력자 · 6. 중첩 · 퇴각 · 재배치 · 7. SP · 스킬 | `Assets/MoaKnights/Data/Balance/BattleBalance.asset` | `BattleBalanceAsset` |
-| 4. 등장 (스테이지마다) | `Assets/MoaKnights/Data/Stages/Stage01.asset` | `StageAsset` |
+| 4. 등장 (스테이지마다) | `Assets/MoaKnights/Data/Stages/Stage01~03.asset`, 순서는 `StageCatalog.asset` | `StageAsset` · `StageCatalogAsset` |
+| 8. 승패 · 별 | `Assets/MoaKnights/Data/Balance/BattleBalance.asset` | `BattleBalanceAsset` |
 
 ## 1. 코스트
 | 번호 | 항목 | 값 | 출처 |
@@ -28,6 +29,8 @@
 | 3-2 | `dizes_01` 속도 (칸/초) | 1 | 착수 질문에 제시, 2026-11-09 사용자 (임시) |
 | 3-3 | `dizes_01` 누수 피해 | 1 | 결정 2026-11-09, 사용자 (임시) |
 | 3-4 | `dizes_01` HP · 공격 · 공격 간격(초) | 60 · 10 · 1.5 | 결정 2026-11-10, 사용자 (임시) |
+| 3-5 | `dizes_fast` 빠른 적: 속도 · HP · 공격 · 간격(초) · 누수 | 2 · 30 · 5 · 1 · 1 | 결정 2026-11-10, 사용자 (임시) |
+| 3-6 | `dizes_tank` 단단한 적: 속도 · HP · 공격 · 간격(초) · 누수 | 0.6 · 150 · 15 · 1.5 · 2 | 결정 2026-11-10, 사용자 (임시) |
 
 속도는 소수 둘째 자리까지 쓴다. 규칙 코드에서는 정수로 바뀐다 (1.00칸/초 = 틱당 100, 한 칸 = 초당 틱 x 100).
 
@@ -40,6 +43,14 @@
 | 4-4 | 경로 | `6,3 3,3 3,1 1,1 1,3 0,3` (10칸) | 원본 `게임설명.png`를 따름 |
 
 검산: 능력자가 없으면 10마리가 모두 샌다. 마지막 적은 18초에 나와 10칸을 지나 28초에 새고, HP는 그때 0이 된다.
+
+## 4b. 등장 — Stage02 · Stage03 (임시값, 결정 2026-11-10, 사용자)
+| 번호 | 스테이지 | 맵 · 길 | 등장 |
+|---|---|---|---|
+| 4-5 | Stage02 갈림길 (9x7) | 입구 1, 길 두 갈래(각 12칸)가 출구 앞 (7,3)에서 만남 | `dizes_01` 위 8 · 아래 8 (3초 간격, 아래는 1.5초 늦게), `dizes_fast` 위 3 (20초부터 4초) · 아래 3 (22초부터 4초) — 22마리 |
+| 4-6 | Stage03 두 입구 (9x7) | 입구 2, 각 11칸, (3,3)에서 합침 | `dizes_01` 6 + 6 (3초, 1.5초 늦게), `dizes_tank` 2 + 2 (15초 · 20초부터 10초), `dizes_fast` 4 (30초부터 2초) — 20마리 |
+
+디펜스 HP는 모든 스테이지 10 (3-1).
 
 ## 5. 능력자 (임시값 — 원본 수치를 못 읽음, GDD 9-5)
 | 번호 | 항목 | 값 | 출처 |
@@ -87,4 +98,13 @@
 회복은 최대 HP 기준 퍼센트(내림), 최대 HP를 넘지 않음. 공격 보너스는 단계 공격력에 곱함(내림). 스킬을 쓰는 동안 SP는 차지 않고, 쓰는 중에 겹쳐도 처음 쓴 단계의 효과가 이어진다. 저지 보너스가 끝나면 넘치는 적은 뒤에 막힌 순서로 풀린다.
 검산: 원거리 1단계 스킬 중 공격 15 x 150% = 22, 3단계는 24 x 220% = 52. 근거리 HP 10에서 "버티기" → 40.
 
-검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.DeployRules_MatchBalanceDoc`, `ProjectRuleTests.SkillData_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.
+## 8. 승패 · 별
+| 번호 | 항목 | 값 | 출처 |
+|---|---|---|---|
+| 8-1 | 별 3개 | 새지 않음 (디펜스 HP 그대로) | 결정 2026-11-10, 사용자 |
+| 8-2 | 별 2개 기준 | 남은 디펜스 HP가 최대의 50% 이상 | 결정 2026-11-10, 사용자 |
+| 8-3 | 별 1개 | 승리했지만 50% 미만 | 결정 2026-11-10, 사용자 |
+
+검산: 디펜스 HP 10에서 5가 남으면 별 2개, 4가 남으면 1개.
+
+검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.DeployRules_MatchBalanceDoc`, `ProjectRuleTests.SkillData_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.StageCatalog_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.

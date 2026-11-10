@@ -59,12 +59,13 @@ namespace MoaKnights.Core.Sim
         public int CostRegenTicks;
         public UnitSnapshot[] Units;
         public UnitSlotSnapshot[] UnitSlots;
+        public int Outcome;
     }
 
     /// <summary>한 판의 상태. 시스템은 상태를 갖지 않고 여기만 읽고 쓴다.</summary>
     public sealed class World
     {
-        public const int SnapshotVersion = 6;
+        public const int SnapshotVersion = 7;
 
         private readonly SeededRandom[] _streams;
         private readonly List<Enemy> _enemies = new List<Enemy>();
@@ -78,6 +79,9 @@ namespace MoaKnights.Core.Sim
         public int DefenseHp { get; private set; }
         public int NextSpawnIndex { get; private set; }
         public int Cost { get; private set; }
+
+        /// <summary>판의 결과. None이 아니면 판이 끝나 시간이 더 흐르지 않는다.</summary>
+        public BattleOutcome Outcome { get; private set; }
 
         /// <summary>다음 코스트 1까지 쌓인 틱.</summary>
         public int CostRegenTicks { get; private set; }
@@ -134,6 +138,7 @@ namespace MoaKnights.Core.Sim
             }
             foreach (var slot in snapshot.UnitSlots)
                 world._slots.Add(new UnitSlot(slot.DefinitionId, slot.Deployments, slot.ReadyTick));
+            world.Outcome = (BattleOutcome)snapshot.Outcome;
             return world;
         }
 
@@ -194,6 +199,7 @@ namespace MoaKnights.Core.Sim
                 Cost = Cost,
                 CostRegenTicks = CostRegenTicks,
                 Units = units,
+                Outcome = (int)Outcome,
                 UnitSlots = _slots.ConvertAll(s => new UnitSlotSnapshot { DefinitionId = s.DefinitionId, Deployments = s.Deployments, ReadyTick = s.ReadyTick }).ToArray(),
             };
         }
@@ -203,6 +209,8 @@ namespace MoaKnights.Core.Sim
         public int AllocateEntityId() => NextEntityId++;
 
         public void AdvanceTick() => Tick++;
+
+        public void End(BattleOutcome outcome) => Outcome = outcome;
 
         public Enemy SpawnEnemy(string definitionId, int routeIndex, int hp)
         {

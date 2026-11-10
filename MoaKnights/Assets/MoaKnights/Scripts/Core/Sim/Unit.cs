@@ -34,6 +34,15 @@ namespace MoaKnights.Core.Sim
         NotDeployed = 9,
         SpNotFull = 10,
         SkillActive = 11,
+        BattleOver = 12,
+    }
+
+    /// <summary>판의 결과. enum은 끝에만 추가한다.</summary>
+    public enum BattleOutcome
+    {
+        None = 0,
+        Victory = 1,
+        Defeat = 2,
     }
 
     /// <summary>능력자 한 종류의 규칙 값.</summary>

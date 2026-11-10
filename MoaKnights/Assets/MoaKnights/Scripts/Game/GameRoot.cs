@@ -11,13 +11,14 @@ namespace MoaKnights.Game
     {
         private const string DefaultLanguage = "ko";
 
-        // 재시작을 넘어 시드를 넘겨주는 유일한 정적 값.
+        // 씬을 다시 불러올 때 넘겨주는 값은 이 둘뿐이다 (다시 · 다음 · 스테이지 선택 · 디버그 재시작).
         private static int? _pendingSeed;
+        private static int? _pendingStageIndex;
 
         [SerializeField] private TextAsset _textTable;
         [SerializeField] private Font _font;
         [SerializeField] private BattleBalanceAsset _balance;
-        [SerializeField] private StageAsset _stage;
+        [SerializeField] private StageCatalogAsset _catalog;
         [SerializeField] private BattleViewAsset _view;
         [SerializeField] private MapView _mapView;
         [SerializeField] private BattleCameraRig _cameraRig;
@@ -29,6 +30,8 @@ namespace MoaKnights.Game
         [SerializeField] private DamageNumbers _damageNumbers;
         [SerializeField] private UnitActionPanel _unitActions;
         [SerializeField] private SpeedControls _speedControls;
+        [SerializeField] private ResultPanel _result;
+        [SerializeField] private StageSelectPanel _stageSelect;
         [SerializeField] private TMP_Text _titleLabel;
 
         private TMP_FontAsset _runtimeFont;
@@ -37,6 +40,8 @@ namespace MoaKnights.Game
         public Simulation Simulation { get; private set; }
         public TickClock Clock => _clock;
         public BattleBalanceAsset Balance => _balance;
+        public StageCatalogAsset Catalog => _catalog;
+        public int StageIndex { get; private set; }
 
         private void Awake()
         {
@@ -44,9 +49,12 @@ namespace MoaKnights.Game
 
             var seed = _pendingSeed ?? NewSeed();
             _pendingSeed = null;
+            StageIndex = _catalog.Clamp(_pendingStageIndex ?? 0);
+            _pendingStageIndex = null;
 
-            var definition = BattleDefinitionFactory.Create(_stage, _balance);
-            Simulation = new Simulation(World.Create(seed, _stage.Id, definition.DefenseHp, definition.Cost.Start), definition);
+            var stage = _catalog[StageIndex];
+            var definition = BattleDefinitionFactory.Create(stage, _balance);
+            Simulation = new Simulation(World.Create(seed, stage.Id, definition.DefenseHp, definition.Cost.Start), definition);
             _clock = new TickClock(_balance.TicksPerSecond);
 
             _mapView.Build(definition.Map, _view);
@@ -56,13 +64,17 @@ namespace MoaKnights.Game
 
             // 폰트 에셋을 런타임에 만들어 글자 데이터 변경이 커밋에 섞이지 않게 한다.
             _runtimeFont = TMP_FontAsset.CreateFontAsset(_font);
-            ShowText(_titleLabel, "ui.title.game");
+            _titleLabel.font = _runtimeFont;
+            _titleLabel.text = StageName(StageIndex);
             _cardBar.Bind(Simulation, _view, _runtimeFont);
             _placement.Bind(Simulation, _mapView, _view, _cameraRig.GetComponent<Camera>(), _cardBar);
             _hud.Bind(Simulation, _view, _runtimeFont, _placement);
             _damageNumbers.Bind(Simulation, _enemyView, _unitView, _view, _runtimeFont, _cameraRig.GetComponent<Camera>());
             _unitActions.Bind(Simulation, _mapView, _unitView, _placement, _view, _runtimeFont, _cameraRig.GetComponent<Camera>());
             _speedControls.Bind(_clock, _runtimeFont);
+            _stageSelect.Bind(_catalog, StageIndex, _runtimeFont, LoadStage);
+            _result.Bind(Simulation, _view, _runtimeFont, StageIndex + 1 < _catalog.Count,
+                () => LoadStage(StageIndex), () => LoadStage(StageIndex + 1), _stageSelect.Open);
         }
 
         private void Update()
@@ -76,17 +88,23 @@ namespace MoaKnights.Game
             if (_runtimeFont != null) Destroy(_runtimeFont);
         }
 
-        private void ShowText(TMP_Text label, string key)
-        {
-            label.font = _runtimeFont;
-            label.text = Text.Get(key);
-        }
+        // 스테이지 이름 키는 스테이지 ID로 만든다. 표에 있는지는 ProjectRuleTests가 검사한다.
+        private string StageName(int index) => Text.Get("stage." + _catalog[index].Id + ".name");
 
         private static int NewSeed() => System.Environment.TickCount;
+
+        /// <summary>스테이지를 새 시드로 처음부터 연다. 다시 하기도 같은 스테이지를 여는 것이다.</summary>
+        public void LoadStage(int index)
+        {
+            _pendingSeed = NewSeed();
+            _pendingStageIndex = _catalog.Clamp(index);
+            SceneManager.LoadScene(gameObject.scene.buildIndex);
+        }
 
         public void DebugRestart(bool keepSeed)
         {
             _pendingSeed = keepSeed ? Simulation.World.Seed : NewSeed();
+            _pendingStageIndex = StageIndex;
             SceneManager.LoadScene(gameObject.scene.buildIndex);
         }
 
@@ -95,6 +113,8 @@ namespace MoaKnights.Game
         public void DebugSetSpeed(int speed) => _clock.SetSpeed(speed);
 
         public void DebugAddCost(int amount) => Simulation.World.ChangeCost(amount, Simulation.Definition.Cost);
+
+        public void DebugDamageDefense(int amount) => Simulation.World.DamageDefense(amount);
 
         public void DebugStepTicks(int ticks)
         {

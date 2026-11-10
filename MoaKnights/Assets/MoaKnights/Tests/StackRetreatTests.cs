@@ -31,7 +31,7 @@ namespace MoaKnights.Tests
                     new UnitDefinition(Melee, 10, UnitTerrain.Ground, new CombatStats(100, 20, 30), 2, AttackRange.Parse(new[] { "@X" }), TestRules.NoSkills()),
                     new UnitDefinition(Ranged, 12, UnitTerrain.Hill, new CombatStats(60, 15, 36), 0, AttackRange.Parse(new[] { "OX" }), TestRules.NoSkills()),
                 },
-                TestRules.Deploy);
+                TestRules.Deploy, TestRules.TwoStarHpPercent);
             return new Simulation(World.Create(1, "s", 10, startCost), definition);
         }
 
@@ -178,7 +178,7 @@ namespace MoaKnights.Tests
             var definition = new BattleDefinition(map, 30, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0],
                 new CostRules(20, 99, 1000000),
                 new[] { new UnitDefinition("odd", 7, UnitTerrain.Ground, new CombatStats(10, 1, 30), 1, AttackRange.Parse(new[] { "@" }), TestRules.NoSkills(1)) },
-                deploy);
+                deploy, TestRules.TwoStarHpPercent);
             var s = new Simulation(World.Create(1, "s", 10, 20), definition);
             s.TryPlaceUnit("odd", new GridPos(1, 0), Direction.Right);
             s.TryRetreat(s.World.UnitOf("odd").Id);

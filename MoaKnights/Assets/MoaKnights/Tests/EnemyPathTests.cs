@@ -38,7 +38,7 @@ namespace MoaKnights.Tests
                 spawnTicks.Select(t => new SpawnEvent(t, EnemyId, 0)),
                 new CostRules(20, 99, 60),
                 new UnitDefinition[0],
-                TestRules.Deploy);
+                TestRules.Deploy, TestRules.TwoStarHpPercent);
         }
 
         private static Simulation NewSimulation(BattleDefinition definition, int seed = 1) =>
@@ -160,8 +160,9 @@ namespace MoaKnights.Tests
         }
 
         [Test]
-        public void Defense_StopsAtZero_AndSendsNoFurtherDamage()
+        public void Defense_StopsAtZero_AndBattleEndsInDefeat()
         {
+            // 3-1부터 HP 0이면 그 틱에 패배하고 판이 멈춘다. 뒤따르던 적은 길 위에 남는다.
             var simulation = NewSimulation(Definition(1, 1, OneCellPerSecond, 0, 1));
             var damage = new List<int>();
             simulation.DefenseDamaged += damage.Add;
@@ -170,7 +171,8 @@ namespace MoaKnights.Tests
 
             Assert.AreEqual(0, simulation.World.DefenseHp);
             CollectionAssert.AreEqual(new[] { 1 }, damage);
-            CollectionAssert.IsEmpty(simulation.World.Enemies);
+            Assert.AreEqual(BattleOutcome.Defeat, simulation.World.Outcome);
+            Assert.AreEqual(1, simulation.World.Enemies.Count);
         }
 
         [Test]
@@ -181,9 +183,9 @@ namespace MoaKnights.Tests
             var routes = new[] { EnemyRoute.Parse(map, BentRoute) };
 
             Assert.Throws<System.ArgumentException>(() =>
-                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, "none", 0) }, Cost, new UnitDefinition[0], TestRules.Deploy));
+                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, "none", 0) }, Cost, new UnitDefinition[0], TestRules.Deploy, TestRules.TwoStarHpPercent));
             Assert.Throws<System.ArgumentException>(() =>
-                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, EnemyId, 5) }, Cost, new UnitDefinition[0], TestRules.Deploy));
+                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, EnemyId, 5) }, Cost, new UnitDefinition[0], TestRules.Deploy, TestRules.TwoStarHpPercent));
         }
 
         [Test]

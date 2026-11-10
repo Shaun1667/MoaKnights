@@ -54,7 +54,7 @@ namespace MoaKnights.Tests
         public void Snapshot_RoundTrip_ContinuesIdentically()
         {
             var map = GridMap.Parse(SmallMap);
-            var definition = new BattleDefinition(map, 30, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0], new CostRules(20, 99, 60), new UnitDefinition[0], TestRules.Deploy);
+            var definition = new BattleDefinition(map, 30, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0], new CostRules(20, 99, 60), new UnitDefinition[0], TestRules.Deploy, TestRules.TwoStarHpPercent);
             var original = NewWorld(42, "stage_x");
             var simulation = new Simulation(original, definition);
             for (var i = 0; i < 50; i++) simulation.Step();

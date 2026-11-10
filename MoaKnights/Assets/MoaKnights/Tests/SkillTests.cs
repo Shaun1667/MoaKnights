@@ -48,7 +48,7 @@ namespace MoaKnights.Tests
                     new UnitDefinition(Melee, 10, UnitTerrain.Ground, new CombatStats(s.MeleeHp, s.MeleeAttack, 30), s.MeleeBlock, AttackRange.Parse(new[] { "@X" }), s.MeleeSkills),
                     new UnitDefinition(Ranged, 12, UnitTerrain.Hill, new CombatStats(60, 15, 30), 0, AttackRange.Parse(new[] { "OX" }), s.RangedSkills),
                 },
-                TestRules.Deploy);
+                TestRules.Deploy, TestRules.TwoStarHpPercent);
             return new Simulation(World.Create(1, "s", 10, 99), definition);
         }
 
@@ -318,7 +318,7 @@ namespace MoaKnights.Tests
                 new[] { new EnemyDefinition(EnemyId, 100, 1, new CombatStats(1000, 0, 30)) },
                 new[] { EnemyRoute.Parse(map, "0,0 4,0") },
                 new[] { new SpawnEvent(0, EnemyId, 0) },
-                new CostRules(0, 99, 15), new UnitDefinition[0], TestRules.Deploy);
+                new CostRules(0, 99, 15), new UnitDefinition[0], TestRules.Deploy, TestRules.TwoStarHpPercent);
             var simulation = new Simulation(World.Create(1, "s", 10, 0), definition);
 
             var clock = new TickClock(Tps);
@@ -341,7 +341,7 @@ namespace MoaKnights.Tests
             Assert.Throws<System.ArgumentException>(() => new BattleDefinition(map, Tps, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0],
                 new CostRules(10, 99, 60),
                 new[] { new UnitDefinition(Melee, 10, UnitTerrain.Ground, new CombatStats(10, 1, 30), 1, AttackRange.Parse(new[] { "@" }), twoStages) },
-                TestRules.Deploy));
+                TestRules.Deploy, TestRules.TwoStarHpPercent));
             Assert.Throws<System.ArgumentOutOfRangeException>(() => Skills(SpType.Natural, 3, 0, Heal(10)));
         }
     }

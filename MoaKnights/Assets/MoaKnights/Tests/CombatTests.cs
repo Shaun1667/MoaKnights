@@ -52,7 +52,7 @@ namespace MoaKnights.Tests
                     new UnitDefinition(Melee, 10, UnitTerrain.Ground, new CombatStats(s.MeleeHp, s.MeleeAttack, s.MeleeInterval), s.MeleeBlock, AttackRange.Parse(s.MeleeRange), TestRules.NoSkills()),
                     new UnitDefinition(Ranged, 12, UnitTerrain.Hill, new CombatStats(60, 15, 36), 0, AttackRange.Parse(s.RangedRange), TestRules.NoSkills()),
                 },
-                TestRules.Deploy);
+                TestRules.Deploy, TestRules.TwoStarHpPercent);
             return new Simulation(World.Create(1, "s", 10, 99), definition);
         }
 
@@ -259,7 +259,8 @@ namespace MoaKnights.Tests
         [Test]
         public void DefeatedUnit_WaitsForRedeployCooldown_WithoutRefund()
         {
-            var simulation = Build(new Setup { MeleeAttack = 0, MeleeHp = 10, EnemyAttack = 10 });
+            // 한참 뒤에 나오는 적을 하나 더 두어, 첫 적이 샌 뒤에도 판이 끝나지 않게 한다 (3-1 승패).
+            var simulation = Build(new Setup { MeleeAttack = 0, MeleeHp = 10, EnemyAttack = 10, Spawns = new long[] { 0, 100000 } });
             simulation.TryPlaceUnit(Melee, new GridPos(3, 0), Direction.Left);
 
             // 쓰러지는 피격과 쓰러짐은 같은 틱 안에서 이어서 온다. 그 사이 코스트가 그대로면 환급이 없다는 뜻.

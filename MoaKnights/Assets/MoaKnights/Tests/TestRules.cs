@@ -17,6 +17,9 @@ namespace MoaKnights.Tests
             5,
             50);
 
+        /// <summary>별 2개 기준 (디펜스 HP 50% 이상).</summary>
+        public const int TwoStarHpPercent = 50;
+
         /// <summary>효과 없는 스킬 단계 n개. SP는 맞을 때만 차고 최대치가 커서 사실상 쓰지 않는다.</summary>
         public static SkillSet NoSkills(int stages = 3)
         {

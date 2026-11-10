@@ -63,7 +63,7 @@ namespace MoaKnights.Game
                 balance.RedeployCostIncrease,
                 balance.RetreatRefundPercent);
 
-            return new BattleDefinition(map, ticksPerSecond, balance.DefenseHp, enemies, routes, spawns, cost, units, deploy);
+            return new BattleDefinition(map, ticksPerSecond, balance.DefenseHp, enemies, routes, spawns, cost, units, deploy, balance.TwoStarHpPercent);
         }
 
         private static int Ticks(float seconds, int ticksPerSecond) => Mathf.RoundToInt(seconds * ticksPerSecond);

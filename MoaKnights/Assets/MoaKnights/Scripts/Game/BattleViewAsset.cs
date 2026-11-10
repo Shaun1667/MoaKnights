@@ -68,6 +68,10 @@ namespace MoaKnights.Game
         [SerializeField] private Color _spColor;
         [SerializeField] private Color _spFullColor;
         [SerializeField] private Color _skillActiveColor;
+        [SerializeField] private Color _victoryColor;
+        [SerializeField] private Color _defeatColor;
+        [SerializeField] private Color _starOnColor;
+        [SerializeField] private Color _starOffColor;
         [SerializeField] private float _cellSize;
         [SerializeField] private float _cellGap;
         [SerializeField] private float _cameraPitch;
@@ -125,6 +129,12 @@ namespace MoaKnights.Game
         public Color SpColor => _spColor;
         public Color SpFullColor => _spFullColor;
         public Color SkillActiveColor => _skillActiveColor;
+
+        /// <summary>결과 창 제목 색 (승리 · 패배)과 별 색 (얻음 · 못 얻음).</summary>
+        public Color VictoryColor => _victoryColor;
+        public Color DefeatColor => _defeatColor;
+        public Color StarOnColor => _starOnColor;
+        public Color StarOffColor => _starOffColor;
 
         public bool TryGetUnit(string id, out UnitVisual visual)
         {

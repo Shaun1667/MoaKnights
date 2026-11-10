@@ -60,6 +60,7 @@ namespace MoaKnights.Game
         [SerializeField] private float _redeployCooldownSeconds;
         [SerializeField] private int _redeployCostIncrease;
         [SerializeField] private int _retreatRefundPercent;
+        [SerializeField] private int _twoStarHpPercent;
 
         public int StartCost => _startCost;
         public float CostRegenSeconds => _costRegenSeconds;
@@ -77,5 +78,8 @@ namespace MoaKnights.Game
         public float RedeployCooldownSeconds => _redeployCooldownSeconds;
         public int RedeployCostIncrease => _redeployCostIncrease;
         public int RetreatRefundPercent => _retreatRefundPercent;
+
+        /// <summary>별 2개 기준: 남은 디펜스 HP가 최대의 이 퍼센트 이상 (BALANCE 8번).</summary>
+        public int TwoStarHpPercent => _twoStarHpPercent;
     }
 }

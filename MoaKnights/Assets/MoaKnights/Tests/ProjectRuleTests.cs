@@ -101,6 +101,36 @@ namespace MoaKnights.Tests
             CollectionAssert.AreEqual(new[] { ".XXX", "OXXX", ".XXX" }, ranged.Range);
         }
 
+        /// <summary>BALANCE 4 · 8번: 스테이지 목록 순서, 스테이지 2 · 3 길, 새 적 수치, 별 기준, 스테이지 이름 글.</summary>
+        [Test]
+        public void StageCatalog_MatchesBalanceDoc_AndHasNames()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<StageCatalogAsset>("Assets/MoaKnights/Data/Stages/StageCatalog.asset");
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            Assert.IsNotNull(catalog);
+            Assert.AreEqual(3, catalog.Count);
+            CollectionAssert.AreEqual(new[] { "stage_01", "stage_02", "stage_03" }, Enumerable.Range(0, catalog.Count).Select(i => catalog[i].Id).ToArray());
+
+            var table = TextTable.Parse(File.ReadAllText(TextCsvPath));
+            for (var i = 0; i < catalog.Count; i++)
+                Assert.IsTrue(table.Contains("stage." + catalog[i].Id + ".name"), catalog[i].Id);
+
+            var stage2 = BattleDefinitionFactory.Create(catalog[1], balance);
+            var stage3 = BattleDefinitionFactory.Create(catalog[2], balance);
+            CollectionAssert.AreEqual(new[] { 12, 12 }, stage2.Routes.Select(r => r.Length).ToArray());
+            CollectionAssert.AreEqual(new[] { 11, 11 }, stage3.Routes.Select(r => r.Length).ToArray());
+            Assert.AreEqual(22, stage2.Spawns.Count);
+            Assert.AreEqual(20, stage3.Spawns.Count);
+            Assert.AreEqual(2, stage3.Map.Entrances.Count);
+
+            var fast = balance.Enemies.Single(e => e.Id == "dizes_fast");
+            Assert.AreEqual((2f, 1, 30, 5, 1f), (fast.SpeedCellsPerSecond, fast.LeakDamage, fast.MaxHp, fast.Attack, fast.AttackIntervalSeconds));
+            var tank = balance.Enemies.Single(e => e.Id == "dizes_tank");
+            Assert.AreEqual((0.6f, 2, 150, 15, 1.5f), (tank.SpeedCellsPerSecond, tank.LeakDamage, tank.MaxHp, tank.Attack, tank.AttackIntervalSeconds));
+            Assert.AreEqual(60, stage2.Enemy("dizes_tank").SpeedPerTick);
+            Assert.AreEqual(50, balance.TwoStarHpPercent);
+        }
+
         /// <summary>BALANCE 7번: SP 타입 · 최대 SP · 단계별 스킬, 그리고 단계마다 스킬 이름 글이 표에 있는지.</summary>
         [Test]
         public void SkillData_MatchesBalanceDoc_AndHasNames()

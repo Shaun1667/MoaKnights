@@ -29,3 +29,14 @@ skill.melee_01_3.name,철벽,Iron Wall
 skill.ranged_01_1.name,집중 사격,Focus Fire
 skill.ranged_01_2.name,집중 사격 II,Focus Fire II
 skill.ranged_01_3.name,집중 사격 III,Focus Fire III
+ui.result.victory,승리,Victory
+ui.result.defeat,패배,Defeat
+ui.result.retry,다시,Retry
+ui.result.next,다음 스테이지,Next stage
+ui.result.select,스테이지 선택,Select stage
+ui.select.title,스테이지 선택,Select stage
+ui.select.close,닫기,Close
+ui.select.current,{0} (지금),{0} (current)
+stage.stage_01.name,스테이지 1 · 돌아가는 길,Stage 1 · The Winding Road
+stage.stage_02.name,스테이지 2 · 갈림길,Stage 2 · The Fork
+stage.stage_03.name,스테이지 3 · 두 입구,Stage 3 · Two Gates

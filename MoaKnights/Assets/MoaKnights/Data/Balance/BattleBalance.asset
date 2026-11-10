@@ -24,6 +24,18 @@ MonoBehaviour:
     MaxHp: 60
     Attack: 10
     AttackIntervalSeconds: 1.5
+  - Id: dizes_fast
+    SpeedCellsPerSecond: 2
+    LeakDamage: 1
+    MaxHp: 30
+    Attack: 5
+    AttackIntervalSeconds: 1
+  - Id: dizes_tank
+    SpeedCellsPerSecond: 0.6
+    LeakDamage: 2
+    MaxHp: 150
+    Attack: 15
+    AttackIntervalSeconds: 1.5
   _units:
   - Id: melee_01
     Cost: 10
@@ -84,3 +96,4 @@ MonoBehaviour:
   _redeployCooldownSeconds: 10
   _redeployCostIncrease: 5
   _retreatRefundPercent: 50
+  _twoStarHpPercent: 50

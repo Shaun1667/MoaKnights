@@ -34,6 +34,14 @@ MonoBehaviour:
     Prefab: {fileID: 0}
     Color: {r: 0.62, g: 0.25, b: 0.85, a: 1}
     Size: 0.35
+  - Id: dizes_fast
+    Prefab: {fileID: 0}
+    Color: {r: 0.95, g: 0.45, b: 0.75, a: 1}
+    Size: 0.28
+  - Id: dizes_tank
+    Prefab: {fileID: 0}
+    Color: {r: 0.4, g: 0.18, b: 0.55, a: 1}
+    Size: 0.45
   _units:
   - Id: melee_01
     Prefab: {fileID: 0}
@@ -71,6 +79,10 @@ MonoBehaviour:
   _spColor: {r: 0.3, g: 0.6, b: 0.95, a: 1}
   _spFullColor: {r: 0.55, g: 0.95, b: 1, a: 1}
   _skillActiveColor: {r: 1, g: 0.6, b: 0.2, a: 1}
+  _victoryColor: {r: 1, g: 0.85, b: 0.35, a: 1}
+  _defeatColor: {r: 0.9, g: 0.35, b: 0.3, a: 1}
+  _starOnColor: {r: 1, g: 0.85, b: 0.3, a: 1}
+  _starOffColor: {r: 0.3, g: 0.3, b: 0.33, a: 1}
   _cellSize: 1
   _cellGap: 0.04
   _cameraPitch: 50
