@@ -2,6 +2,7 @@
 #
 # 실행 (Blender 4.3, 화면 없이):
 #   blender -b -P Tools/Blender/combine_character.py -- <body.glb> <outfit.glb> <body.png> <outfit.png> <out_dir> <name> [target_tris] [height_m]
+#   겉옷 없이 한 덩어리(적 등)는 outfit.glb와 outfit.png 자리에 - 를 넣는다. 그러면 3 · 4단계를 건너뛰고 재질은 body 하나다.
 #
 # 순서
 #   1. 두 원본 그림(같은 구도)에서 흰 바탕이 아닌 영역의 위치를 잰다.
@@ -25,7 +26,8 @@ body_glb, outfit_glb, body_png, outfit_png, out_dir, name = argv[:6]
 target_tris = int(argv[6]) if len(argv) > 6 else 3000
 height_m = float(argv[7]) if len(argv) > 7 else 1.0
 hidden_distance_ratio = 0.06   # 키에 대한 비율: 면 바깥쪽 이 거리 안에 겉옷이 있으면 가려진 몸 면
-poke_distance_ratio = 0.025    # 키에 대한 비율: 면 안쪽 이 거리 안에 겉옷이 있으면 겉옷을 뚫고 나온 몸 면
+poke_distance_ratio = float(os.environ.get("POKE_RATIO", "0.05"))   # 키에 대한 비율: 면 안쪽 이 거리 안에 겉옷이 있으면 겉옷을 뚫고 나온 몸 면 (근거리 melee_01은 0.025로 만듦)
+outfit_push_ratio = float(os.environ.get("OUTFIT_PUSH", "0.01"))   # 키에 대한 비율: 겉옷을 법선 방향으로 이만큼 부풀려 몸을 덮게 한다 (melee_01은 0)
 os.makedirs(out_dir, exist_ok=True)
 
 
@@ -89,59 +91,72 @@ def tri_count(obj):
 # 빈 장면에서 시작
 bpy.ops.wm.read_factory_settings(use_empty=True)
 
-bb = image_box(body_png)
-ob = image_box(outfit_png)
-log("image body", bb, "outfit", ob)
-
+single = outfit_glb == "-"
 body = import_mesh(body_glb, "Body")
-outfit = import_mesh(outfit_glb, "Outfit")
-blo, bhi = world_box(body)
-olo, ohi = world_box(outfit)
-log("mesh body", tuple(blo), tuple(bhi), "outfit", tuple(olo), tuple(ohi))
+if not single:
+    bb = image_box(body_png)
+    ob = image_box(outfit_png)
+    log("image body", bb, "outfit", ob)
+    outfit = import_mesh(outfit_glb, "Outfit")
 
-# 몸 기준 그림 1픽셀의 길이 (높이로 잼). 가로 비율은 확인용으로만 찍는다.
-body_px_h = bb[3] - bb[2]
-m_per_px = (bhi.z - blo.z) / body_px_h
-log("m/px from height", m_per_px, "from width", (bhi.x - blo.x) / (bb[1] - bb[0]))
 
-outfit_px_h = ob[3] - ob[2]
-scale = outfit_px_h * m_per_px / (ohi.z - olo.z)
-outfit.scale = (scale, scale, scale)
-bpy.context.view_layer.objects.active = outfit
-bpy.ops.object.select_all(action="DESELECT")
-outfit.select_set(True)
-bpy.ops.object.transform_apply(scale=True)
-olo, ohi = world_box(outfit)
+def fit_outfit_and_hide_body():
+    global outfit
+    blo, bhi = world_box(body)
+    olo, ohi = world_box(outfit)
+    log("mesh body", tuple(blo), tuple(bhi), "outfit", tuple(olo), tuple(ohi))
 
-# 그림 좌표: 아래쪽 끝(y 최대)과 가로 가운데를 맞춘다. 그림 오른쪽 = +X (앞에서 본 모습).
-target_bottom = blo.z + (bb[3] - ob[3]) * m_per_px
-body_cx_px = (bb[0] + bb[1]) / 2
-outfit_cx_px = (ob[0] + ob[1]) / 2
-target_cx = (blo.x + bhi.x) / 2 + (outfit_cx_px - body_cx_px) * m_per_px
-target_cy = (blo.y + bhi.y) / 2
-outfit.location += Vector((target_cx - (olo.x + ohi.x) / 2, target_cy - (olo.y + ohi.y) / 2, target_bottom - olo.z))
-bpy.ops.object.transform_apply(location=True)
-olo, ohi = world_box(outfit)
-log("outfit fitted", tuple(olo), tuple(ohi), "scale", scale)
+    # 몸 기준 그림 1픽셀의 길이 (높이로 잼). 가로 비율은 확인용으로만 찍는다.
+    body_px_h = bb[3] - bb[2]
+    m_per_px = (bhi.z - blo.z) / body_px_h
+    log("m/px from height", m_per_px, "from width", (bhi.x - blo.x) / (bb[1] - bb[0]))
 
-# 가려진 몸 면 지우기
-deps = bpy.context.evaluated_depsgraph_get()
-tree = BVHTree.FromObject(outfit, deps)
-limit = (bhi.z - blo.z) * hidden_distance_ratio
-poke = (bhi.z - blo.z) * poke_distance_ratio
-bm = bmesh.new()
-bm.from_mesh(body.data)
-hidden = []
-for f in bm.faces:
-    c = f.calc_center_median()
-    n = f.normal
-    if tree.ray_cast(c + n * 1e-4, n, limit)[0] is not None or tree.ray_cast(c - n * 1e-4, -n, poke)[0] is not None:
-        hidden.append(f)
-before_faces = len(bm.faces)
-bmesh.ops.delete(bm, geom=hidden, context="FACES")
-bm.to_mesh(body.data)
-bm.free()
-log("body faces", before_faces, "-> hidden removed", len(hidden))
+    outfit_px_h = ob[3] - ob[2]
+    scale = outfit_px_h * m_per_px / (ohi.z - olo.z)
+    outfit.scale = (scale, scale, scale)
+    bpy.context.view_layer.objects.active = outfit
+    bpy.ops.object.select_all(action="DESELECT")
+    outfit.select_set(True)
+    bpy.ops.object.transform_apply(scale=True)
+    olo, ohi = world_box(outfit)
+
+    # 그림 좌표: 아래쪽 끝(y 최대)과 가로 가운데를 맞춘다. 그림 오른쪽 = +X (앞에서 본 모습).
+    target_bottom = blo.z + (bb[3] - ob[3]) * m_per_px
+    body_cx_px = (bb[0] + bb[1]) / 2
+    outfit_cx_px = (ob[0] + ob[1]) / 2
+    target_cx = (blo.x + bhi.x) / 2 + (outfit_cx_px - body_cx_px) * m_per_px
+    target_cy = (blo.y + bhi.y) / 2
+    outfit.location += Vector((target_cx - (olo.x + ohi.x) / 2, target_cy - (olo.y + ohi.y) / 2, target_bottom - olo.z))
+    bpy.ops.object.transform_apply(location=True)
+    olo, ohi = world_box(outfit)
+    log("outfit fitted", tuple(olo), tuple(ohi), "scale", scale)
+
+    if outfit_push_ratio > 0:
+        push = (bhi.z - blo.z) * outfit_push_ratio
+        for v in outfit.data.vertices:
+            v.co += v.normal * push
+        outfit.data.update()
+        log("outfit pushed", push)
+
+    # 가려진 몸 면 지우기
+    deps = bpy.context.evaluated_depsgraph_get()
+    tree = BVHTree.FromObject(outfit, deps)
+    limit = (bhi.z - blo.z) * hidden_distance_ratio
+    poke = (bhi.z - blo.z) * poke_distance_ratio
+    bm = bmesh.new()
+    bm.from_mesh(body.data)
+    hidden = []
+    for f in bm.faces:
+        c = f.calc_center_median()
+        n = f.normal
+        if tree.ray_cast(c + n * 1e-4, n, limit)[0] is not None or tree.ray_cast(c - n * 1e-4, -n, poke)[0] is not None:
+            hidden.append(f)
+    before_faces = len(bm.faces)
+    bmesh.ops.delete(bm, geom=hidden, context="FACES")
+    bm.to_mesh(body.data)
+    bm.free()
+    log("body faces", before_faces, "-> hidden removed", len(hidden))
+
 
 # 몸 바탕색(회색 바탕옷) → 피부색. 채도가 낮고 밝은 픽셀만 바꾸고, 피부색은 같은 그림의 살색 픽셀 평균.
 import numpy as np
@@ -172,18 +187,22 @@ def skin_recolor(obj):
             log("skin recolor", img.name, int(suit.sum()), "px, skin", tuple(np.round(skin, 3)))
 
 
-skin_recolor(body)
 # Unity가 이름으로 재질을 연결하도록 재질 이름을 body / outfit으로 둔다 (FBX 서브메시 이름)
 body.data.materials[0].name = "body"
-outfit.data.materials[0].name = "outfit"
 body_material = "body"
-
-# 합치기
 bpy.ops.object.select_all(action="DESELECT")
 body.select_set(True)
-outfit.select_set(True)
 bpy.context.view_layer.objects.active = body
-bpy.ops.object.join()
+if not single:
+    fit_outfit_and_hide_body()
+    skin_recolor(body)
+    outfit.data.materials[0].name = "outfit"
+    # 합치기
+    bpy.ops.object.select_all(action="DESELECT")
+    body.select_set(True)
+    outfit.select_set(True)
+    bpy.context.view_layer.objects.active = body
+    bpy.ops.object.join()
 merged = bpy.context.view_layer.objects.active
 merged.name = name
 before = tri_count(merged)

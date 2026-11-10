@@ -27,7 +27,8 @@ namespace MoaKnights.EditorTools
         private const string ViewPath = Root + "/Data/View/BattleView.asset";
         private const string GreyboxMaterialPath = Root + "/Art/Greybox/Greybox.mat";
         private const string UnitArtFolder = Root + "/Art/Units";
-        private static readonly string[] UnitModelParts = { "body", "outfit" };
+        private const string EnemyArtFolder = Root + "/Art/Enemies";
+        private static readonly string[] ModelParts = { "body", "outfit" };
         private const string TextTablePath = Root + "/Data/Text/text.csv";
         private const string FontPath = Root + "/Fonts/NotoSansKR-VF.ttf";
         private const string ScenePath = Root + "/Scenes/Battle.unity";
@@ -429,6 +430,7 @@ namespace MoaKnights.EditorTools
 
             SetEnemyLookIfNew(enemies, FastEnemyId, new Color(0.95f, 0.45f, 0.75f), 0.28f);
             SetEnemyLookIfNew(enemies, TankEnemyId, new Color(0.40f, 0.18f, 0.55f), 0.45f);
+            FillModelPrefabs(enemies, EnemyArtFolder);
             FillIfEmpty(so.FindProperty("_victoryColor"), new Color(1.00f, 0.85f, 0.35f));
             FillIfEmpty(so.FindProperty("_defeatColor"), new Color(0.90f, 0.35f, 0.30f));
             FillIfEmpty(so.FindProperty("_starOnColor"), new Color(1.00f, 0.85f, 0.30f));
@@ -440,7 +442,7 @@ namespace MoaKnights.EditorTools
             SetUnitLookIfNew(unitLooks, HealerUnitId, new Color(0.45f, 0.90f, 0.55f), 0.36f);
             SetUnitLookIfNew(unitLooks, SniperUnitId, new Color(0.85f, 0.85f, 0.95f), 0.34f);
             SetUnitLookIfNew(unitLooks, VanguardUnitId, new Color(0.90f, 0.40f, 0.30f), 0.40f);
-            FillUnitPrefabs(unitLooks);
+            FillModelPrefabs(unitLooks, UnitArtFolder);
 
             FillIfZero(so.FindProperty("_damageNumberSeconds"), 1f);
             FillIfEmpty(so.FindProperty("_damageNumberColor"), new Color(1f, 0.35f, 0.3f));
@@ -497,24 +499,24 @@ namespace MoaKnights.EditorTools
         }
 
         /// <summary>
-        /// Art/Units/&lt;id&gt;/&lt;id&gt;.fbx가 있는 능력자는 프리팹을 만들어(없을 때만) 비어 있는 모습 칸에 넣는다.
-        /// FBX는 Tools/Blender/combine_character.py가 만든 것: 재질 이름 body · outfit, 텍스처 &lt;id&gt;_&lt;재질&gt;_albedo.png, 앞이 +X.
+        /// &lt;artFolder&gt;/&lt;id&gt;/&lt;id&gt;.fbx가 있는 줄(능력자 Art/Units · 적 Art/Enemies)은 프리팹을 만들어(없을 때만) 비어 있는 모습 칸에 넣는다.
+        /// FBX는 Tools/Blender/combine_character.py가 만든 것: 재질 이름 body(· outfit), 텍스처 &lt;id&gt;_&lt;재질&gt;_albedo.png, 앞이 +X.
         /// </summary>
-        private static void FillUnitPrefabs(SerializedProperty units)
+        private static void FillModelPrefabs(SerializedProperty rows, string artFolder)
         {
-            for (var i = 0; i < units.arraySize; i++)
+            for (var i = 0; i < rows.arraySize; i++)
             {
-                var row = units.GetArrayElementAtIndex(i);
+                var row = rows.GetArrayElementAtIndex(i);
                 var prefab = row.FindPropertyRelative("Prefab");
                 if (prefab.objectReferenceValue != null) continue;
-                var made = EnsureUnitPrefab(row.FindPropertyRelative("Id").stringValue);
+                var made = EnsureModelPrefab(artFolder, row.FindPropertyRelative("Id").stringValue);
                 if (made != null) prefab.objectReferenceValue = made;
             }
         }
 
-        private static GameObject EnsureUnitPrefab(string id)
+        private static GameObject EnsureModelPrefab(string artFolder, string id)
         {
-            var folder = UnitArtFolder + "/" + id;
+            var folder = artFolder + "/" + id;
             var fbxPath = folder + "/" + id + ".fbx";
             if (AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath) == null) return null;
 
@@ -522,7 +524,7 @@ namespace MoaKnights.EditorTools
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (existing != null) return existing;
 
-            // 재질: 부위마다 URP Lit, 없을 때만 만든다. FBX의 같은 이름 재질을 이것으로 바꿔 끼운다.
+            // 재질: 텍스처가 있는 부위마다 URP Lit, 없을 때만 만든다. FBX의 같은 이름 재질을 이것으로 바꿔 끼운다.
             var importer = (ModelImporter)AssetImporter.GetAtPath(fbxPath);
             importer.importAnimation = false;
             importer.animationType = ModelImporterAnimationType.None;
@@ -530,8 +532,11 @@ namespace MoaKnights.EditorTools
             importer.importLights = false;
             importer.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
             importer.materialLocation = ModelImporterMaterialLocation.InPrefab;
-            foreach (var part in UnitModelParts)
-                importer.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), part), EnsureUnitMaterial(folder, id, part));
+            foreach (var part in ModelParts)
+            {
+                var material = EnsureModelMaterial(folder, id, part);
+                if (material != null) importer.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), part), material);
+            }
             importer.SaveAndReimport();
 
             var root = new GameObject(id);
@@ -542,14 +547,16 @@ namespace MoaKnights.EditorTools
             return prefabAsset;
         }
 
-        private static Material EnsureUnitMaterial(string folder, string id, string part)
+        /// <summary>부위 재질. 그 부위 텍스처가 없으면(겉옷 없는 적) null.</summary>
+        private static Material EnsureModelMaterial(string folder, string id, string part)
         {
             var path = folder + "/" + id + "_" + part + ".mat";
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material != null) return material;
 
-            material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(folder + "/" + id + "_" + part + "_albedo.png");
+            if (texture == null) return null;
+            material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
             material.SetTexture("_BaseMap", texture);
             material.SetFloat("_Smoothness", 0.1f);
             AssetDatabase.CreateAsset(material, path);

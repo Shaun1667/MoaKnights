@@ -9,6 +9,9 @@ namespace MoaKnights.Game
     {
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 
+        // 모델의 +x(앞)를 LookRotation의 +z로 옮기는 회전.
+        private static readonly Quaternion ModelForward = Quaternion.Euler(0f, -90f, 0f);
+
         private readonly Dictionary<int, Actor> _actors = new Dictionary<int, Actor>();
 
         private Simulation _simulation;
@@ -21,6 +24,7 @@ namespace MoaKnights.Game
             public Transform Transform;
             public float BaseOffset;
             public float TopHeight;
+            public Transform Model;   // 가는 방향으로 돌리는 모델 (체력바는 돌지 않게 Transform의 자식으로 따로 둔다). 그레이박스는 null.
             public HealthBar HealthBar;
         }
 
@@ -70,6 +74,12 @@ namespace MoaKnights.Game
 
                 var position = Vector3.Lerp(_mapView.CellTop(from), _mapView.CellTop(to), t);
                 actor.Transform.position = position + Vector3.up * actor.BaseOffset;
+
+                // 모델은 앞이 +x다. 가는 방향으로 돌린다 (그레이박스 캡슐은 돌리지 않는다).
+                var heading = _mapView.CellTop(to) - _mapView.CellTop(from);
+                heading.y = 0f;
+                if (actor.Model != null && heading.sqrMagnitude > 1e-6f)
+                    actor.Model.rotation = Quaternion.LookRotation(heading) * ModelForward;
                 actor.HealthBar.Set(enemy.Hp, enemyDefinition.Stats.MaxHp);
             }
         }
@@ -96,9 +106,12 @@ namespace MoaKnights.Game
 
         private Actor CreateFromPrefab(Enemy enemy, BattleViewAsset.EnemyVisual visual)
         {
-            var instance = Instantiate(visual.Prefab, transform);
-            instance.name = "Enemy_" + enemy.Id;
-            return new Actor { Transform = instance.transform, BaseOffset = 0f, TopHeight = visual.Size * 2f };
+            var root = new GameObject("Enemy_" + enemy.Id).transform;
+            root.SetParent(transform, false);
+            var model = Instantiate(visual.Prefab, root);
+            var top = 0f;
+            foreach (var r in model.GetComponentsInChildren<Renderer>()) top = Mathf.Max(top, r.bounds.max.y - root.position.y);
+            return new Actor { Transform = root, BaseOffset = 0f, TopHeight = top, Model = model.transform };
         }
 
         private Actor CreateGreybox(Enemy enemy, BattleViewAsset.EnemyVisual visual)

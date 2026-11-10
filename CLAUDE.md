@@ -54,7 +54,7 @@ MoaKnights/Assets/MoaKnights/
   Data/View/             전투 화면 표현값
   Data/Text/text.csv     화면 글 전부
   Art/Greybox/  Fonts/  Scenes/
-  Art/Units/<ID>/       능력자 모델 (FBX · 바탕색 텍스처, 재질 · 프리팹은 Setup이 만듦)
+  Art/Units/<ID>/  Art/Enemies/<ID>/   능력자 · 적 모델 (FBX · 바탕색 텍스처, 재질 · 프리팹은 Setup이 만듦)
 ```
 
 ## 코딩 규칙
@@ -91,7 +91,7 @@ MoaKnights/Assets/MoaKnights/
 
 ## 아트 · 그래픽 규칙
 - 전부 3D. 데이터는 비주얼을 ID로만 참조하고, 프리팹이 없으면 그레이박스 도형으로 그린다.
-- 캐릭터 모델: Varco 3D로 몸 · 겉옷을 따로 만들고 `Tools/Blender/combine_character.py`(Blender `D:lender.exe`)로 합쳐 삼각형 3천 개 · 앞 = Unity +X · 리그 없음으로 낸다. 원본 그림 · GLB는 저장소 루트 `ArtSource/<ID>/`. Setup이 `Art/Units/<ID>/<ID>.fbx`에서 재질 · 프리팹을 없을 때만 만들어 `BattleView` 줄에 넣는다. 체력바 높이는 `UnitModel.TopHeight`.
+- 모델: Varco 3D로 만든다. 능력자는 몸 · 겉옷을 따로 만들어 합치고, 적은 한 덩어리. `Tools/Blender/build_models.sh <ID>…`(안에서 `combine_character.py`, Blender는 `D:/blender.exe`)가 삼각형 3천 개 · 앞 = Unity +X · 리그 없음 · 노멀맵 없음으로 낸다. 원본 그림 · GLB · 미리보기는 저장소 루트 `ArtSource/<ID>/`. Setup이 `Art/Units/<ID>/<ID>.fbx` · `Art/Enemies/<ID>/<ID>.fbx`에서 재질 · 프리팹을 없을 때만 만들어 `BattleView` 줄에 넣는다. 체력바 높이는 모델 꼭대기(`UnitModel.TopHeight`, 적은 `EnemyView`), 적 모델은 가는 방향을 본다.
 - 전투 화면 구성은 참고 게임과 다르게 잡는다 (원본 기획서가 "참고 게임과 너무 동일한 화면"을 문제로 꼽았다).
 - 옛 팀의 일러스트 · UI 원본은 권리를 사용자가 확인하기 전에 쓰지 않는다.
 

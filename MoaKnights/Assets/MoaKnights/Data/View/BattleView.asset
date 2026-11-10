@@ -31,15 +31,15 @@ MonoBehaviour:
     Height: 0.25
   _enemies:
   - Id: dizes_01
-    Prefab: {fileID: 0}
+    Prefab: {fileID: 6419588165626257681, guid: 37ed547885285b640b40001b1ae5ccf1, type: 3}
     Color: {r: 0.62, g: 0.25, b: 0.85, a: 1}
     Size: 0.35
   - Id: dizes_fast
-    Prefab: {fileID: 0}
+    Prefab: {fileID: 543638655747086873, guid: 9f710b3997079ab488486d25a57305d0, type: 3}
     Color: {r: 0.95, g: 0.45, b: 0.75, a: 1}
     Size: 0.28
   - Id: dizes_tank
-    Prefab: {fileID: 0}
+    Prefab: {fileID: 21614956107819799, guid: 5338595cf02b8154ca0ea1477d39af3c, type: 3}
     Color: {r: 0.4, g: 0.18, b: 0.55, a: 1}
     Size: 0.45
   _units:
@@ -48,23 +48,23 @@ MonoBehaviour:
     Color: {r: 0.95, g: 0.7, b: 0.2, a: 1}
     Size: 0.45
   - Id: ranged_01
-    Prefab: {fileID: 0}
+    Prefab: {fileID: 3618672495608609880, guid: 374d7b223647eee439a524c8afb08b55, type: 3}
     Color: {r: 0.2, g: 0.75, b: 0.85, a: 1}
     Size: 0.4
   - Id: tank_01
-    Prefab: {fileID: 0}
+    Prefab: {fileID: 7593463414435124513, guid: 2c34df99b27990647b76e032c8b42c81, type: 3}
     Color: {r: 0.55, g: 0.62, b: 0.7, a: 1}
     Size: 0.5
   - Id: healer_01
-    Prefab: {fileID: 0}
+    Prefab: {fileID: 4671456059325124877, guid: 40f2e1aab44cfe74d97f527ae55aa8c3, type: 3}
     Color: {r: 0.45, g: 0.9, b: 0.55, a: 1}
     Size: 0.36
   - Id: sniper_01
-    Prefab: {fileID: 0}
+    Prefab: {fileID: 107949415688889906, guid: 94250c8078140b44884fcef4f4a8db6e, type: 3}
     Color: {r: 0.85, g: 0.85, b: 0.95, a: 1}
     Size: 0.34
   - Id: vanguard_01
-    Prefab: {fileID: 0}
+    Prefab: {fileID: 7510002015986446084, guid: c38f576a9a81af54982406d85ec44a1f, type: 3}
     Color: {r: 0.9, g: 0.4, b: 0.3, a: 1}
     Size: 0.4
   _damageNumberColor: {r: 1, g: 0.35, b: 0.3, a: 1}
