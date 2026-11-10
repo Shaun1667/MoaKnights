@@ -33,7 +33,7 @@ namespace MoaKnights.Tests
                 map,
                 TicksPerSecond,
                 defenseHp,
-                new[] { new EnemyDefinition(EnemyId, speed, leakDamage) },
+                new[] { new EnemyDefinition(EnemyId, speed, leakDamage, new CombatStats(60, 10, 45)) },
                 new[] { EnemyRoute.Parse(map, BentRoute) },
                 spawnTicks.Select(t => new SpawnEvent(t, EnemyId, 0)),
                 new CostRules(20, 99, 60),
@@ -176,7 +176,7 @@ namespace MoaKnights.Tests
         public void Definition_RejectsUnknownEnemyAndRoute()
         {
             var map = Map();
-            var enemies = new[] { new EnemyDefinition(EnemyId, OneCellPerSecond, 1) };
+            var enemies = new[] { new EnemyDefinition(EnemyId, OneCellPerSecond, 1, new CombatStats(60, 10, 45)) };
             var routes = new[] { EnemyRoute.Parse(map, BentRoute) };
 
             Assert.Throws<System.ArgumentException>(() =>

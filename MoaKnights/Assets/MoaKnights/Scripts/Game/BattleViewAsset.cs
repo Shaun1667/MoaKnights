@@ -53,6 +53,16 @@ namespace MoaKnights.Game
         [SerializeField] private Color _cardDisabledColor;
         [SerializeField] private Color _cardTextColor;
         [SerializeField] private float _cameraBottomReserve;
+        [SerializeField] private Color _rangeColor;
+        [SerializeField] private Vector2 _hpBarSize;
+        [SerializeField] private Color _hpBarBackColor;
+        [SerializeField] private Color _hpBarEnemyColor;
+        [SerializeField] private Color _hpBarUnitColor;
+        [SerializeField] private Color _damageToEnemyColor;
+        [SerializeField] private Color _damageToUnitColor;
+        [SerializeField] private float _floatingNumberSeconds;
+        [SerializeField] private float _floatingNumberRise;
+        [SerializeField] private float _floatingNumberSize;
         [SerializeField] private float _cellSize;
         [SerializeField] private float _cellGap;
         [SerializeField] private float _cameraPitch;
@@ -85,6 +95,20 @@ namespace MoaKnights.Game
 
         /// <summary>카드 줄이 차지하는 화면 아래쪽 비율(0~1). 카메라가 이만큼 맵을 위로 올린다.</summary>
         public float CameraBottomReserve => _cameraBottomReserve;
+
+        /// <summary>배치할 때 공격 범위 칸 위에 까는 얇은 판의 색. 재질이 불투명이라 알파는 쓰지 않는다.</summary>
+        public Color RangeColor => _rangeColor;
+
+        /// <summary>체력바 크기 (월드 단위 너비, 높이).</summary>
+        public Vector2 HpBarSize => _hpBarSize;
+        public Color HpBarBackColor => _hpBarBackColor;
+        public Color HpBarEnemyColor => _hpBarEnemyColor;
+        public Color HpBarUnitColor => _hpBarUnitColor;
+        public Color DamageToEnemyColor => _damageToEnemyColor;
+        public Color DamageToUnitColor => _damageToUnitColor;
+        public float FloatingNumberSeconds => _floatingNumberSeconds;
+        public float FloatingNumberRise => _floatingNumberRise;
+        public float FloatingNumberSize => _floatingNumberSize;
 
         public bool TryGetUnit(string id, out UnitVisual visual)
         {

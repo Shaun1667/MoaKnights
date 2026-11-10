@@ -21,10 +21,27 @@ MonoBehaviour:
   - Id: dizes_01
     SpeedCellsPerSecond: 1
     LeakDamage: 1
+    MaxHp: 60
+    Attack: 10
+    AttackIntervalSeconds: 1.5
   _units:
   - Id: melee_01
     Cost: 10
     Terrain: 0
+    MaxHp: 100
+    Attack: 20
+    AttackIntervalSeconds: 1
+    BlockCount: 2
+    Range:
+    - '@X'
   - Id: ranged_01
     Cost: 12
     Terrain: 1
+    MaxHp: 60
+    Attack: 15
+    AttackIntervalSeconds: 1.2
+    BlockCount: 0
+    Range:
+    - .XXX
+    - OXXX
+    - .XXX

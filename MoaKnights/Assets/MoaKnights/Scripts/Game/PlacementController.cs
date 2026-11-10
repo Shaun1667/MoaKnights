@@ -31,6 +31,7 @@ namespace MoaKnights.Game
         private bool _hasCell;
         private Direction _direction;
         private bool _directionDragging;
+        private RangeView _range;
 
         /// <summary>배치가 거절됐을 때. 화면 계층이 결과에 맞는 글을 띄운다.</summary>
         public event Action<PlacementResult> PlacementRejected;
@@ -43,7 +44,15 @@ namespace MoaKnights.Game
             _mapView = mapView;
             _view = view;
             _camera = worldCamera;
+            _range = new RangeView(transform, mapView, view, simulation.Map);
             cards.CardPressed += BeginDrag;
+        }
+
+        private void OnDestroy() => _range?.Destroy();
+
+        private void ShowRange()
+        {
+            if (_simulation.Definition.TryGetUnit(_unitId, out var unit)) _range.Show(unit.Range, _cell, _direction);
         }
 
         private void BeginDrag(string unitId)
@@ -91,6 +100,11 @@ namespace MoaKnights.Game
             {
                 _preview.Place(_mapView.CellTop(_cell), _direction);
                 _preview.Tint(result == PlacementResult.Ok ? _view.PreviewValidColor : _view.PreviewInvalidColor);
+                ShowRange();
+            }
+            else
+            {
+                _range.Hide();
             }
 
             if (!mouse.leftButton.wasReleasedThisFrame) return;
@@ -119,6 +133,7 @@ namespace MoaKnights.Game
 
             UpdateDirection(pointer);
             _preview.Place(_mapView.CellTop(_cell), _direction);
+            ShowRange();
 
             if (!_directionDragging || !mouse.leftButton.wasReleasedThisFrame) return;
 
@@ -143,6 +158,7 @@ namespace MoaKnights.Game
         {
             if (_preview != null) Destroy(_preview.Root);
             _preview = null;
+            _range.Hide();
             _unitId = null;
             _hasCell = false;
             _state = State.Idle;

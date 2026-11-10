@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MoaKnights.Game
 {
-    /// <summary>적을 이벤트로 만들고 지우며, 매 프레임 규칙의 진행도를 따라 그리기만 한다.</summary>
+    /// <summary>적을 이벤트로 만들고 지우며, 매 프레임 규칙의 진행도와 HP를 따라 그리기만 한다.</summary>
     public sealed class EnemyView : MonoBehaviour
     {
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
@@ -16,16 +16,12 @@ namespace MoaKnights.Game
         private MapView _mapView;
         private BattleViewAsset _view;
 
-        private readonly struct Actor
+        private sealed class Actor
         {
-            public readonly Transform Transform;
-            public readonly float BaseOffset;
-
-            public Actor(Transform transform, float baseOffset)
-            {
-                Transform = transform;
-                BaseOffset = baseOffset;
-            }
+            public Transform Transform;
+            public float BaseOffset;
+            public float TopHeight;
+            public HealthBar HealthBar;
         }
 
         public void Bind(Simulation simulation, TickClock clock, MapView mapView, BattleViewAsset view)
@@ -37,7 +33,17 @@ namespace MoaKnights.Game
 
             _simulation.EnemySpawned += OnSpawned;
             _simulation.EnemyLeaked += OnRemoved;
+            _simulation.EnemyKilled += OnRemoved;
             foreach (var enemy in _simulation.World.Enemies) OnSpawned(enemy);
+        }
+
+        /// <summary>적 머리 위 월드 좌표. 피해 숫자를 띄울 때 쓴다.</summary>
+        public bool TryGetTop(int enemyId, out Vector3 top)
+        {
+            top = default;
+            if (!_actors.TryGetValue(enemyId, out var actor)) return false;
+            top = actor.Transform.position + Vector3.up * (actor.TopHeight - actor.BaseOffset);
+            return true;
         }
 
         private void OnDestroy()
@@ -45,6 +51,7 @@ namespace MoaKnights.Game
             if (_simulation == null) return;
             _simulation.EnemySpawned -= OnSpawned;
             _simulation.EnemyLeaked -= OnRemoved;
+            _simulation.EnemyKilled -= OnRemoved;
         }
 
         private void LateUpdate()
@@ -56,13 +63,14 @@ namespace MoaKnights.Game
             {
                 if (!_actors.TryGetValue(enemy.Id, out var actor)) continue;
 
-                // 틱 사이를 메워 부드럽게 보이게 한다. 규칙의 진행도는 바꾸지 않는다.
-                var speed = definition.Enemy(enemy.DefinitionId).SpeedPerTick;
-                var shown = enemy.Progress + Mathf.RoundToInt(speed * _clock.TickFraction);
-                definition.Routes[enemy.RouteIndex].Locate(shown, definition.UnitsPerCell, out var from, out var to, out var t);
+                // 틱 사이를 메워 부드럽게 보이게 한다. 막힌 적은 움직이지 않는다. 규칙의 진행도는 바꾸지 않는다.
+                var enemyDefinition = definition.Enemy(enemy.DefinitionId);
+                var lead = enemy.IsBlocked ? 0 : Mathf.RoundToInt(enemyDefinition.SpeedPerTick * _clock.TickFraction);
+                definition.Routes[enemy.RouteIndex].Locate(enemy.Progress + lead, definition.UnitsPerCell, out var from, out var to, out var t);
 
                 var position = Vector3.Lerp(_mapView.CellTop(from), _mapView.CellTop(to), t);
                 actor.Transform.position = position + Vector3.up * actor.BaseOffset;
+                actor.HealthBar.Set(enemy.Hp, enemyDefinition.Stats.MaxHp);
             }
         }
 
@@ -74,7 +82,9 @@ namespace MoaKnights.Game
                 return;
             }
 
-            _actors[enemy.Id] = visual.Prefab != null ? CreateFromPrefab(enemy, visual) : CreateGreybox(enemy, visual);
+            var actor = visual.Prefab != null ? CreateFromPrefab(enemy, visual) : CreateGreybox(enemy, visual);
+            actor.HealthBar = new HealthBar(actor.Transform, actor.TopHeight - actor.BaseOffset + _view.HpBarSize.y * 2f, _view.HpBarEnemyColor, _view);
+            _actors[enemy.Id] = actor;
         }
 
         private void OnRemoved(Enemy enemy)
@@ -88,15 +98,18 @@ namespace MoaKnights.Game
         {
             var instance = Instantiate(visual.Prefab, transform);
             instance.name = "Enemy_" + enemy.Id;
-            return new Actor(instance.transform, 0f);
+            return new Actor { Transform = instance.transform, BaseOffset = 0f, TopHeight = visual.Size * 2f };
         }
 
         private Actor CreateGreybox(Enemy enemy, BattleViewAsset.EnemyVisual visual)
         {
+            var root = new GameObject("Enemy_" + enemy.Id).transform;
+            root.SetParent(transform, false);
+
             var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            body.name = "Enemy_" + enemy.Id;
+            body.name = "Body";
             Destroy(body.GetComponent<Collider>());
-            body.transform.SetParent(transform, false);
+            body.transform.SetParent(root, false);
             body.transform.localScale = Vector3.one * visual.Size;
 
             var bodyRenderer = body.GetComponent<Renderer>();
@@ -106,7 +119,7 @@ namespace MoaKnights.Game
             bodyRenderer.SetPropertyBlock(block);
 
             // 유니티 캡슐은 높이가 크기의 2배이고 중심이 가운데라, 크기만큼 올려야 바닥에 닿는다.
-            return new Actor(body.transform, visual.Size);
+            return new Actor { Transform = root, BaseOffset = visual.Size, TopHeight = visual.Size * 2f };
         }
     }
 }

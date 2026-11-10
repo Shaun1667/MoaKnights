@@ -19,7 +19,8 @@ namespace MoaKnights.Game
             foreach (var row in balance.Enemies)
             {
                 var speed = Mathf.RoundToInt(row.SpeedCellsPerSecond * SpeedPerTickPerCellPerSecond);
-                enemies.Add(new EnemyDefinition(row.Id, speed, row.LeakDamage));
+                var stats = new CombatStats(row.MaxHp, row.Attack, Ticks(row.AttackIntervalSeconds, ticksPerSecond));
+                enemies.Add(new EnemyDefinition(row.Id, speed, row.LeakDamage, stats));
             }
 
             var routes = new List<EnemyRoute>();
@@ -41,9 +42,15 @@ namespace MoaKnights.Game
                 Mathf.RoundToInt(balance.CostRegenSeconds * ticksPerSecond));
 
             var units = new List<UnitDefinition>();
-            foreach (var row in balance.Units) units.Add(new UnitDefinition(row.Id, row.Cost, row.Terrain));
+            foreach (var row in balance.Units)
+            {
+                var stats = new CombatStats(row.MaxHp, row.Attack, Ticks(row.AttackIntervalSeconds, ticksPerSecond));
+                units.Add(new UnitDefinition(row.Id, row.Cost, row.Terrain, stats, row.BlockCount, AttackRange.Parse(row.Range)));
+            }
 
             return new BattleDefinition(map, ticksPerSecond, balance.DefenseHp, enemies, routes, spawns, cost, units);
         }
+
+        private static int Ticks(float seconds, int ticksPerSecond) => Mathf.RoundToInt(seconds * ticksPerSecond);
     }
 }

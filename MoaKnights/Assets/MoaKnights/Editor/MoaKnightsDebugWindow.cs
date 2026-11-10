@@ -104,7 +104,8 @@ namespace MoaKnights.EditorTools
 
             EditorGUILayout.LabelField("배치된 능력자", world.Units.Count.ToString());
             foreach (var unit in world.Units)
-                EditorGUILayout.LabelField("#" + unit.Id + " " + unit.DefinitionId, unit.Cell + "  " + unit.Direction);
+                EditorGUILayout.LabelField("#" + unit.Id + " " + unit.DefinitionId,
+                    unit.Cell + "  " + unit.Direction + "  HP " + unit.Hp + "  저지 " + world.BlockedCount(unit.Id) + "  다음 공격 " + unit.AttackCooldown + "틱");
         }
 
         private static void DrawEnemySection(GameRoot root)
@@ -123,7 +124,8 @@ namespace MoaKnights.EditorTools
                 var route = definition.Routes[enemy.RouteIndex];
                 var cells = enemy.Progress / (float)definition.UnitsPerCell;
                 EditorGUILayout.LabelField("#" + enemy.Id + " " + enemy.DefinitionId,
-                    "경로 " + enemy.RouteIndex + "  " + cells.ToString("0.0") + " / " + route.Length + "칸");
+                    "경로 " + enemy.RouteIndex + "  " + cells.ToString("0.0") + " / " + route.Length + "칸  HP " + enemy.Hp
+                    + (enemy.IsBlocked ? "  저지됨(#" + enemy.BlockedBy + ")" : ""));
             }
         }
     }

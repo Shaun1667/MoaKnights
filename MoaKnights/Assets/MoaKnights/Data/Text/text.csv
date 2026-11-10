@@ -10,3 +10,4 @@ ui.place.already_deployed,이미 배치한 능력자입니다,This unit is alrea
 ui.place.not_enough_cost,코스트가 부족합니다,Not enough cost
 unit.melee_01.name,근거리 (임시),Melee (temp)
 unit.ranged_01.name,원거리 (임시),Ranged (temp)
+ui.battle.damage,{0},{0}

@@ -27,6 +27,7 @@
 | 3-1 | 디펜스 HP | 10 | 결정 2026-11-09, 사용자 (임시) |
 | 3-2 | `dizes_01` 속도 (칸/초) | 1 | 착수 질문에 제시, 2026-11-09 사용자 (임시) |
 | 3-3 | `dizes_01` 누수 피해 | 1 | 결정 2026-11-09, 사용자 (임시) |
+| 3-4 | `dizes_01` HP · 공격 · 공격 간격(초) | 60 · 10 · 1.5 | 결정 2026-11-10, 사용자 (임시) |
 
 속도는 소수 둘째 자리까지 쓴다. 규칙 코드에서는 정수로 바뀐다 (1.00칸/초 = 틱당 100, 한 칸 = 초당 틱 x 100).
 
@@ -45,7 +46,17 @@
 |---|---|---|---|
 | 5-1 | `melee_01` 코스트 · 칸 | 10 · 지상 | 결정 2026-11-10, 사용자 (임시) |
 | 5-2 | `ranged_01` 코스트 · 칸 | 12 · 언덕 | 결정 2026-11-10, 사용자 (임시) |
+| 5-3 | `melee_01` HP · 공격 · 공격 간격(초) · 저지 | 100 · 20 · 1 · 2 | 결정 2026-11-10, 사용자 (임시) |
+| 5-4 | `melee_01` 공격 범위 | `@X` (자기 칸 + 앞 1칸) | 결정 2026-11-10, 사용자 (임시) |
+| 5-5 | `ranged_01` HP · 공격 · 공격 간격(초) · 저지 | 60 · 15 · 1.2 · 0 | 결정 2026-11-10, 사용자 (임시) |
+| 5-6 | `ranged_01` 공격 범위 | `.XXX` / `OXXX` / `.XXX` (앞 3x3) | 결정 2026-11-10, 사용자 (임시) |
+
+피해 = 공격력 (방어 없음). 공격 간격은 규칙에서 틱 정수다: 1초 30틱, 1.2초 36틱, 1.5초 45틱.
+범위 글자: `O` 능력자 자리(공격 안 함), `@` 능력자 자리(공격함), `X` 공격 칸, `.` 빈 칸. 오른쪽이 앞, 위쪽 줄이 +y. 방향에 따라 규칙이 돌린다.
+
+검산 (한 마리 기준): 근거리 혼자 적 1마리를 3대 = 2초에 잡는다. 막힌 적 2마리는 근거리를 1.5초마다 20씩 깎아, 근거리 HP 100은 약 7.5초 버틴다.
+플레이 관찰 (2026-11-10, Claude): 근거리 (4,3) 오른쪽 + 원거리 (4,2) 왼쪽 배치로 Stage01을 돌리면 근거리가 쓰러지고 디펜스 HP 5가 남았다. 배치를 바꿔 보며 값을 정할 것 — 확인 필요.
 
 검산: 시작 20으로 하나는 바로 놓고, 둘째는 2초마다 1씩 차서 둘 다 놓으려면 22가 필요하다 (시작 후 4초).
 
-검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`.
+검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.

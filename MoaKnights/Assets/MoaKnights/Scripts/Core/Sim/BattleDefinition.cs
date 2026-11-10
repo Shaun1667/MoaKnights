@@ -14,8 +14,9 @@ namespace MoaKnights.Core.Sim
         public int SpeedPerTick { get; }
 
         public int LeakDamage { get; }
+        public CombatStats Stats { get; }
 
-        public EnemyDefinition(string id, int speedPerTick, int leakDamage)
+        public EnemyDefinition(string id, int speedPerTick, int leakDamage, CombatStats stats)
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentException("Enemy id is empty.");
             if (speedPerTick <= 0) throw new ArgumentOutOfRangeException(nameof(speedPerTick), "Enemy " + id);
@@ -23,6 +24,25 @@ namespace MoaKnights.Core.Sim
             Id = id;
             SpeedPerTick = speedPerTick;
             LeakDamage = leakDamage;
+            Stats = stats ?? throw new ArgumentNullException(nameof(stats), "Enemy " + id);
+        }
+    }
+
+    /// <summary>싸우는 쪽의 공통 수치. 피해 = 공격력 (방어는 아직 없음). 공격 간격은 틱.</summary>
+    public sealed class CombatStats
+    {
+        public int MaxHp { get; }
+        public int Attack { get; }
+        public int AttackIntervalTicks { get; }
+
+        public CombatStats(int maxHp, int attack, int attackIntervalTicks)
+        {
+            if (maxHp <= 0) throw new ArgumentOutOfRangeException(nameof(maxHp));
+            if (attack < 0) throw new ArgumentOutOfRangeException(nameof(attack));
+            if (attackIntervalTicks <= 0) throw new ArgumentOutOfRangeException(nameof(attackIntervalTicks));
+            MaxHp = maxHp;
+            Attack = attack;
+            AttackIntervalTicks = attackIntervalTicks;
         }
     }
 

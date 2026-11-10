@@ -45,6 +45,10 @@ namespace MoaKnights.EditorTools
         private const string MeleeUnitId = "melee_01";
         private const string RangedUnitId = "ranged_01";
 
+        // 공격 범위 (오른쪽이 앞). 근거리: 자기 칸 + 앞 1칸. 원거리: 앞 3x3.
+        private static readonly string[] MeleeRange = { "@X" };
+        private static readonly string[] RangedRange = { ".XXX", "OXXX", ".XXX" };
+
         [MenuItem("MoaKnights/Setup/Run All")]
         public static void RunAll()
         {
@@ -100,8 +104,37 @@ namespace MoaKnights.EditorTools
                 SetUnitRow(units.GetArrayElementAtIndex(1), RangedUnitId, 12, UnitTerrain.Hill);
             }
 
+            // 전투 칸은 1-3 뒤에 생겼으므로, 비어 있는 행에만 BALANCE 5번 값을 넣는다.
+            for (var i = 0; i < units.arraySize; i++)
+            {
+                var row = units.GetArrayElementAtIndex(i);
+                var id = row.FindPropertyRelative("Id").stringValue;
+                if (id == MeleeUnitId) FillCombat(row, 100, 20, 1f, 2, MeleeRange);
+                if (id == RangedUnitId) FillCombat(row, 60, 15, 1.2f, 0, RangedRange);
+            }
+
+            for (var i = 0; i < enemies.arraySize; i++)
+            {
+                var row = enemies.GetArrayElementAtIndex(i);
+                if (row.FindPropertyRelative("Id").stringValue == FirstEnemyId) FillCombat(row, 60, 10, 1.5f, -1, null);
+            }
+
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
+        }
+
+        private static void FillCombat(SerializedProperty row, int maxHp, int attack, float interval, int blockCount, string[] range)
+        {
+            if (row.FindPropertyRelative("MaxHp").intValue != 0) return;
+            row.FindPropertyRelative("MaxHp").intValue = maxHp;
+            row.FindPropertyRelative("Attack").intValue = attack;
+            row.FindPropertyRelative("AttackIntervalSeconds").floatValue = interval;
+            if (blockCount >= 0) row.FindPropertyRelative("BlockCount").intValue = blockCount;
+            if (range == null) return;
+
+            var rows = row.FindPropertyRelative("Range");
+            rows.arraySize = range.Length;
+            for (var r = 0; r < range.Length; r++) rows.GetArrayElementAtIndex(r).stringValue = range[r];
         }
 
         private static void SetUnitRow(SerializedProperty row, string id, int cost, UnitTerrain terrain)
@@ -189,6 +222,17 @@ namespace MoaKnights.EditorTools
             FillIfEmpty(so.FindProperty("_cardDisabledColor"), new Color(0.45f, 0.45f, 0.45f));
             FillIfEmpty(so.FindProperty("_cardTextColor"), new Color(0.10f, 0.10f, 0.10f));
             FillIfZero(so.FindProperty("_cameraBottomReserve"), 0.22f);
+            FillIfEmpty(so.FindProperty("_rangeColor"), new Color(0.95f, 0.55f, 0.15f));
+            var hpBarSize = so.FindProperty("_hpBarSize");
+            if (hpBarSize.vector2Value == Vector2.zero) hpBarSize.vector2Value = new Vector2(0.6f, 0.06f);
+            FillIfEmpty(so.FindProperty("_hpBarBackColor"), new Color(0.12f, 0.12f, 0.12f));
+            FillIfEmpty(so.FindProperty("_hpBarEnemyColor"), new Color(0.90f, 0.30f, 0.25f));
+            FillIfEmpty(so.FindProperty("_hpBarUnitColor"), new Color(0.35f, 0.85f, 0.45f));
+            FillIfEmpty(so.FindProperty("_damageToEnemyColor"), new Color(1.00f, 0.95f, 0.70f));
+            FillIfEmpty(so.FindProperty("_damageToUnitColor"), new Color(1.00f, 0.35f, 0.30f));
+            FillIfZero(so.FindProperty("_floatingNumberSeconds"), 0.8f);
+            FillIfZero(so.FindProperty("_floatingNumberRise"), 0.6f);
+            FillIfZero(so.FindProperty("_floatingNumberSize"), 3f);
 
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
@@ -262,6 +306,7 @@ namespace MoaKnights.EditorTools
             var enemyView = new GameObject("EnemyView", typeof(EnemyView)).GetComponent<EnemyView>();
             var unitView = new GameObject("UnitView", typeof(UnitView)).GetComponent<UnitView>();
             var placement = new GameObject("PlacementController", typeof(PlacementController)).GetComponent<PlacementController>();
+            var damageNumbers = new GameObject("DamageNumbers", typeof(DamageNumbers)).GetComponent<DamageNumbers>();
             new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
 
             var canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -302,6 +347,7 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_unitView").objectReferenceValue = unitView;
             so.FindProperty("_cardBar").objectReferenceValue = cardBar;
             so.FindProperty("_placement").objectReferenceValue = placement;
+            so.FindProperty("_damageNumbers").objectReferenceValue = damageNumbers;
             so.FindProperty("_hud").objectReferenceValue = hud;
             so.FindProperty("_titleLabel").objectReferenceValue = title;
             so.ApplyModifiedPropertiesWithoutUndo();

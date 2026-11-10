@@ -11,6 +11,8 @@ namespace MoaKnights.Tests
         private const string Melee = "melee";
         private const string Ranged = "ranged";
         private const int RegenTicks = 60;
+        private static readonly CombatStats Stats = new CombatStats(100, 10, 30);
+        private static readonly AttackRange Range = AttackRange.Parse(new[] { "@" });
 
         // y=2: # H H      — (0,2) 막힘, (1,2) · (2,2) 언덕
         // y=1: . . .      — 지상
@@ -35,8 +37,8 @@ namespace MoaKnights.Tests
                 new CostRules(startCost, maxCost, RegenTicks),
                 new[]
                 {
-                    new UnitDefinition(Melee, 10, UnitTerrain.Ground),
-                    new UnitDefinition(Ranged, 12, UnitTerrain.Hill),
+                    new UnitDefinition(Melee, 10, UnitTerrain.Ground, Stats, 1, Range),
+                    new UnitDefinition(Ranged, 12, UnitTerrain.Hill, Stats, 0, Range),
                 });
             return new Simulation(World.Create(seed, "s", definition.DefenseHp, definition.Cost.Start), definition);
         }
@@ -196,7 +198,7 @@ namespace MoaKnights.Tests
         public void Definition_RejectsDuplicateUnitAndBadCostRules()
         {
             var map = GridMap.Parse(Map);
-            var units = new[] { new UnitDefinition(Melee, 10, UnitTerrain.Ground), new UnitDefinition(Melee, 12, UnitTerrain.Hill) };
+            var units = new[] { new UnitDefinition(Melee, 10, UnitTerrain.Ground, Stats, 1, Range), new UnitDefinition(Melee, 12, UnitTerrain.Hill, Stats, 0, Range) };
             Assert.Throws<System.ArgumentException>(() => new BattleDefinition(
                 map, 30, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0], new CostRules(20, 99, 60), units));
 

@@ -26,6 +26,7 @@ namespace MoaKnights.Game
         [SerializeField] private CardBar _cardBar;
         [SerializeField] private PlacementController _placement;
         [SerializeField] private BattleHud _hud;
+        [SerializeField] private DamageNumbers _damageNumbers;
         [SerializeField] private TMP_Text _titleLabel;
 
         private TMP_FontAsset _runtimeFont;
@@ -57,6 +58,7 @@ namespace MoaKnights.Game
             _cardBar.Bind(Simulation, _view, _runtimeFont);
             _placement.Bind(Simulation, _mapView, _view, _cameraRig.GetComponent<Camera>(), _cardBar);
             _hud.Bind(Simulation, _view, _runtimeFont, _placement);
+            _damageNumbers.Bind(Simulation, _enemyView, _unitView, _view, _runtimeFont, _cameraRig.GetComponent<Camera>());
         }
 
         private void Update()

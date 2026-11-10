@@ -37,14 +37,24 @@ namespace MoaKnights.Core.Sim
         public string Id { get; }
         public int Cost { get; }
         public UnitTerrain Terrain { get; }
+        public CombatStats Stats { get; }
 
-        public UnitDefinition(string id, int cost, UnitTerrain terrain)
+        /// <summary>동시에 막을 수 있는 적 수. 0이면 막지 않는다.</summary>
+        public int BlockCount { get; }
+
+        public AttackRange Range { get; }
+
+        public UnitDefinition(string id, int cost, UnitTerrain terrain, CombatStats stats, int blockCount, AttackRange range)
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentException("Unit id is empty.");
             if (cost < 0) throw new ArgumentOutOfRangeException(nameof(cost), "Unit " + id);
+            if (blockCount < 0) throw new ArgumentOutOfRangeException(nameof(blockCount), "Unit " + id);
             Id = id;
             Cost = cost;
             Terrain = terrain;
+            Stats = stats ?? throw new ArgumentNullException(nameof(stats), "Unit " + id);
+            BlockCount = blockCount;
+            Range = range ?? throw new ArgumentNullException(nameof(range), "Unit " + id);
         }
 
         public bool CanStandOn(CellType cell)
@@ -65,13 +75,19 @@ namespace MoaKnights.Core.Sim
         public string DefinitionId { get; }
         public GridPos Cell { get; }
         public Direction Direction { get; }
+        public int Hp { get; internal set; }
 
-        public Unit(int id, string definitionId, GridPos cell, Direction direction)
+        /// <summary>다음 공격까지 남은 틱. 0이면 대상이 생기는 즉시 친다.</summary>
+        public int AttackCooldown { get; internal set; }
+
+        public Unit(int id, string definitionId, GridPos cell, Direction direction, int hp, int attackCooldown)
         {
             Id = id;
             DefinitionId = definitionId;
             Cell = cell;
             Direction = direction;
+            Hp = hp;
+            AttackCooldown = attackCooldown;
         }
     }
 }

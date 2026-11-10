@@ -56,6 +56,16 @@ MonoBehaviour:
   _cardDisabledColor: {r: 0.45, g: 0.45, b: 0.45, a: 1}
   _cardTextColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
   _cameraBottomReserve: 0.22
+  _rangeColor: {r: 0.95, g: 0.55, b: 0.15, a: 1}
+  _hpBarSize: {x: 0.6, y: 0.06}
+  _hpBarBackColor: {r: 0.12, g: 0.12, b: 0.12, a: 1}
+  _hpBarEnemyColor: {r: 0.9, g: 0.3, b: 0.25, a: 1}
+  _hpBarUnitColor: {r: 0.35, g: 0.85, b: 0.45, a: 1}
+  _damageToEnemyColor: {r: 1, g: 0.95, b: 0.7, a: 1}
+  _damageToUnitColor: {r: 1, g: 0.35, b: 0.3, a: 1}
+  _floatingNumberSeconds: 0.8
+  _floatingNumberRise: 0.6
+  _floatingNumberSize: 3
   _cellSize: 1
   _cellGap: 0.04
   _cameraPitch: 50

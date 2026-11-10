@@ -84,6 +84,35 @@ namespace MoaKnights.Tests
             var ranged = balance.Units.Single(u => u.Id == "ranged_01");
             Assert.AreEqual(12, ranged.Cost);
             Assert.AreEqual(UnitTerrain.Hill, ranged.Terrain);
+
+            // BALANCE 3 · 5번 전투 수치.
+            Assert.AreEqual(60, enemy.MaxHp);
+            Assert.AreEqual(10, enemy.Attack);
+            Assert.AreEqual(1.5f, enemy.AttackIntervalSeconds);
+            Assert.AreEqual(100, melee.MaxHp);
+            Assert.AreEqual(20, melee.Attack);
+            Assert.AreEqual(1f, melee.AttackIntervalSeconds);
+            Assert.AreEqual(2, melee.BlockCount);
+            CollectionAssert.AreEqual(new[] { "@X" }, melee.Range);
+            Assert.AreEqual(60, ranged.MaxHp);
+            Assert.AreEqual(15, ranged.Attack);
+            Assert.AreEqual(1.2f, ranged.AttackIntervalSeconds);
+            Assert.AreEqual(0, ranged.BlockCount);
+            CollectionAssert.AreEqual(new[] { ".XXX", "OXXX", ".XXX" }, ranged.Range);
+        }
+
+        /// <summary>BALANCE 5번 검산: 초 단위 공격 간격이 틱으로 맞게 바뀐다 (1초 30틱, 1.2초 36틱, 1.5초 45틱).</summary>
+        [Test]
+        public void AttackIntervals_ConvertToTicks()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            var stage = AssetDatabase.LoadAssetAtPath<StageAsset>("Assets/MoaKnights/Data/Stages/Stage01.asset");
+            var definition = BattleDefinitionFactory.Create(stage, balance);
+            definition.TryGetUnit("melee_01", out var melee);
+            definition.TryGetUnit("ranged_01", out var ranged);
+            Assert.AreEqual(30, melee.Stats.AttackIntervalTicks);
+            Assert.AreEqual(36, ranged.Stats.AttackIntervalTicks);
+            Assert.AreEqual(45, definition.Enemy("dizes_01").Stats.AttackIntervalTicks);
         }
 
         /// <summary>BALANCE 1번 검산: 2초에 1 회복 = 초당 30틱에서 60틱.</summary>
