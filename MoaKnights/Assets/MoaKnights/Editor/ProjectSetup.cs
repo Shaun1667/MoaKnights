@@ -487,6 +487,11 @@ namespace MoaKnights.EditorTools
             go.transform.SetParent(parent, false);
             go.GetComponent<Image>().color = new Color(0.12f, 0.12f, 0.14f, 0.92f);
 
+            // 레이아웃 그룹이 정하는 값은 Unity가 앵커 0 · 크기 0으로 저장한다. 미리 같게 두어 씬을 열 때 바뀌지 않게 한다.
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = Vector2.zero;
+            rect.sizeDelta = Vector2.zero;
+
             var labelGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(go.transform, false);
             var labelRect = labelGo.GetComponent<RectTransform>();
@@ -498,6 +503,7 @@ namespace MoaKnights.EditorTools
             label.fontSize = 26;
             label.color = Color.white;
             label.raycastTarget = false;
+            PinTextStyle(label);
             return go.GetComponent<Button>();
         }
 
@@ -521,6 +527,9 @@ namespace MoaKnights.EditorTools
             return go.GetComponent<CardBar>();
         }
 
+        /// <summary>TMP는 처음 읽을 때 기본 스타일 해시를 채워 씬을 바꾼다. 미리 같은 값을 넣어 둔다.</summary>
+        private static void PinTextStyle(TMP_Text label) => label.textStyle = TMP_Style.NormalStyle;
+
         private static TextMeshProUGUI CreateLabel(Transform parent, string name, Vector2 position, float size, bool bottom = false)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -535,6 +544,7 @@ namespace MoaKnights.EditorTools
             label.fontSize = size;
             label.textWrappingMode = TextWrappingModes.Normal;
             label.raycastTarget = false;
+            PinTextStyle(label);
             return label;
         }
 
