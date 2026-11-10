@@ -3,7 +3,7 @@
 ## 0. 데이터 에셋 위치
 | 표 | 에셋 | 코드 |
 |---|---|---|
-| 1. 코스트 · 2. 시간 · 3. 디펜스 · 적 · 5. 능력자 · 6. 중첩 · 퇴각 · 재배치 | `Assets/MoaKnights/Data/Balance/BattleBalance.asset` | `BattleBalanceAsset` |
+| 1. 코스트 · 2. 시간 · 3. 디펜스 · 적 · 5. 능력자 · 6. 중첩 · 퇴각 · 재배치 · 7. SP · 스킬 | `Assets/MoaKnights/Data/Balance/BattleBalance.asset` | `BattleBalanceAsset` |
 | 4. 등장 (스테이지마다) | `Assets/MoaKnights/Data/Stages/Stage01.asset` | `StageAsset` |
 
 ## 1. 코스트
@@ -75,4 +75,16 @@
 검산: 근거리 단계별 HP 100 / 130 / 160, 공격 20 / 26 / 32, 저지 2 / 2 / 3. 원거리 HP 60 / 78 / 96, 공격 15 / 19 / 24. 근거리 배치 코스트 첫 10 → 재배치 15 → 20. 근거리 2단계에서 퇴각하면 (10 + 10) / 2 = 10 환급.
 에셋의 정수 배열은 Unity 형식이라 16진수로 저장된다 (`6400000082000000a0000000` = 100, 130, 160).
 
-검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.DeployRules_MatchBalanceDoc`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.
+## 7. SP · 스킬 (임시값 — 원본 능력자 스킬을 못 읽음, GDD 9-5)
+| 번호 | 항목 | 값 | 출처 |
+|---|---|---|---|
+| 7-1 | `melee_01` SP | 피격 회복 (맞을 때 +1), 최대 8 | 결정 2026-11-10, 사용자 (임시) |
+| 7-2 | `melee_01` 스킬 1 · 2 · 3단계 | "버티기" HP 30% · "버티기 II" HP 40% · "철벽" HP 50% + 8초 저지 +1 | 결정 2026-11-10, 사용자 (임시) |
+| 7-3 | `ranged_01` SP | 타격 회복 (칠 때 +1), 최대 10 | 결정 2026-11-10, 사용자 (임시) |
+| 7-4 | `ranged_01` 스킬 1 · 2 · 3단계 | "집중 사격" 10초 공격 +50% · II +80% · III +120% | 결정 2026-11-10, 사용자 (임시) |
+| 7-5 | 자연 회복 SP | 규칙만 있음 (쓰는 능력자 없음) | 기획서 (4-8) |
+
+회복은 최대 HP 기준 퍼센트(내림), 최대 HP를 넘지 않음. 공격 보너스는 단계 공격력에 곱함(내림). 스킬을 쓰는 동안 SP는 차지 않고, 쓰는 중에 겹쳐도 처음 쓴 단계의 효과가 이어진다. 저지 보너스가 끝나면 넘치는 적은 뒤에 막힌 순서로 풀린다.
+검산: 원거리 1단계 스킬 중 공격 15 x 150% = 22, 3단계는 24 x 220% = 52. 근거리 HP 10에서 "버티기" → 40.
+
+검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.DeployRules_MatchBalanceDoc`, `ProjectRuleTests.SkillData_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.

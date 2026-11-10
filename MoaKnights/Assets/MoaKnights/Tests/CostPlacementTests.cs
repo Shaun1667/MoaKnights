@@ -37,8 +37,8 @@ namespace MoaKnights.Tests
                 new CostRules(startCost, maxCost, RegenTicks),
                 new[]
                 {
-                    new UnitDefinition(Melee, 10, UnitTerrain.Ground, Stats, 1, Range),
-                    new UnitDefinition(Ranged, 12, UnitTerrain.Hill, Stats, 0, Range),
+                    new UnitDefinition(Melee, 10, UnitTerrain.Ground, Stats, 1, Range, TestRules.NoSkills()),
+                    new UnitDefinition(Ranged, 12, UnitTerrain.Hill, Stats, 0, Range, TestRules.NoSkills()),
                 },
                 TestRules.Deploy);
             return new Simulation(World.Create(seed, "s", definition.DefenseHp, definition.Cost.Start), definition);
@@ -199,7 +199,7 @@ namespace MoaKnights.Tests
         public void Definition_RejectsDuplicateUnitAndBadCostRules()
         {
             var map = GridMap.Parse(Map);
-            var units = new[] { new UnitDefinition(Melee, 10, UnitTerrain.Ground, Stats, 1, Range), new UnitDefinition(Melee, 12, UnitTerrain.Hill, Stats, 0, Range) };
+            var units = new[] { new UnitDefinition(Melee, 10, UnitTerrain.Ground, Stats, 1, Range, TestRules.NoSkills()), new UnitDefinition(Melee, 12, UnitTerrain.Hill, Stats, 0, Range, TestRules.NoSkills()) };
             Assert.Throws<System.ArgumentException>(() => new BattleDefinition(
                 map, 30, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0], new CostRules(20, 99, 60), units, TestRules.Deploy));
 

@@ -28,6 +28,10 @@ namespace MoaKnights.Core.Sim
         public int AttackCooldown;
         public int Stage;
         public int SpentCost;
+        public int Sp;
+        public int SpRegenTicks;
+        public int SkillTicksLeft;
+        public int ActiveSkillStage;
     }
 
     [Serializable]
@@ -60,7 +64,7 @@ namespace MoaKnights.Core.Sim
     /// <summary>한 판의 상태. 시스템은 상태를 갖지 않고 여기만 읽고 쓴다.</summary>
     public sealed class World
     {
-        public const int SnapshotVersion = 5;
+        public const int SnapshotVersion = 6;
 
         private readonly SeededRandom[] _streams;
         private readonly List<Enemy> _enemies = new List<Enemy>();
@@ -119,7 +123,15 @@ namespace MoaKnights.Core.Sim
             foreach (var enemy in snapshot.Enemies)
                 world._enemies.Add(new Enemy(enemy.Id, enemy.DefinitionId, enemy.RouteIndex, enemy.Progress, enemy.Hp, enemy.AttackCooldown, enemy.BlockedBy));
             foreach (var unit in snapshot.Units)
-                world._units.Add(new Unit(unit.Id, unit.DefinitionId, new GridPos(unit.CellX, unit.CellY), (Direction)unit.Direction, unit.Hp, unit.AttackCooldown, unit.Stage, unit.SpentCost));
+            {
+                world._units.Add(new Unit(unit.Id, unit.DefinitionId, new GridPos(unit.CellX, unit.CellY), (Direction)unit.Direction, unit.Hp, unit.AttackCooldown, unit.Stage, unit.SpentCost)
+                {
+                    Sp = unit.Sp,
+                    SpRegenTicks = unit.SpRegenTicks,
+                    SkillTicksLeft = unit.SkillTicksLeft,
+                    ActiveSkillStage = unit.ActiveSkillStage,
+                });
+            }
             foreach (var slot in snapshot.UnitSlots)
                 world._slots.Add(new UnitSlot(slot.DefinitionId, slot.Deployments, slot.ReadyTick));
             return world;
@@ -161,6 +173,10 @@ namespace MoaKnights.Core.Sim
                     AttackCooldown = unit.AttackCooldown,
                     Stage = unit.Stage,
                     SpentCost = unit.SpentCost,
+                    Sp = unit.Sp,
+                    SpRegenTicks = unit.SpRegenTicks,
+                    SkillTicksLeft = unit.SkillTicksLeft,
+                    ActiveSkillStage = unit.ActiveSkillStage,
                 };
             }
 
@@ -278,6 +294,18 @@ namespace MoaKnights.Core.Sim
             foreach (var unit in _units)
                 if (unit.Id == id) return unit;
             return null;
+        }
+
+        /// <summary>막고 있는 적이 capacity보다 많으면 뒤에 막힌 적부터 푼다 (적 목록 순서 기준).</summary>
+        public void ReleaseExcessBlocked(int unitId, int capacity)
+        {
+            var kept = 0;
+            foreach (var enemy in _enemies)
+            {
+                if (enemy.BlockedBy != unitId) continue;
+                if (kept < capacity) kept++;
+                else enemy.BlockedBy = 0;
+            }
         }
 
         public int BlockedCount(int unitId)

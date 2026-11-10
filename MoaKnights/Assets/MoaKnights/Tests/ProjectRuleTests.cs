@@ -101,6 +101,31 @@ namespace MoaKnights.Tests
             CollectionAssert.AreEqual(new[] { ".XXX", "OXXX", ".XXX" }, ranged.Range);
         }
 
+        /// <summary>BALANCE 7번: SP 타입 · 최대 SP · 단계별 스킬, 그리고 단계마다 스킬 이름 글이 표에 있는지.</summary>
+        [Test]
+        public void SkillData_MatchesBalanceDoc_AndHasNames()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            var melee = balance.Units.Single(u => u.Id == "melee_01");
+            var ranged = balance.Units.Single(u => u.Id == "ranged_01");
+
+            Assert.AreEqual(SpType.OnHit, melee.SpType);
+            Assert.AreEqual(8, melee.MaxSp);
+            CollectionAssert.AreEqual(new[] { 30, 40, 50 }, melee.Skills.Select(s => s.HealPercent).ToArray());
+            CollectionAssert.AreEqual(new[] { 0, 0, 1 }, melee.Skills.Select(s => s.BlockBonus).ToArray());
+            CollectionAssert.AreEqual(new[] { 0f, 0f, 8f }, melee.Skills.Select(s => s.DurationSeconds).ToArray());
+
+            Assert.AreEqual(SpType.OnAttack, ranged.SpType);
+            Assert.AreEqual(10, ranged.MaxSp);
+            CollectionAssert.AreEqual(new[] { 50, 80, 120 }, ranged.Skills.Select(s => s.AttackBonusPercent).ToArray());
+            CollectionAssert.AreEqual(new[] { 10f, 10f, 10f }, ranged.Skills.Select(s => s.DurationSeconds).ToArray());
+
+            var table = TextTable.Parse(File.ReadAllText(TextCsvPath));
+            foreach (var unit in balance.Units)
+                for (var stage = 1; stage <= unit.Skills.Length; stage++)
+                    Assert.IsTrue(table.Contains("skill." + unit.Id + "_" + stage + ".name"), unit.Id + " stage " + stage);
+        }
+
         /// <summary>BALANCE 6번: 중첩 · 퇴각 · 재배치 값과, 그 값으로 계산한 근거리 단계별 수치.</summary>
         [Test]
         public void DeployRules_MatchBalanceDoc()

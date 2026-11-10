@@ -119,6 +119,17 @@ namespace MoaKnights.EditorTools
                 if (row.FindPropertyRelative("Id").stringValue == FirstEnemyId) FillCombat(row, 60, 10, 1.5f, -1, null);
             }
 
+            // SP · 스킬 (BALANCE 7번). 비어 있는 행에만 넣는다.
+            for (var i = 0; i < units.arraySize; i++)
+            {
+                var row = units.GetArrayElementAtIndex(i);
+                var id = row.FindPropertyRelative("Id").stringValue;
+                if (id == MeleeUnitId)
+                    FillSkills(row, SpType.OnHit, 8, 0f, new[] { new[] { 30, 0, 0, 0 }, new[] { 40, 0, 0, 0 }, new[] { 50, 0, 1, 8 } });
+                if (id == RangedUnitId)
+                    FillSkills(row, SpType.OnAttack, 10, 0f, new[] { new[] { 0, 50, 0, 10 }, new[] { 0, 80, 0, 10 }, new[] { 0, 120, 0, 10 } });
+            }
+
             // 중첩 · 퇴각 · 재배치 (BALANCE 6번). 비어 있을 때만 넣는다.
             FillIfEmpty(so.FindProperty("_stackHpPercents"), 100, 130, 160);
             FillIfEmpty(so.FindProperty("_stackAttackPercents"), 100, 130, 160);
@@ -130,6 +141,26 @@ namespace MoaKnights.EditorTools
 
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
+        }
+
+        /// <summary>스킬 행: 회복 % · 공격 추가 % · 저지 추가 · 지속 초.</summary>
+        private static void FillSkills(SerializedProperty row, SpType spType, int maxSp, float naturalSeconds, int[][] skills)
+        {
+            if (row.FindPropertyRelative("MaxSp").intValue != 0) return;
+            row.FindPropertyRelative("SpType").enumValueIndex = (int)spType;
+            row.FindPropertyRelative("MaxSp").intValue = maxSp;
+            row.FindPropertyRelative("NaturalSpSeconds").floatValue = naturalSeconds;
+
+            var list = row.FindPropertyRelative("Skills");
+            list.arraySize = skills.Length;
+            for (var i = 0; i < skills.Length; i++)
+            {
+                var skill = list.GetArrayElementAtIndex(i);
+                skill.FindPropertyRelative("HealPercent").intValue = skills[i][0];
+                skill.FindPropertyRelative("AttackBonusPercent").intValue = skills[i][1];
+                skill.FindPropertyRelative("BlockBonus").intValue = skills[i][2];
+                skill.FindPropertyRelative("DurationSeconds").floatValue = skills[i][3];
+            }
         }
 
         private static void FillIfEmpty(SerializedProperty array, params int[] values)
@@ -252,6 +283,9 @@ namespace MoaKnights.EditorTools
             FillIfEmpty(so.FindProperty("_stagePipColor"), new Color(1.00f, 0.85f, 0.30f));
             var actionOffset = so.FindProperty("_unitActionOffset");
             if (actionOffset.vector2Value == Vector2.zero) actionOffset.vector2Value = new Vector2(0f, 40f);
+            FillIfEmpty(so.FindProperty("_spColor"), new Color(0.30f, 0.60f, 0.95f));
+            FillIfEmpty(so.FindProperty("_spFullColor"), new Color(0.55f, 0.95f, 1.00f));
+            FillIfEmpty(so.FindProperty("_skillActiveColor"), new Color(1.00f, 0.60f, 0.20f));
 
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
@@ -344,6 +378,7 @@ namespace MoaKnights.EditorTools
             var message = CreateLabel(canvasGo.transform, "MessageLabel", new Vector2(0, 295), 30, bottom: true);
             var cardBar = CreateCardBar(canvasGo.transform);
             var unitActions = CreateUnitActionPanel(canvasGo.transform);
+            var speedControls = CreateSpeedControls(canvasGo.transform);
 
             var hud = canvasGo.AddComponent<BattleHud>();
             var hudSo = new SerializedObject(hud);
@@ -369,6 +404,7 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_placement").objectReferenceValue = placement;
             so.FindProperty("_damageNumbers").objectReferenceValue = damageNumbers;
             so.FindProperty("_unitActions").objectReferenceValue = unitActions;
+            so.FindProperty("_speedControls").objectReferenceValue = speedControls;
             so.FindProperty("_hud").objectReferenceValue = hud;
             so.FindProperty("_titleLabel").objectReferenceValue = title;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -386,33 +422,83 @@ namespace MoaKnights.EditorTools
             rootRect.anchorMin = rootRect.anchorMax = Vector2.zero;
             rootRect.sizeDelta = Vector2.zero;
 
-            var panel = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(Button));
+            // 버튼 둘(퇴각 · 스킬)을 가로로 놓는 판. 판 자체는 클릭을 받지 않는다.
+            var panel = new GameObject("Panel", typeof(RectTransform), typeof(HorizontalLayoutGroup));
             panel.transform.SetParent(root.transform, false);
             var panelRect = panel.GetComponent<RectTransform>();
             panelRect.anchorMin = panelRect.anchorMax = Vector2.zero;
             panelRect.pivot = new Vector2(0.5f, 0f);
-            panelRect.sizeDelta = new Vector2(180f, 56f);
-            panel.GetComponent<Image>().color = new Color(0.12f, 0.12f, 0.14f, 0.92f);
+            panelRect.sizeDelta = new Vector2(440f, 56f);
+            var layout = panel.GetComponent<HorizontalLayoutGroup>();
+            layout.spacing = 8f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = true;
 
-            var label = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            label.transform.SetParent(panel.transform, false);
-            var labelRect = label.GetComponent<RectTransform>();
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = labelRect.offsetMax = Vector2.zero;
-            var text = label.GetComponent<TextMeshProUGUI>();
-            text.alignment = TextAlignmentOptions.Center;
-            text.fontSize = 28;
-            text.color = Color.white;
-            text.raycastTarget = false;
+            var retreat = CreateButton(panel.transform, "RetreatButton", out var retreatLabel);
+            var skill = CreateButton(panel.transform, "SkillButton", out var skillLabel);
 
             var actions = root.GetComponent<UnitActionPanel>();
             var so = new SerializedObject(actions);
             so.FindProperty("_panel").objectReferenceValue = panelRect;
-            so.FindProperty("_retreatButton").objectReferenceValue = panel.GetComponent<Button>();
-            so.FindProperty("_retreatLabel").objectReferenceValue = text;
+            so.FindProperty("_retreatButton").objectReferenceValue = retreat;
+            so.FindProperty("_retreatLabel").objectReferenceValue = retreatLabel;
+            so.FindProperty("_skillButton").objectReferenceValue = skill;
+            so.FindProperty("_skillLabel").objectReferenceValue = skillLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
             return actions;
+        }
+
+        /// <summary>오른쪽 위 일시정지 · 배속 버튼.</summary>
+        private static SpeedControls CreateSpeedControls(Transform parent)
+        {
+            var go = new GameObject("SpeedControls", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(SpeedControls));
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-24f, -24f);
+            rect.sizeDelta = new Vector2(330f, 56f);
+            var layout = go.GetComponent<HorizontalLayoutGroup>();
+            layout.spacing = 8f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = true;
+
+            var pause = CreateButton(go.transform, "PauseButton", out var pauseLabel);
+            var speed = CreateButton(go.transform, "SpeedButton", out var speedLabel);
+
+            var controls = go.GetComponent<SpeedControls>();
+            var so = new SerializedObject(controls);
+            so.FindProperty("_pauseButton").objectReferenceValue = pause;
+            so.FindProperty("_pauseLabel").objectReferenceValue = pauseLabel;
+            so.FindProperty("_speedButton").objectReferenceValue = speed;
+            so.FindProperty("_speedLabel").objectReferenceValue = speedLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return controls;
+        }
+
+        /// <summary>어두운 판 + 흰 글의 버튼. 크기는 부모 레이아웃이 정한다.</summary>
+        private static Button CreateButton(Transform parent, string name, out TextMeshProUGUI label)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(parent, false);
+            go.GetComponent<Image>().color = new Color(0.12f, 0.12f, 0.14f, 0.92f);
+
+            var labelGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelGo.transform.SetParent(go.transform, false);
+            var labelRect = labelGo.GetComponent<RectTransform>();
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = labelRect.offsetMax = Vector2.zero;
+            label = labelGo.GetComponent<TextMeshProUGUI>();
+            label.alignment = TextAlignmentOptions.Center;
+            label.fontSize = 26;
+            label.color = Color.white;
+            label.raycastTarget = false;
+            return go.GetComponent<Button>();
         }
 
         private static CardBar CreateCardBar(Transform parent)

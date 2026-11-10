@@ -130,6 +130,8 @@ namespace MoaKnights.Core.Sim
             foreach (var unit in units)
             {
                 if (_units.ContainsKey(unit.Id)) throw new ArgumentException("Duplicate unit id: " + unit.Id);
+                if (unit.Skills.Skills.Count != deploy.MaxStage)
+                    throw new ArgumentException("Unit " + unit.Id + " needs one skill per stage (" + deploy.MaxStage + ").");
                 _units.Add(unit.Id, unit);
                 _unitOrder.Add(unit);
             }

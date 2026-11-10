@@ -34,6 +34,22 @@ MonoBehaviour:
     BlockCount: 2
     Range:
     - '@X'
+    SpType: 2
+    MaxSp: 8
+    NaturalSpSeconds: 0
+    Skills:
+    - HealPercent: 30
+      AttackBonusPercent: 0
+      BlockBonus: 0
+      DurationSeconds: 0
+    - HealPercent: 40
+      AttackBonusPercent: 0
+      BlockBonus: 0
+      DurationSeconds: 0
+    - HealPercent: 50
+      AttackBonusPercent: 0
+      BlockBonus: 1
+      DurationSeconds: 8
   - Id: ranged_01
     Cost: 12
     Terrain: 1
@@ -45,6 +61,22 @@ MonoBehaviour:
     - .XXX
     - OXXX
     - .XXX
+    SpType: 1
+    MaxSp: 10
+    NaturalSpSeconds: 0
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 50
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 80
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 120
+      BlockBonus: 0
+      DurationSeconds: 10
   _stackHpPercents: 6400000082000000a0000000
   _stackAttackPercents: 6400000082000000a0000000
   _stackBlockBonus: 000000000000000001000000

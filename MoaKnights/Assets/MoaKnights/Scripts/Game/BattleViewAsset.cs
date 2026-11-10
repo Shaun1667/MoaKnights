@@ -65,6 +65,9 @@ namespace MoaKnights.Game
         [SerializeField] private float _floatingNumberSize;
         [SerializeField] private Color _stagePipColor;
         [SerializeField] private Vector2 _unitActionOffset;
+        [SerializeField] private Color _spColor;
+        [SerializeField] private Color _spFullColor;
+        [SerializeField] private Color _skillActiveColor;
         [SerializeField] private float _cellSize;
         [SerializeField] private float _cellGap;
         [SerializeField] private float _cameraPitch;
@@ -117,6 +120,11 @@ namespace MoaKnights.Game
 
         /// <summary>능력자를 클릭했을 때 뜨는 퇴각 버튼의 위치 (머리 위 화면 좌표에서 픽셀).</summary>
         public Vector2 UnitActionOffset => _unitActionOffset;
+
+        /// <summary>SP 바: 차는 중 · 가득 참 · 스킬 사용 중(남은 시간) 색.</summary>
+        public Color SpColor => _spColor;
+        public Color SpFullColor => _spFullColor;
+        public Color SkillActiveColor => _skillActiveColor;
 
         public bool TryGetUnit(string id, out UnitVisual visual)
         {

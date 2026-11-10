@@ -45,7 +45,13 @@ namespace MoaKnights.Game
             foreach (var row in balance.Units)
             {
                 var stats = new CombatStats(row.MaxHp, row.Attack, Ticks(row.AttackIntervalSeconds, ticksPerSecond));
-                units.Add(new UnitDefinition(row.Id, row.Cost, row.Terrain, stats, row.BlockCount, AttackRange.Parse(row.Range)));
+                var skills = new List<SkillDefinition>();
+                foreach (var skill in row.Skills)
+                    skills.Add(new SkillDefinition(skill.HealPercent, skill.AttackBonusPercent, skill.BlockBonus, Ticks(skill.DurationSeconds, ticksPerSecond)));
+                var naturalTicks = row.SpType == SpType.Natural ? Ticks(row.NaturalSpSeconds, ticksPerSecond) : 0;
+                var skillSet = new SkillSet(row.SpType, row.MaxSp, naturalTicks, skills);
+
+                units.Add(new UnitDefinition(row.Id, row.Cost, row.Terrain, stats, row.BlockCount, AttackRange.Parse(row.Range), skillSet));
             }
 
             var deploy = new DeployRules(

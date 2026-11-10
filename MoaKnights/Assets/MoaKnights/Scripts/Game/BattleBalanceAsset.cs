@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MoaKnights.Game
 {
-    /// <summary>전투 수치 한 곳. 표는 BALANCE.md 1 · 2 · 3 · 5 · 6번, 값은 에셋에 둔다. 공격 범위 글자는 AttackRange 설명을 따른다.</summary>
+    /// <summary>전투 수치 한 곳. 표는 BALANCE.md 1 · 2 · 3 · 5 · 6 · 7번, 값은 에셋에 둔다. 공격 범위 글자는 AttackRange 설명을 따른다.</summary>
     [CreateAssetMenu(fileName = "BattleBalance", menuName = "MoaKnights/Battle Balance")]
     public sealed class BattleBalanceAsset : ScriptableObject
     {
@@ -30,6 +30,20 @@ namespace MoaKnights.Game
             public float AttackIntervalSeconds;
             public int BlockCount;
             public string[] Range;
+            public SpType SpType;
+            public int MaxSp;
+            public float NaturalSpSeconds;
+            public SkillRow[] Skills;
+        }
+
+        /// <summary>스킬 한 단계. 칸 0이 1단계. 회복은 즉시, 나머지는 지속 시간 동안.</summary>
+        [Serializable]
+        public struct SkillRow
+        {
+            public int HealPercent;
+            public int AttackBonusPercent;
+            public int BlockBonus;
+            public float DurationSeconds;
         }
 
         [SerializeField] private int _startCost;

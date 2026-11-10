@@ -17,3 +17,15 @@ ui.card.cooldown,{0}초,{0}s
 ui.unit.retreat,퇴각 (+{0}),Retreat (+{0})
 ui.place.on_cooldown,재배치 대기 중입니다,Waiting to redeploy
 ui.place.max_stack,더 겹칠 수 없습니다,Cannot stack any more
+ui.unit.skill_ready,{0},{0}
+ui.unit.skill_charging,{0} {1}/{2},{0} {1}/{2}
+ui.unit.skill_active,{0} 사용 중,{0} active
+ui.hud.pause,일시정지,Pause
+ui.hud.resume,계속,Resume
+ui.hud.speed,x{0},x{0}
+skill.melee_01_1.name,버티기,Hold Fast
+skill.melee_01_2.name,버티기 II,Hold Fast II
+skill.melee_01_3.name,철벽,Iron Wall
+skill.ranged_01_1.name,집중 사격,Focus Fire
+skill.ranged_01_2.name,집중 사격 II,Focus Fire II
+skill.ranged_01_3.name,집중 사격 III,Focus Fire III

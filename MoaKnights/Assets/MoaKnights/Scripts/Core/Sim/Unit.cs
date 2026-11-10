@@ -32,6 +32,8 @@ namespace MoaKnights.Core.Sim
         OnCooldown = 7,
         MaxStackReached = 8,
         NotDeployed = 9,
+        SpNotFull = 10,
+        SkillActive = 11,
     }
 
     /// <summary>능력자 한 종류의 규칙 값.</summary>
@@ -47,7 +49,9 @@ namespace MoaKnights.Core.Sim
 
         public AttackRange Range { get; }
 
-        public UnitDefinition(string id, int cost, UnitTerrain terrain, CombatStats stats, int blockCount, AttackRange range)
+        public SkillSet Skills { get; }
+
+        public UnitDefinition(string id, int cost, UnitTerrain terrain, CombatStats stats, int blockCount, AttackRange range, SkillSet skills)
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentException("Unit id is empty.");
             if (cost < 0) throw new ArgumentOutOfRangeException(nameof(cost), "Unit " + id);
@@ -58,6 +62,7 @@ namespace MoaKnights.Core.Sim
             Stats = stats ?? throw new ArgumentNullException(nameof(stats), "Unit " + id);
             BlockCount = blockCount;
             Range = range ?? throw new ArgumentNullException(nameof(range), "Unit " + id);
+            Skills = skills ?? throw new ArgumentNullException(nameof(skills), "Unit " + id);
         }
 
         public bool CanStandOn(CellType cell)
@@ -88,6 +93,19 @@ namespace MoaKnights.Core.Sim
 
         /// <summary>배치 · 중첩에 들인 코스트 합. 퇴각 환급의 기준이다.</summary>
         public int SpentCost { get; internal set; }
+
+        public int Sp { get; internal set; }
+
+        /// <summary>자연 회복 SP의 다음 1까지 쌓인 틱.</summary>
+        public int SpRegenTicks { get; internal set; }
+
+        /// <summary>쓰고 있는 스킬의 남은 틱. 0이면 스킬을 쓰고 있지 않다.</summary>
+        public int SkillTicksLeft { get; internal set; }
+
+        /// <summary>쓰고 있는 스킬의 단계. 쓰는 중에 겹쳐도 처음 쓴 단계의 효과가 이어진다. 0이면 없음.</summary>
+        public int ActiveSkillStage { get; internal set; }
+
+        public bool IsSkillActive => SkillTicksLeft > 0;
 
         public Unit(int id, string definitionId, GridPos cell, Direction direction, int hp, int attackCooldown, int stage, int spentCost)
         {

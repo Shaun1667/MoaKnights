@@ -8,8 +8,11 @@ namespace MoaKnights.Game
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 
         private readonly Transform _fill;
+        private readonly Renderer _fillRenderer;
+        private readonly MaterialPropertyBlock _fillBlock = new MaterialPropertyBlock();
         private readonly float _width;
         private float _shown = -1f;
+        private Color _shownColor;
 
         public HealthBar(Transform parent, float height, Color fillColor, BattleViewAsset view)
         {
@@ -23,6 +26,16 @@ namespace MoaKnights.Game
 
             CreatePart(root, "Back", new Vector3(size.x, size.y, size.y), Vector3.zero, view.HpBarBackColor, view.CellMaterial);
             _fill = CreatePart(root, "Fill", new Vector3(size.x, size.y * 1.2f, size.y * 1.2f), Vector3.zero, fillColor, view.CellMaterial);
+            _fillRenderer = _fill.GetComponent<Renderer>();
+            _shownColor = fillColor;
+        }
+
+        public void SetColor(Color color)
+        {
+            if (color == _shownColor) return;
+            _shownColor = color;
+            _fillBlock.SetColor(BaseColor, color);
+            _fillRenderer.SetPropertyBlock(_fillBlock);
         }
 
         public void Set(int hp, int maxHp)

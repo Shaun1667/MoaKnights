@@ -19,6 +19,7 @@ namespace MoaKnights.Game
         {
             public UnitModel Model;
             public HealthBar HealthBar;
+            public HealthBar SpBar;
             public float TopHeight;
             public float Size;
             public Transform Pips;
@@ -62,6 +63,7 @@ namespace MoaKnights.Game
             {
                 if (!_actors.TryGetValue(unit.Id, out var actor)) continue;
                 actor.HealthBar.Set(unit.Hp, _simulation.MaxHp(unit));
+                ShowSp(actor, unit);
             }
         }
 
@@ -78,7 +80,8 @@ namespace MoaKnights.Game
 
             var top = visual.Size * 1.2f;
             var bar = new HealthBar(model.Root.transform, top + _view.HpBarSize.y * 2f, _view.HpBarUnitColor, _view);
-            var actor = new Actor { Model = model, HealthBar = bar, TopHeight = top, Size = visual.Size };
+            var spBar = new HealthBar(model.Root.transform, top + _view.HpBarSize.y * 4f, _view.SpColor, _view);
+            var actor = new Actor { Model = model, HealthBar = bar, SpBar = spBar, TopHeight = top, Size = visual.Size };
             _actors[unit.Id] = actor;
             ShowStage(actor, unit.Stage);
         }
@@ -97,6 +100,24 @@ namespace MoaKnights.Game
             Destroy(actor.Model.Root);
         }
 
+        /// <summary>
+        /// SP 바: 차는 중이면 기본색, 가득 차면 밝은 색, 스킬을 쓰는 동안은 남은 시간을 스킬색으로.
+        /// </summary>
+        private void ShowSp(Actor actor, Unit unit)
+        {
+            var skills = _simulation.SkillsOf(unit);
+            if (unit.IsSkillActive)
+            {
+                var duration = skills.ForStage(unit.ActiveSkillStage).DurationTicks;
+                actor.SpBar.Set(unit.SkillTicksLeft, duration);
+                actor.SpBar.SetColor(_view.SkillActiveColor);
+                return;
+            }
+
+            actor.SpBar.Set(unit.Sp, skills.MaxSp);
+            actor.SpBar.SetColor(unit.Sp >= skills.MaxSp ? _view.SpFullColor : _view.SpColor);
+        }
+
         /// <summary>중첩 단계를 체력바 위 작은 점 개수로 보여 준다. 점은 카메라 가로축으로 늘어선다.</summary>
         private void ShowStage(Actor actor, int stage)
         {
@@ -104,7 +125,7 @@ namespace MoaKnights.Game
 
             var pips = new GameObject("StagePips").transform;
             pips.SetParent(actor.Model.Root.transform, false);
-            pips.localPosition = Vector3.up * (actor.TopHeight + _view.HpBarSize.y * 5f);
+            pips.localPosition = Vector3.up * (actor.TopHeight + _view.HpBarSize.y * 7f);
             pips.rotation = Quaternion.Euler(0f, _view.CameraYaw, 0f);
             actor.Pips = pips;
 

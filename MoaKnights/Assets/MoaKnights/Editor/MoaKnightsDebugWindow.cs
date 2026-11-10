@@ -106,7 +106,10 @@ namespace MoaKnights.EditorTools
             foreach (var unit in world.Units)
                 EditorGUILayout.LabelField("#" + unit.Id + " " + unit.DefinitionId,
                     unit.Cell + "  " + unit.Direction + "  " + unit.Stage + "단계  HP " + unit.Hp + " / " + root.Simulation.MaxHp(unit)
-                    + "  저지 " + world.BlockedCount(unit.Id) + "  다음 공격 " + unit.AttackCooldown + "틱  들인 코스트 " + unit.SpentCost);
+                    + "  저지 " + world.BlockedCount(unit.Id) + " / " + root.Simulation.BlockOf(unit) + "  공격 " + root.Simulation.AttackOf(unit)
+                    + "  다음 공격 " + unit.AttackCooldown + "틱  들인 코스트 " + unit.SpentCost
+                    + "  SP " + unit.Sp + " / " + root.Simulation.SkillsOf(unit).MaxSp
+                    + (unit.IsSkillActive ? "  스킬 " + unit.ActiveSkillStage + "단계 남은 " + unit.SkillTicksLeft + "틱" : ""));
 
             foreach (var slot in world.UnitSlots)
                 EditorGUILayout.LabelField("카드 " + slot.DefinitionId,

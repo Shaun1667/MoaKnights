@@ -28,6 +28,7 @@ namespace MoaKnights.Game
         [SerializeField] private BattleHud _hud;
         [SerializeField] private DamageNumbers _damageNumbers;
         [SerializeField] private UnitActionPanel _unitActions;
+        [SerializeField] private SpeedControls _speedControls;
         [SerializeField] private TMP_Text _titleLabel;
 
         private TMP_FontAsset _runtimeFont;
@@ -61,6 +62,7 @@ namespace MoaKnights.Game
             _hud.Bind(Simulation, _view, _runtimeFont, _placement);
             _damageNumbers.Bind(Simulation, _enemyView, _unitView, _view, _runtimeFont, _cameraRig.GetComponent<Camera>());
             _unitActions.Bind(Simulation, _mapView, _unitView, _placement, _view, _runtimeFont, _cameraRig.GetComponent<Camera>());
+            _speedControls.Bind(_clock, _runtimeFont);
         }
 
         private void Update()

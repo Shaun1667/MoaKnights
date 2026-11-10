@@ -16,5 +16,13 @@ namespace MoaKnights.Tests
             300,
             5,
             50);
+
+        /// <summary>효과 없는 스킬 단계 n개. SP는 맞을 때만 차고 최대치가 커서 사실상 쓰지 않는다.</summary>
+        public static SkillSet NoSkills(int stages = 3)
+        {
+            var skills = new SkillDefinition[stages];
+            for (var i = 0; i < stages; i++) skills[i] = new SkillDefinition(0, 0, 0, 0);
+            return new SkillSet(SpType.OnHit, 9999, 0, skills);
+        }
     }
 }

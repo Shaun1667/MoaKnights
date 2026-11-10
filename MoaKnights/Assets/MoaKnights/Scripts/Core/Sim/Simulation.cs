@@ -36,16 +36,23 @@ namespace MoaKnights.Core.Sim
         /// <summary>직접 퇴각. 값은 돌려받은 코스트.</summary>
         public event Action<Unit, int> UnitRetreated;
 
+        public event Action<Unit> SkillUsed;
+        public event Action<Unit> SkillEnded;
+
+        /// <summary>스킬로 회복했을 때. 값은 실제로 오른 HP.</summary>
+        public event Action<Unit, int> UnitHealed;
+
         public Simulation(World world, BattleDefinition definition)
         {
             World = world;
             Definition = definition;
         }
 
-        /// <summary>한 틱: 코스트 회복 → 능력자 공격 → 막힌 적의 반격 → 적 이동(저지 · 누수) → 등장.</summary>
+        /// <summary>한 틱: 코스트 회복 → 스킬 시간 · 자연 SP → 능력자 공격 → 막힌 적의 반격 → 적 이동(저지 · 누수) → 등장.</summary>
         public void Step()
         {
             World.RegenCost(Definition.Cost);
+            UpdateSkills();
             UnitsAttack();
             EnemiesAttack();
             MoveEnemies();
@@ -143,6 +150,94 @@ namespace MoaKnights.Core.Sim
             return Definition.Deploy.MaxHp(definition, unit.Stage);
         }
 
+        /// <summary>지금 공격력. 단계 배율에 쓰고 있는 스킬의 추가 비율을 곱한다 (내림).</summary>
+        public int AttackOf(Unit unit)
+        {
+            Definition.TryGetUnit(unit.DefinitionId, out var definition);
+            var attack = Definition.Deploy.Attack(definition, unit.Stage);
+            var bonus = unit.IsSkillActive ? definition.Skills.ForStage(unit.ActiveSkillStage).AttackBonusPercent : 0;
+            return attack * (100 + bonus) / 100;
+        }
+
+        /// <summary>지금 저지 수. 단계 보너스에 쓰고 있는 스킬의 보너스를 더한다.</summary>
+        public int BlockOf(Unit unit)
+        {
+            Definition.TryGetUnit(unit.DefinitionId, out var definition);
+            var bonus = unit.IsSkillActive ? definition.Skills.ForStage(unit.ActiveSkillStage).BlockBonus : 0;
+            return Definition.Deploy.BlockCount(definition, unit.Stage) + bonus;
+        }
+
+        public SkillSet SkillsOf(Unit unit)
+        {
+            Definition.TryGetUnit(unit.DefinitionId, out var definition);
+            return definition.Skills;
+        }
+
+        /// <summary>스킬을 쓸 수 있는지만 본다.</summary>
+        public PlacementResult CheckSkill(int unitEntityId)
+        {
+            var unit = World.UnitById(unitEntityId);
+            if (unit == null) return PlacementResult.NotDeployed;
+            if (unit.IsSkillActive) return PlacementResult.SkillActive;
+            if (unit.Sp < SkillsOf(unit).MaxSp) return PlacementResult.SpNotFull;
+            return PlacementResult.Ok;
+        }
+
+        /// <summary>지금 단계의 스킬을 쓴다. SP는 0이 되고, 회복은 즉시, 나머지는 지속 시간 동안 걸린다.</summary>
+        public PlacementResult TryUseSkill(int unitEntityId)
+        {
+            var result = CheckSkill(unitEntityId);
+            if (result != PlacementResult.Ok) return result;
+
+            var unit = World.UnitById(unitEntityId);
+            var skill = SkillsOf(unit).ForStage(unit.Stage);
+            unit.Sp = 0;
+            unit.SpRegenTicks = 0;
+            unit.SkillTicksLeft = skill.DurationTicks;
+            unit.ActiveSkillStage = skill.DurationTicks > 0 ? unit.Stage : 0;
+
+            var maxHp = MaxHp(unit);
+            var healed = Math.Min(maxHp * skill.HealPercent / 100, maxHp - unit.Hp);
+            unit.Hp += healed;
+
+            SkillUsed?.Invoke(unit);
+            if (healed > 0) UnitHealed?.Invoke(unit, healed);
+            return result;
+        }
+
+        /// <summary>스킬 지속 시간을 줄이고 끝나면 효과를 거둔다. 스킬을 쓰지 않을 때만 자연 SP가 찬다.</summary>
+        private void UpdateSkills()
+        {
+            foreach (var unit in World.Units)
+            {
+                if (unit.IsSkillActive)
+                {
+                    unit.SkillTicksLeft--;
+                    if (unit.IsSkillActive) continue;
+
+                    unit.ActiveSkillStage = 0;
+                    World.ReleaseExcessBlocked(unit.Id, BlockOf(unit));
+                    SkillEnded?.Invoke(unit);
+                    continue;
+                }
+
+                var skills = SkillsOf(unit);
+                if (skills.SpType != SpType.Natural || unit.Sp >= skills.MaxSp) continue;
+                unit.SpRegenTicks++;
+                if (unit.SpRegenTicks < skills.NaturalRegenTicks) continue;
+                unit.SpRegenTicks = 0;
+                unit.Sp++;
+            }
+        }
+
+        /// <summary>타격 · 피격 SP. 스킬을 쓰는 동안과 가득 찼을 때는 오르지 않는다.</summary>
+        private void GainSp(Unit unit, SpType trigger)
+        {
+            var skills = SkillsOf(unit);
+            if (skills.SpType != trigger || unit.IsSkillActive || unit.Sp >= skills.MaxSp) return;
+            unit.Sp++;
+        }
+
         /// <summary>적이 지금 서 있는 칸. 진행도를 반올림한 칸이라 칸 경계를 넘으면 다음 칸이 된다.</summary>
         public GridPos EnemyCell(Enemy enemy)
         {
@@ -165,7 +260,8 @@ namespace MoaKnights.Core.Sim
                 if (target == null) continue;
 
                 unit.AttackCooldown = definition.Stats.AttackIntervalTicks;
-                DamageEnemy(target, Definition.Deploy.Attack(definition, unit.Stage));
+                DamageEnemy(target, AttackOf(unit));
+                GainSp(unit, SpType.OnAttack);
             }
         }
 
@@ -213,7 +309,11 @@ namespace MoaKnights.Core.Sim
         {
             unit.Hp -= damage;
             UnitDamaged?.Invoke(unit, damage);
-            if (unit.Hp > 0) return;
+            if (unit.Hp > 0)
+            {
+                GainSp(unit, SpType.OnHit);
+                return;
+            }
 
             // 막혀 있던 적은 RemoveUnit에서 풀리고, 다음 이동 단계부터 다시 걷는다. 쓰러지면 환급은 없고 재배치 규칙은 퇴각과 같다.
             World.RemoveUnit(unit, World.Tick + Definition.Deploy.RedeployCooldownTicks);
@@ -251,9 +351,7 @@ namespace MoaKnights.Core.Sim
         {
             var unit = World.UnitAt(EnemyCell(enemy));
             if (unit == null) return;
-
-            Definition.TryGetUnit(unit.DefinitionId, out var definition);
-            if (World.BlockedCount(unit.Id) >= Definition.Deploy.BlockCount(definition, unit.Stage)) return;
+            if (World.BlockedCount(unit.Id) >= BlockOf(unit)) return;
 
             enemy.BlockedBy = unit.Id;
             EnemyBlocked?.Invoke(enemy, unit);

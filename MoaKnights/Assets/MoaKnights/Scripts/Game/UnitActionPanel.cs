@@ -17,6 +17,8 @@ namespace MoaKnights.Game
         [SerializeField] private RectTransform _panel;
         [SerializeField] private Button _retreatButton;
         [SerializeField] private TMP_Text _retreatLabel;
+        [SerializeField] private Button _skillButton;
+        [SerializeField] private TMP_Text _skillLabel;
 
         private Simulation _simulation;
         private MapView _mapView;
@@ -27,6 +29,7 @@ namespace MoaKnights.Game
 
         private int _selectedId;
         private int _shownRefund = -1;
+        private string _shownSkill;
 
         public int SelectedUnitId => _selectedId;
 
@@ -40,7 +43,9 @@ namespace MoaKnights.Game
             _camera = worldCamera;
 
             _retreatLabel.font = font;
+            _skillLabel.font = font;
             _retreatButton.onClick.AddListener(Retreat);
+            _skillButton.onClick.AddListener(UseSkill);
             Close();
         }
 
@@ -78,10 +83,35 @@ namespace MoaKnights.Game
             var screen = (Vector2)_camera.WorldToScreenPoint(top);
             _panel.position = screen + _view.UnitActionOffset;
 
+            ShowSkill(unit);
+
             var refund = _simulation.Definition.Deploy.Refund(unit.SpentCost);
             if (refund == _shownRefund) return;
             _shownRefund = refund;
             _retreatLabel.text = Text.Format("ui.unit.retreat", refund);
+        }
+
+        /// <summary>스킬 버튼: 이름과 SP, 쓰는 중이면 "사용 중". SP가 차야 누를 수 있다.</summary>
+        private void ShowSkill(Unit unit)
+        {
+            var skills = _simulation.SkillsOf(unit);
+            var stage = unit.IsSkillActive ? unit.ActiveSkillStage : unit.Stage;
+
+            // 스킬 이름 키는 능력자 ID와 단계로 만든다. 표에 있는지는 ProjectRuleTests가 검사한다.
+            var name = Text.Get("skill." + unit.DefinitionId + "_" + stage + ".name");
+            var text = unit.IsSkillActive ? Text.Format("ui.unit.skill_active", name)
+                : unit.Sp >= skills.MaxSp ? Text.Format("ui.unit.skill_ready", name)
+                : Text.Format("ui.unit.skill_charging", name, unit.Sp, skills.MaxSp);
+
+            _skillButton.interactable = _simulation.CheckSkill(unit.Id) == PlacementResult.Ok;
+            if (text == _shownSkill) return;
+            _shownSkill = text;
+            _skillLabel.text = text;
+        }
+
+        private void UseSkill()
+        {
+            if (_selectedId != 0) _simulation.TryUseSkill(_selectedId);
         }
 
         private void Select(Vector2 pointer)
@@ -97,6 +127,7 @@ namespace MoaKnights.Game
 
             _selectedId = unit.Id;
             _shownRefund = -1;
+            _shownSkill = null;
             _panel.gameObject.SetActive(true);
         }
 

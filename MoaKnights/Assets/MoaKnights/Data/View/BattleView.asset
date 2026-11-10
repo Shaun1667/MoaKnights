@@ -68,6 +68,9 @@ MonoBehaviour:
   _floatingNumberSize: 3
   _stagePipColor: {r: 1, g: 0.85, b: 0.3, a: 1}
   _unitActionOffset: {x: 0, y: 40}
+  _spColor: {r: 0.3, g: 0.6, b: 0.95, a: 1}
+  _spFullColor: {r: 0.55, g: 0.95, b: 1, a: 1}
+  _skillActiveColor: {r: 1, g: 0.6, b: 0.2, a: 1}
   _cellSize: 1
   _cellGap: 0.04
   _cameraPitch: 50
