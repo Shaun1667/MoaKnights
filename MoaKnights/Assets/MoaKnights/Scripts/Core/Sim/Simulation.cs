@@ -55,7 +55,10 @@ namespace MoaKnights.Core.Sim
             while (World.NextSpawnIndex < spawns.Count && spawns[World.NextSpawnIndex].Tick <= World.Tick)
             {
                 var spawn = spawns[World.NextSpawnIndex];
-                EnemySpawned?.Invoke(World.SpawnEnemy(spawn.EnemyId, spawn.RouteIndex));
+
+                // ?.Invoke의 인자는 구독자가 없으면 계산되지 않으므로 상태 변경을 인자에 넣지 않는다.
+                var enemy = World.SpawnEnemy(spawn.EnemyId, spawn.RouteIndex);
+                EnemySpawned?.Invoke(enemy);
             }
         }
     }
