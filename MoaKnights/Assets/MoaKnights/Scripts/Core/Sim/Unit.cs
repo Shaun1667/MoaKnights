@@ -29,6 +29,9 @@ namespace MoaKnights.Core.Sim
         Occupied = 4,
         AlreadyDeployed = 5,
         NotEnoughCost = 6,
+        OnCooldown = 7,
+        MaxStackReached = 8,
+        NotDeployed = 9,
     }
 
     /// <summary>능력자 한 종류의 규칙 값.</summary>
@@ -80,7 +83,13 @@ namespace MoaKnights.Core.Sim
         /// <summary>다음 공격까지 남은 틱. 0이면 대상이 생기는 즉시 친다.</summary>
         public int AttackCooldown { get; internal set; }
 
-        public Unit(int id, string definitionId, GridPos cell, Direction direction, int hp, int attackCooldown)
+        /// <summary>중첩 단계. 1부터 DeployRules.MaxStage까지.</summary>
+        public int Stage { get; internal set; }
+
+        /// <summary>배치 · 중첩에 들인 코스트 합. 퇴각 환급의 기준이다.</summary>
+        public int SpentCost { get; internal set; }
+
+        public Unit(int id, string definitionId, GridPos cell, Direction direction, int hp, int attackCooldown, int stage, int spentCost)
         {
             Id = id;
             DefinitionId = definitionId;
@@ -88,6 +97,27 @@ namespace MoaKnights.Core.Sim
             Direction = direction;
             Hp = hp;
             AttackCooldown = attackCooldown;
+            Stage = stage;
+            SpentCost = spentCost;
+        }
+    }
+
+    /// <summary>능력자 카드 하나의 판 기록. 몇 번 놓았는지와 언제 다시 놓을 수 있는지.</summary>
+    public sealed class UnitSlot
+    {
+        public string DefinitionId { get; }
+
+        /// <summary>지금까지 놓은 횟수. 재배치 코스트 인상에 쓴다.</summary>
+        public int Deployments { get; internal set; }
+
+        /// <summary>이 틱부터 다시 놓을 수 있다.</summary>
+        public long ReadyTick { get; internal set; }
+
+        public UnitSlot(string definitionId, int deployments, long readyTick)
+        {
+            DefinitionId = definitionId;
+            Deployments = deployments;
+            ReadyTick = readyTick;
         }
     }
 }

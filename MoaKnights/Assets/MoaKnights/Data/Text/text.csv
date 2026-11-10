@@ -11,3 +11,9 @@ ui.place.not_enough_cost,코스트가 부족합니다,Not enough cost
 unit.melee_01.name,근거리 (임시),Melee (temp)
 unit.ranged_01.name,원거리 (임시),Ranged (temp)
 ui.battle.damage,{0},{0}
+ui.card.stack,중첩 {0},Stack {0}
+ui.card.max_stack,최대,Max
+ui.card.cooldown,{0}초,{0}s
+ui.unit.retreat,퇴각 (+{0}),Retreat (+{0})
+ui.place.on_cooldown,재배치 대기 중입니다,Waiting to redeploy
+ui.place.max_stack,더 겹칠 수 없습니다,Cannot stack any more

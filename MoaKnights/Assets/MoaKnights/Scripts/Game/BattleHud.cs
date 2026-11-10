@@ -81,6 +81,8 @@ namespace MoaKnights.Game
                 case PlacementResult.Occupied: return "ui.place.occupied";
                 case PlacementResult.AlreadyDeployed: return "ui.place.already_deployed";
                 case PlacementResult.NotEnoughCost: return "ui.place.not_enough_cost";
+                case PlacementResult.OnCooldown: return "ui.place.on_cooldown";
+                case PlacementResult.MaxStackReached: return "ui.place.max_stack";
                 default: return null;
             }
         }

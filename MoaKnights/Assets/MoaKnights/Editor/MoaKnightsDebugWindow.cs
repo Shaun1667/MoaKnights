@@ -105,7 +105,13 @@ namespace MoaKnights.EditorTools
             EditorGUILayout.LabelField("배치된 능력자", world.Units.Count.ToString());
             foreach (var unit in world.Units)
                 EditorGUILayout.LabelField("#" + unit.Id + " " + unit.DefinitionId,
-                    unit.Cell + "  " + unit.Direction + "  HP " + unit.Hp + "  저지 " + world.BlockedCount(unit.Id) + "  다음 공격 " + unit.AttackCooldown + "틱");
+                    unit.Cell + "  " + unit.Direction + "  " + unit.Stage + "단계  HP " + unit.Hp + " / " + root.Simulation.MaxHp(unit)
+                    + "  저지 " + world.BlockedCount(unit.Id) + "  다음 공격 " + unit.AttackCooldown + "틱  들인 코스트 " + unit.SpentCost);
+
+            foreach (var slot in world.UnitSlots)
+                EditorGUILayout.LabelField("카드 " + slot.DefinitionId,
+                    "놓은 횟수 " + slot.Deployments + "  다음 배치 코스트 " + root.Simulation.DeployCost(slot.DefinitionId)
+                    + "  재배치까지 " + root.Simulation.RedeployTicksLeft(slot.DefinitionId) + "틱");
         }
 
         private static void DrawEnemySection(GameRoot root)

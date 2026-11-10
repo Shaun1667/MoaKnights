@@ -119,8 +119,24 @@ namespace MoaKnights.EditorTools
                 if (row.FindPropertyRelative("Id").stringValue == FirstEnemyId) FillCombat(row, 60, 10, 1.5f, -1, null);
             }
 
+            // 중첩 · 퇴각 · 재배치 (BALANCE 6번). 비어 있을 때만 넣는다.
+            FillIfEmpty(so.FindProperty("_stackHpPercents"), 100, 130, 160);
+            FillIfEmpty(so.FindProperty("_stackAttackPercents"), 100, 130, 160);
+            FillIfEmpty(so.FindProperty("_stackBlockBonus"), 0, 0, 1);
+            FillIfZero(so.FindProperty("_stackCostPercent"), 100);
+            FillIfZero(so.FindProperty("_redeployCooldownSeconds"), 10f);
+            FillIfZero(so.FindProperty("_redeployCostIncrease"), 5);
+            FillIfZero(so.FindProperty("_retreatRefundPercent"), 50);
+
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
+        }
+
+        private static void FillIfEmpty(SerializedProperty array, params int[] values)
+        {
+            if (array.arraySize != 0) return;
+            array.arraySize = values.Length;
+            for (var i = 0; i < values.Length; i++) array.GetArrayElementAtIndex(i).intValue = values[i];
         }
 
         private static void FillCombat(SerializedProperty row, int maxHp, int attack, float interval, int blockCount, string[] range)
@@ -233,6 +249,9 @@ namespace MoaKnights.EditorTools
             FillIfZero(so.FindProperty("_floatingNumberSeconds"), 0.8f);
             FillIfZero(so.FindProperty("_floatingNumberRise"), 0.6f);
             FillIfZero(so.FindProperty("_floatingNumberSize"), 3f);
+            FillIfEmpty(so.FindProperty("_stagePipColor"), new Color(1.00f, 0.85f, 0.30f));
+            var actionOffset = so.FindProperty("_unitActionOffset");
+            if (actionOffset.vector2Value == Vector2.zero) actionOffset.vector2Value = new Vector2(0f, 40f);
 
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
@@ -324,6 +343,7 @@ namespace MoaKnights.EditorTools
             var cost = CreateLabel(canvasGo.transform, "CostLabel", new Vector2(0, 245), 32, bottom: true);
             var message = CreateLabel(canvasGo.transform, "MessageLabel", new Vector2(0, 295), 30, bottom: true);
             var cardBar = CreateCardBar(canvasGo.transform);
+            var unitActions = CreateUnitActionPanel(canvasGo.transform);
 
             var hud = canvasGo.AddComponent<BattleHud>();
             var hudSo = new SerializedObject(hud);
@@ -348,12 +368,51 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_cardBar").objectReferenceValue = cardBar;
             so.FindProperty("_placement").objectReferenceValue = placement;
             so.FindProperty("_damageNumbers").objectReferenceValue = damageNumbers;
+            so.FindProperty("_unitActions").objectReferenceValue = unitActions;
             so.FindProperty("_hud").objectReferenceValue = hud;
             so.FindProperty("_titleLabel").objectReferenceValue = title;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
+        }
+
+        /// <summary>능력자 머리 위에 뜨는 퇴각 버튼. 위치와 글은 런타임에 UnitActionPanel이 정한다.</summary>
+        private static UnitActionPanel CreateUnitActionPanel(Transform parent)
+        {
+            var root = new GameObject("UnitActions", typeof(RectTransform), typeof(UnitActionPanel));
+            root.transform.SetParent(parent, false);
+            var rootRect = root.GetComponent<RectTransform>();
+            rootRect.anchorMin = rootRect.anchorMax = Vector2.zero;
+            rootRect.sizeDelta = Vector2.zero;
+
+            var panel = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(Button));
+            panel.transform.SetParent(root.transform, false);
+            var panelRect = panel.GetComponent<RectTransform>();
+            panelRect.anchorMin = panelRect.anchorMax = Vector2.zero;
+            panelRect.pivot = new Vector2(0.5f, 0f);
+            panelRect.sizeDelta = new Vector2(180f, 56f);
+            panel.GetComponent<Image>().color = new Color(0.12f, 0.12f, 0.14f, 0.92f);
+
+            var label = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            label.transform.SetParent(panel.transform, false);
+            var labelRect = label.GetComponent<RectTransform>();
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = labelRect.offsetMax = Vector2.zero;
+            var text = label.GetComponent<TextMeshProUGUI>();
+            text.alignment = TextAlignmentOptions.Center;
+            text.fontSize = 28;
+            text.color = Color.white;
+            text.raycastTarget = false;
+
+            var actions = root.GetComponent<UnitActionPanel>();
+            var so = new SerializedObject(actions);
+            so.FindProperty("_panel").objectReferenceValue = panelRect;
+            so.FindProperty("_retreatButton").objectReferenceValue = panel.GetComponent<Button>();
+            so.FindProperty("_retreatLabel").objectReferenceValue = text;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return actions;
         }
 
         private static CardBar CreateCardBar(Transform parent)

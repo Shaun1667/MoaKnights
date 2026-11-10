@@ -63,6 +63,8 @@ namespace MoaKnights.Game
         [SerializeField] private float _floatingNumberSeconds;
         [SerializeField] private float _floatingNumberRise;
         [SerializeField] private float _floatingNumberSize;
+        [SerializeField] private Color _stagePipColor;
+        [SerializeField] private Vector2 _unitActionOffset;
         [SerializeField] private float _cellSize;
         [SerializeField] private float _cellGap;
         [SerializeField] private float _cameraPitch;
@@ -109,6 +111,12 @@ namespace MoaKnights.Game
         public float FloatingNumberSeconds => _floatingNumberSeconds;
         public float FloatingNumberRise => _floatingNumberRise;
         public float FloatingNumberSize => _floatingNumberSize;
+
+        /// <summary>중첩 단계 점의 색.</summary>
+        public Color StagePipColor => _stagePipColor;
+
+        /// <summary>능력자를 클릭했을 때 뜨는 퇴각 버튼의 위치 (머리 위 화면 좌표에서 픽셀).</summary>
+        public Vector2 UnitActionOffset => _unitActionOffset;
 
         public bool TryGetUnit(string id, out UnitVisual visual)
         {

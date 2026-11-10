@@ -45,3 +45,10 @@ MonoBehaviour:
     - .XXX
     - OXXX
     - .XXX
+  _stackHpPercents: 6400000082000000a0000000
+  _stackAttackPercents: 6400000082000000a0000000
+  _stackBlockBonus: 000000000000000001000000
+  _stackCostPercent: 100
+  _redeployCooldownSeconds: 10
+  _redeployCostIncrease: 5
+  _retreatRefundPercent: 50

@@ -31,6 +31,11 @@ namespace MoaKnights.Core.Sim
 
         public event Action<Enemy, Unit> EnemyBlocked;
 
+        public event Action<Unit> UnitStacked;
+
+        /// <summary>직접 퇴각. 값은 돌려받은 코스트.</summary>
+        public event Action<Unit, int> UnitRetreated;
+
         public Simulation(World world, BattleDefinition definition)
         {
             World = world;
@@ -56,7 +61,8 @@ namespace MoaKnights.Core.Sim
             if (!unit.CanStandOn(Map[cell])) return PlacementResult.WrongTerrain;
             if (World.UnitAt(cell) != null) return PlacementResult.Occupied;
             if (World.IsDeployed(unitId)) return PlacementResult.AlreadyDeployed;
-            if (World.Cost < unit.Cost) return PlacementResult.NotEnoughCost;
+            if (RedeployTicksLeft(unitId) > 0) return PlacementResult.OnCooldown;
+            if (World.Cost < DeployCost(unitId)) return PlacementResult.NotEnoughCost;
             return PlacementResult.Ok;
         }
 
@@ -66,10 +72,75 @@ namespace MoaKnights.Core.Sim
             if (result != PlacementResult.Ok) return result;
 
             Definition.TryGetUnit(unitId, out var unit);
-            World.ChangeCost(-unit.Cost, Definition.Cost);
-            var placed = World.PlaceUnit(unitId, cell, direction, unit.Stats.MaxHp);
+            var cost = DeployCost(unitId);
+            World.ChangeCost(-cost, Definition.Cost);
+            var placed = World.PlaceUnit(unitId, cell, direction, Definition.Deploy.MaxHp(unit, 1), cost);
             UnitPlaced?.Invoke(placed);
             return result;
+        }
+
+        /// <summary>판 위의 같은 능력자에 겹칠 수 있는지만 본다. 방향 · 칸은 바뀌지 않는다.</summary>
+        public PlacementResult CheckStack(string unitId)
+        {
+            if (!Definition.TryGetUnit(unitId, out var unit)) return PlacementResult.UnknownUnit;
+            var placed = World.UnitOf(unitId);
+            if (placed == null) return PlacementResult.NotDeployed;
+            if (placed.Stage >= Definition.Deploy.MaxStage) return PlacementResult.MaxStackReached;
+            if (World.Cost < Definition.Deploy.StackCost(unit)) return PlacementResult.NotEnoughCost;
+            return PlacementResult.Ok;
+        }
+
+        /// <summary>한 단계 겹친다. 오른 최대 HP만큼 지금 HP도 오른다.</summary>
+        public PlacementResult TryStackUnit(string unitId)
+        {
+            var result = CheckStack(unitId);
+            if (result != PlacementResult.Ok) return result;
+
+            Definition.TryGetUnit(unitId, out var unit);
+            var placed = World.UnitOf(unitId);
+            var cost = Definition.Deploy.StackCost(unit);
+            var before = Definition.Deploy.MaxHp(unit, placed.Stage);
+
+            World.ChangeCost(-cost, Definition.Cost);
+            placed.Stage++;
+            placed.SpentCost += cost;
+            placed.Hp += Definition.Deploy.MaxHp(unit, placed.Stage) - before;
+            UnitStacked?.Invoke(placed);
+            return result;
+        }
+
+        /// <summary>직접 퇴각. 들인 코스트의 일부를 돌려받고, 재배치 쿨타임이 시작된다.</summary>
+        public PlacementResult TryRetreat(int unitEntityId)
+        {
+            var unit = World.UnitById(unitEntityId);
+            if (unit == null) return PlacementResult.NotDeployed;
+
+            var refund = Definition.Deploy.Refund(unit.SpentCost);
+            World.ChangeCost(refund, Definition.Cost);
+            World.RemoveUnit(unit, World.Tick + Definition.Deploy.RedeployCooldownTicks);
+            UnitRetreated?.Invoke(unit, refund);
+            return PlacementResult.Ok;
+        }
+
+        /// <summary>이 능력자를 지금 놓는 코스트. 다시 놓을 때마다 오른다.</summary>
+        public int DeployCost(string unitId)
+        {
+            if (!Definition.TryGetUnit(unitId, out var unit)) return 0;
+            var slot = World.FindSlot(unitId);
+            return Definition.Deploy.DeployCost(unit, slot?.Deployments ?? 0);
+        }
+
+        /// <summary>재배치까지 남은 틱. 0이면 바로 놓을 수 있다.</summary>
+        public long RedeployTicksLeft(string unitId)
+        {
+            var slot = World.FindSlot(unitId);
+            return slot == null ? 0 : Math.Max(0, slot.ReadyTick - World.Tick);
+        }
+
+        public int MaxHp(Unit unit)
+        {
+            Definition.TryGetUnit(unit.DefinitionId, out var definition);
+            return Definition.Deploy.MaxHp(definition, unit.Stage);
         }
 
         /// <summary>적이 지금 서 있는 칸. 진행도를 반올림한 칸이라 칸 경계를 넘으면 다음 칸이 된다.</summary>
@@ -94,7 +165,7 @@ namespace MoaKnights.Core.Sim
                 if (target == null) continue;
 
                 unit.AttackCooldown = definition.Stats.AttackIntervalTicks;
-                DamageEnemy(target, definition.Stats.Attack);
+                DamageEnemy(target, Definition.Deploy.Attack(definition, unit.Stage));
             }
         }
 
@@ -144,8 +215,8 @@ namespace MoaKnights.Core.Sim
             UnitDamaged?.Invoke(unit, damage);
             if (unit.Hp > 0) return;
 
-            // 막혀 있던 적은 RemoveUnit에서 풀리고, 다음 이동 단계부터 다시 걷는다.
-            World.RemoveUnit(unit);
+            // 막혀 있던 적은 RemoveUnit에서 풀리고, 다음 이동 단계부터 다시 걷는다. 쓰러지면 환급은 없고 재배치 규칙은 퇴각과 같다.
+            World.RemoveUnit(unit, World.Tick + Definition.Deploy.RedeployCooldownTicks);
             UnitDefeated?.Invoke(unit);
         }
 
@@ -182,7 +253,7 @@ namespace MoaKnights.Core.Sim
             if (unit == null) return;
 
             Definition.TryGetUnit(unit.DefinitionId, out var definition);
-            if (World.BlockedCount(unit.Id) >= definition.BlockCount) return;
+            if (World.BlockedCount(unit.Id) >= Definition.Deploy.BlockCount(definition, unit.Stage)) return;
 
             enemy.BlockedBy = unit.Id;
             EnemyBlocked?.Invoke(enemy, unit);

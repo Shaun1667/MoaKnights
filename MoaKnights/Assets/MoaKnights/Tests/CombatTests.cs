@@ -51,7 +51,8 @@ namespace MoaKnights.Tests
                 {
                     new UnitDefinition(Melee, 10, UnitTerrain.Ground, new CombatStats(s.MeleeHp, s.MeleeAttack, s.MeleeInterval), s.MeleeBlock, AttackRange.Parse(s.MeleeRange)),
                     new UnitDefinition(Ranged, 12, UnitTerrain.Hill, new CombatStats(60, 15, 36), 0, AttackRange.Parse(s.RangedRange)),
-                });
+                },
+                TestRules.Deploy);
             return new Simulation(World.Create(1, "s", 10, 99), definition);
         }
 
@@ -215,7 +216,6 @@ namespace MoaKnights.Tests
 
             Run(simulation, StepsUntilEnemyEnters(4) + 2);
             Assert.IsNotEmpty(targets);
-            Assert.AreEqual(simulation.World.UsedUnitIds.Count, 1);
             Assert.AreEqual(2, targets[0]);   // 먼저 나온 적 (ID 2; 능력자가 ID 1)
         }
 
@@ -257,14 +257,23 @@ namespace MoaKnights.Tests
         }
 
         [Test]
-        public void DefeatedUnit_CannotBeRedeployed_InThisItem()
+        public void DefeatedUnit_WaitsForRedeployCooldown_WithoutRefund()
         {
             var simulation = Build(new Setup { MeleeAttack = 0, MeleeHp = 10, EnemyAttack = 10 });
             simulation.TryPlaceUnit(Melee, new GridPos(3, 0), Direction.Left);
+
+            // 쓰러지는 피격과 쓰러짐은 같은 틱 안에서 이어서 온다. 그 사이 코스트가 그대로면 환급이 없다는 뜻.
+            var costAtHit = -1;
+            var costAtDefeat = -2;
+            simulation.UnitDamaged += (u, d) => costAtHit = simulation.World.Cost;
+            simulation.UnitDefeated += u => costAtDefeat = simulation.World.Cost;
             Run(simulation, StepsUntilEnemyEnters(3) + 2);
             CollectionAssert.IsEmpty(simulation.World.Units);
+            Assert.AreEqual(costAtHit, costAtDefeat);
 
-            Assert.AreEqual(PlacementResult.AlreadyDeployed, simulation.CheckPlacement(Melee, new GridPos(5, 0)));
+            Assert.AreEqual(PlacementResult.OnCooldown, simulation.CheckPlacement(Melee, new GridPos(5, 0)));
+            Run(simulation, TestRules.Deploy.RedeployCooldownTicks);
+            Assert.AreEqual(PlacementResult.Ok, simulation.CheckPlacement(Melee, new GridPos(5, 0)));
         }
 
         [Test]
@@ -317,11 +326,12 @@ namespace MoaKnights.Tests
             Assert.AreEqual(a.DefenseHp, b.DefenseHp);
             Assert.AreEqual(a.Cost, b.Cost);
             Assert.AreEqual(a.NextEntityId, b.NextEntityId);
-            CollectionAssert.AreEqual(a.UsedUnitIds.ToArray(), b.UsedUnitIds.ToArray());
+            CollectionAssert.AreEqual(a.UnitSlots.Select(s => (s.DefinitionId, s.Deployments, s.ReadyTick)).ToArray(),
+                b.UnitSlots.Select(s => (s.DefinitionId, s.Deployments, s.ReadyTick)).ToArray());
             CollectionAssert.AreEqual(a.Enemies.Select(e => (e.Id, e.Progress, e.Hp, e.AttackCooldown, e.BlockedBy)).ToArray(),
                 b.Enemies.Select(e => (e.Id, e.Progress, e.Hp, e.AttackCooldown, e.BlockedBy)).ToArray());
-            CollectionAssert.AreEqual(a.Units.Select(u => (u.Id, u.Hp, u.AttackCooldown)).ToArray(),
-                b.Units.Select(u => (u.Id, u.Hp, u.AttackCooldown)).ToArray());
+            CollectionAssert.AreEqual(a.Units.Select(u => (u.Id, u.Hp, u.AttackCooldown, u.Stage, u.SpentCost)).ToArray(),
+                b.Units.Select(u => (u.Id, u.Hp, u.AttackCooldown, u.Stage, u.SpentCost)).ToArray());
         }
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MoaKnights.Game
 {
-    /// <summary>전투 수치 한 곳. 표는 BALANCE.md 1 · 2 · 3 · 5번, 값은 에셋에 둔다. 공격 범위 글자는 AttackRange 설명을 따른다.</summary>
+    /// <summary>전투 수치 한 곳. 표는 BALANCE.md 1 · 2 · 3 · 5 · 6번, 값은 에셋에 둔다. 공격 범위 글자는 AttackRange 설명을 따른다.</summary>
     [CreateAssetMenu(fileName = "BattleBalance", menuName = "MoaKnights/Battle Balance")]
     public sealed class BattleBalanceAsset : ScriptableObject
     {
@@ -39,6 +39,13 @@ namespace MoaKnights.Game
         [SerializeField] private int _defenseHp;
         [SerializeField] private EnemyRow[] _enemies;
         [SerializeField] private UnitRow[] _units;
+        [SerializeField] private int[] _stackHpPercents;
+        [SerializeField] private int[] _stackAttackPercents;
+        [SerializeField] private int[] _stackBlockBonus;
+        [SerializeField] private int _stackCostPercent;
+        [SerializeField] private float _redeployCooldownSeconds;
+        [SerializeField] private int _redeployCostIncrease;
+        [SerializeField] private int _retreatRefundPercent;
 
         public int StartCost => _startCost;
         public float CostRegenSeconds => _costRegenSeconds;
@@ -47,5 +54,14 @@ namespace MoaKnights.Game
         public int DefenseHp => _defenseHp;
         public EnemyRow[] Enemies => _enemies;
         public UnitRow[] Units => _units;
+
+        /// <summary>중첩 단계별 HP 배율(퍼센트). 칸 0이 1단계, 길이가 최대 단계다.</summary>
+        public int[] StackHpPercents => _stackHpPercents;
+        public int[] StackAttackPercents => _stackAttackPercents;
+        public int[] StackBlockBonus => _stackBlockBonus;
+        public int StackCostPercent => _stackCostPercent;
+        public float RedeployCooldownSeconds => _redeployCooldownSeconds;
+        public int RedeployCostIncrease => _redeployCostIncrease;
+        public int RetreatRefundPercent => _retreatRefundPercent;
     }
 }

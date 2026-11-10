@@ -24,6 +24,8 @@ namespace MoaKnights.Game
         {
             public UnitDefinition Definition;
             public Image Background;
+            public TMP_Text CostLabel;
+            public string ShownCost;
         }
 
         public void Bind(Simulation simulation, BattleViewAsset view, TMP_FontAsset font)
@@ -43,12 +45,45 @@ namespace MoaKnights.Game
             if (_simulation != null) Refresh();
         }
 
+        /// <summary>
+        /// 카드 아래 글: 판 위에 있으면 중첩 코스트(최대면 "최대"), 재배치 대기 중이면 남은 초, 아니면 배치 코스트.
+        /// 지금 쓸 수 있으면 밝은 색, 아니면 회색.
+        /// </summary>
         private void Refresh()
         {
+            var world = _simulation.World;
+            var deploy = _simulation.Definition.Deploy;
             foreach (var card in _cards)
             {
-                var usable = !_simulation.World.IsDeployed(card.Definition.Id) && _simulation.World.Cost >= card.Definition.Cost;
+                var id = card.Definition.Id;
+                string text;
+                bool usable;
+
+                var placed = world.UnitOf(id);
+                var waitTicks = _simulation.RedeployTicksLeft(id);
+                if (placed != null)
+                {
+                    var maxed = placed.Stage >= deploy.MaxStage;
+                    text = maxed ? Text.Get("ui.card.max_stack") : Text.Format("ui.card.stack", deploy.StackCost(card.Definition));
+                    usable = _simulation.CheckStack(id) == PlacementResult.Ok;
+                }
+                else if (waitTicks > 0)
+                {
+                    var tps = _simulation.Definition.TicksPerSecond;
+                    text = Text.Format("ui.card.cooldown", (waitTicks + tps - 1) / tps);
+                    usable = false;
+                }
+                else
+                {
+                    var cost = _simulation.DeployCost(id);
+                    text = Text.Format("ui.card.cost", cost);
+                    usable = world.Cost >= cost;
+                }
+
                 card.Background.color = usable ? _view.CardColor : _view.CardDisabledColor;
+                if (card.ShownCost == text) continue;
+                card.ShownCost = text;
+                card.CostLabel.text = text;
             }
         }
 
@@ -65,12 +100,12 @@ namespace MoaKnights.Game
 
             // 이름 키는 능력자 ID로 만든다. 표에 있는지는 ProjectRuleTests가 검사한다.
             CreateLabel(go.transform, "Name", Text.Get("unit." + unit.Id + ".name"), font, 24f, _view.CardTextColor, new Vector2(0f, 0.35f), new Vector2(1f, 1f));
-            CreateLabel(go.transform, "Cost", Text.Format("ui.card.cost", unit.Cost), font, 36f, _view.CardTextColor, new Vector2(0f, 0f), new Vector2(1f, 0.4f));
+            var cost = CreateLabel(go.transform, "Cost", Text.Format("ui.card.cost", unit.Cost), font, 36f, _view.CardTextColor, new Vector2(0f, 0f), new Vector2(1f, 0.4f));
 
-            return new Card { Definition = unit, Background = go.GetComponent<Image>() };
+            return new Card { Definition = unit, Background = go.GetComponent<Image>(), CostLabel = cost };
         }
 
-        private static void CreateLabel(Transform parent, string name, string text, TMP_FontAsset font, float size, Color color, Vector2 anchorMin, Vector2 anchorMax)
+        private static TMP_Text CreateLabel(Transform parent, string name, string text, TMP_FontAsset font, float size, Color color, Vector2 anchorMin, Vector2 anchorMax)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(parent, false);
@@ -86,6 +121,7 @@ namespace MoaKnights.Game
             label.alignment = TextAlignmentOptions.Center;
             label.color = color;
             label.raycastTarget = false;
+            return label;
         }
     }
 }

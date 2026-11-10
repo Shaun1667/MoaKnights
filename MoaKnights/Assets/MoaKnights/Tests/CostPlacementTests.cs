@@ -39,7 +39,8 @@ namespace MoaKnights.Tests
                 {
                     new UnitDefinition(Melee, 10, UnitTerrain.Ground, Stats, 1, Range),
                     new UnitDefinition(Ranged, 12, UnitTerrain.Hill, Stats, 0, Range),
-                });
+                },
+                TestRules.Deploy);
             return new Simulation(World.Create(seed, "s", definition.DefenseHp, definition.Cost.Start), definition);
         }
 
@@ -200,7 +201,7 @@ namespace MoaKnights.Tests
             var map = GridMap.Parse(Map);
             var units = new[] { new UnitDefinition(Melee, 10, UnitTerrain.Ground, Stats, 1, Range), new UnitDefinition(Melee, 12, UnitTerrain.Hill, Stats, 0, Range) };
             Assert.Throws<System.ArgumentException>(() => new BattleDefinition(
-                map, 30, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0], new CostRules(20, 99, 60), units));
+                map, 30, 10, new EnemyDefinition[0], new EnemyRoute[0], new SpawnEvent[0], new CostRules(20, 99, 60), units, TestRules.Deploy));
 
             Assert.Throws<System.ArgumentOutOfRangeException>(() => new CostRules(100, 99, 60));
             Assert.Throws<System.ArgumentOutOfRangeException>(() => new CostRules(20, 99, 0));

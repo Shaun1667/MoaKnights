@@ -26,6 +26,16 @@ namespace MoaKnights.Core.Sim
         public int Direction;
         public int Hp;
         public int AttackCooldown;
+        public int Stage;
+        public int SpentCost;
+    }
+
+    [Serializable]
+    public sealed class UnitSlotSnapshot
+    {
+        public string DefinitionId;
+        public int Deployments;
+        public long ReadyTick;
     }
 
     /// <summary>저장할 상태 전부. 새 상태 = 필드 + 버전 증가 + 왕복 테스트.</summary>
@@ -44,18 +54,18 @@ namespace MoaKnights.Core.Sim
         public int Cost;
         public int CostRegenTicks;
         public UnitSnapshot[] Units;
-        public string[] UsedUnitIds;
+        public UnitSlotSnapshot[] UnitSlots;
     }
 
     /// <summary>한 판의 상태. 시스템은 상태를 갖지 않고 여기만 읽고 쓴다.</summary>
     public sealed class World
     {
-        public const int SnapshotVersion = 4;
+        public const int SnapshotVersion = 5;
 
         private readonly SeededRandom[] _streams;
         private readonly List<Enemy> _enemies = new List<Enemy>();
         private readonly List<Unit> _units = new List<Unit>();
-        private readonly List<string> _usedUnitIds = new List<string>();
+        private readonly List<UnitSlot> _slots = new List<UnitSlot>();
 
         public int Seed { get; }
         public string StageId { get; }
@@ -74,8 +84,8 @@ namespace MoaKnights.Core.Sim
         /// <summary>배치된 능력자. 놓은 순서를 유지한다.</summary>
         public IReadOnlyList<Unit> Units => _units;
 
-        /// <summary>이 판에서 한 번이라도 배치한 능력자 ID. 쓰러져도 남는다 (재배치는 2-2).</summary>
-        public IReadOnlyList<string> UsedUnitIds => _usedUnitIds;
+        /// <summary>한 번이라도 놓은 능력자 카드의 기록. 처음 놓을 때 생긴다.</summary>
+        public IReadOnlyList<UnitSlot> UnitSlots => _slots;
 
         private World(int seed, string stageId, long tick, int nextEntityId, ulong[] rngStates, int defenseHp, int nextSpawnIndex, int cost, int costRegenTicks)
         {
@@ -109,8 +119,9 @@ namespace MoaKnights.Core.Sim
             foreach (var enemy in snapshot.Enemies)
                 world._enemies.Add(new Enemy(enemy.Id, enemy.DefinitionId, enemy.RouteIndex, enemy.Progress, enemy.Hp, enemy.AttackCooldown, enemy.BlockedBy));
             foreach (var unit in snapshot.Units)
-                world._units.Add(new Unit(unit.Id, unit.DefinitionId, new GridPos(unit.CellX, unit.CellY), (Direction)unit.Direction, unit.Hp, unit.AttackCooldown));
-            world._usedUnitIds.AddRange(snapshot.UsedUnitIds);
+                world._units.Add(new Unit(unit.Id, unit.DefinitionId, new GridPos(unit.CellX, unit.CellY), (Direction)unit.Direction, unit.Hp, unit.AttackCooldown, unit.Stage, unit.SpentCost));
+            foreach (var slot in snapshot.UnitSlots)
+                world._slots.Add(new UnitSlot(slot.DefinitionId, slot.Deployments, slot.ReadyTick));
             return world;
         }
 
@@ -148,6 +159,8 @@ namespace MoaKnights.Core.Sim
                     Direction = (int)unit.Direction,
                     Hp = unit.Hp,
                     AttackCooldown = unit.AttackCooldown,
+                    Stage = unit.Stage,
+                    SpentCost = unit.SpentCost,
                 };
             }
 
@@ -165,7 +178,7 @@ namespace MoaKnights.Core.Sim
                 Cost = Cost,
                 CostRegenTicks = CostRegenTicks,
                 Units = units,
-                UsedUnitIds = _usedUnitIds.ToArray(),
+                UnitSlots = _slots.ConvertAll(s => new UnitSlotSnapshot { DefinitionId = s.DefinitionId, Deployments = s.Deployments, ReadyTick = s.ReadyTick }).ToArray(),
             };
         }
 
@@ -218,20 +231,46 @@ namespace MoaKnights.Core.Sim
             Cost = Math.Max(0, Math.Min(rules.Max, Cost + amount));
         }
 
-        public Unit PlaceUnit(string definitionId, GridPos cell, Direction direction, int hp)
+        public Unit PlaceUnit(string definitionId, GridPos cell, Direction direction, int hp, int spentCost)
         {
-            var unit = new Unit(AllocateEntityId(), definitionId, cell, direction, hp, 0);
+            var unit = new Unit(AllocateEntityId(), definitionId, cell, direction, hp, 0, 1, spentCost);
             _units.Add(unit);
-            if (!_usedUnitIds.Contains(definitionId)) _usedUnitIds.Add(definitionId);
+            Slot(definitionId).Deployments++;
             return unit;
         }
 
-        /// <summary>능력자를 판에서 뺀다. 이 능력자가 막고 있던 적은 풀린다.</summary>
-        public void RemoveUnit(Unit unit)
+        /// <summary>능력자를 판에서 뺀다. 이 능력자가 막고 있던 적은 풀리고, readyTick부터 다시 놓을 수 있다.</summary>
+        public void RemoveUnit(Unit unit, long readyTick)
         {
             _units.Remove(unit);
             foreach (var enemy in _enemies)
                 if (enemy.BlockedBy == unit.Id) enemy.BlockedBy = 0;
+            Slot(unit.DefinitionId).ReadyTick = readyTick;
+        }
+
+        /// <summary>이 능력자 카드의 기록. 없으면 만든다 (놓은 적 0, 바로 놓을 수 있음).</summary>
+        public UnitSlot Slot(string definitionId)
+        {
+            foreach (var slot in _slots)
+                if (slot.DefinitionId == definitionId) return slot;
+            var created = new UnitSlot(definitionId, 0, 0);
+            _slots.Add(created);
+            return created;
+        }
+
+        /// <summary>읽기만 할 때 쓴다. 기록이 없으면 null.</summary>
+        public UnitSlot FindSlot(string definitionId)
+        {
+            foreach (var slot in _slots)
+                if (slot.DefinitionId == definitionId) return slot;
+            return null;
+        }
+
+        public Unit UnitOf(string definitionId)
+        {
+            foreach (var unit in _units)
+                if (unit.DefinitionId == definitionId) return unit;
+            return null;
         }
 
         public Unit UnitById(int id)
@@ -256,7 +295,7 @@ namespace MoaKnights.Core.Sim
             return null;
         }
 
-        /// <summary>이 판에서 이미 쓴 능력자인지. 쓰러져도 true다 (재배치는 2-2).</summary>
-        public bool IsDeployed(string definitionId) => _usedUnitIds.Contains(definitionId);
+        /// <summary>이 능력자가 지금 판 위에 있는지.</summary>
+        public bool IsDeployed(string definitionId) => UnitOf(definitionId) != null;
     }
 }

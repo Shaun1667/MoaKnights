@@ -94,6 +94,7 @@ namespace MoaKnights.Core.Sim
         public int TicksPerSecond { get; }
         public int DefenseHp { get; }
         public CostRules Cost { get; }
+        public DeployRules Deploy { get; }
         public IReadOnlyList<EnemyRoute> Routes { get; }
 
         /// <summary>이 판에 나오는 능력자. 카드 순서와 같다.</summary>
@@ -113,7 +114,8 @@ namespace MoaKnights.Core.Sim
             IReadOnlyList<EnemyRoute> routes,
             IEnumerable<SpawnEvent> spawns,
             CostRules cost,
-            IEnumerable<UnitDefinition> units)
+            IEnumerable<UnitDefinition> units,
+            DeployRules deploy)
         {
             if (ticksPerSecond <= 0) throw new ArgumentOutOfRangeException(nameof(ticksPerSecond));
             if (defenseHp <= 0) throw new ArgumentOutOfRangeException(nameof(defenseHp));
@@ -122,6 +124,7 @@ namespace MoaKnights.Core.Sim
             TicksPerSecond = ticksPerSecond;
             DefenseHp = defenseHp;
             Cost = cost ?? throw new ArgumentNullException(nameof(cost));
+            Deploy = deploy ?? throw new ArgumentNullException(nameof(deploy));
             Routes = routes;
 
             foreach (var unit in units)

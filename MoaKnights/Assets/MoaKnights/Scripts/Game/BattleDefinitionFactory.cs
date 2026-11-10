@@ -48,7 +48,16 @@ namespace MoaKnights.Game
                 units.Add(new UnitDefinition(row.Id, row.Cost, row.Terrain, stats, row.BlockCount, AttackRange.Parse(row.Range)));
             }
 
-            return new BattleDefinition(map, ticksPerSecond, balance.DefenseHp, enemies, routes, spawns, cost, units);
+            var deploy = new DeployRules(
+                balance.StackHpPercents,
+                balance.StackAttackPercents,
+                balance.StackBlockBonus,
+                balance.StackCostPercent,
+                Ticks(balance.RedeployCooldownSeconds, ticksPerSecond),
+                balance.RedeployCostIncrease,
+                balance.RetreatRefundPercent);
+
+            return new BattleDefinition(map, ticksPerSecond, balance.DefenseHp, enemies, routes, spawns, cost, units, deploy);
         }
 
         private static int Ticks(float seconds, int ticksPerSecond) => Mathf.RoundToInt(seconds * ticksPerSecond);

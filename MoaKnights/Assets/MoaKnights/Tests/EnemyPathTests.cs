@@ -37,7 +37,8 @@ namespace MoaKnights.Tests
                 new[] { EnemyRoute.Parse(map, BentRoute) },
                 spawnTicks.Select(t => new SpawnEvent(t, EnemyId, 0)),
                 new CostRules(20, 99, 60),
-                new UnitDefinition[0]);
+                new UnitDefinition[0],
+                TestRules.Deploy);
         }
 
         private static Simulation NewSimulation(BattleDefinition definition, int seed = 1) =>
@@ -180,9 +181,9 @@ namespace MoaKnights.Tests
             var routes = new[] { EnemyRoute.Parse(map, BentRoute) };
 
             Assert.Throws<System.ArgumentException>(() =>
-                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, "none", 0) }, Cost, new UnitDefinition[0]));
+                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, "none", 0) }, Cost, new UnitDefinition[0], TestRules.Deploy));
             Assert.Throws<System.ArgumentException>(() =>
-                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, EnemyId, 5) }, Cost, new UnitDefinition[0]));
+                new BattleDefinition(map, TicksPerSecond, 10, enemies, routes, new[] { new SpawnEvent(0, EnemyId, 5) }, Cost, new UnitDefinition[0], TestRules.Deploy));
         }
 
         [Test]

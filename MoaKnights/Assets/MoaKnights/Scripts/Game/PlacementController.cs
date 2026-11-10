@@ -93,7 +93,14 @@ namespace MoaKnights.Game
         private void UpdateDragging(Mouse mouse, Vector2 pointer)
         {
             _hasCell = _mapView.TryPickCell(_camera.ScreenPointToRay(pointer), out _cell);
-            var result = _hasCell ? _simulation.CheckPlacement(_unitId, _cell) : PlacementResult.OutOfBounds;
+
+            // 같은 능력자 위에 놓으면 중첩이다. 방향은 그 능력자 그대로 쓴다 (기획 4-4).
+            var own = _hasCell ? _simulation.World.UnitAt(_cell) : null;
+            var stacking = own != null && own.DefinitionId == _unitId;
+            var result = !_hasCell ? PlacementResult.OutOfBounds
+                : stacking ? _simulation.CheckStack(_unitId)
+                : _simulation.CheckPlacement(_unitId, _cell);
+            if (stacking) _direction = own.Direction;
 
             _preview.Root.SetActive(_hasCell);
             if (_hasCell)
@@ -118,6 +125,14 @@ namespace MoaKnights.Game
             if (result != PlacementResult.Ok)
             {
                 PlacementRejected?.Invoke(result);
+                Cancel();
+                return;
+            }
+
+            if (stacking)
+            {
+                var stacked = _simulation.TryStackUnit(_unitId);
+                if (stacked != PlacementResult.Ok) PlacementRejected?.Invoke(stacked);
                 Cancel();
                 return;
             }

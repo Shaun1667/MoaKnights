@@ -101,6 +101,32 @@ namespace MoaKnights.Tests
             CollectionAssert.AreEqual(new[] { ".XXX", "OXXX", ".XXX" }, ranged.Range);
         }
 
+        /// <summary>BALANCE 6번: 중첩 · 퇴각 · 재배치 값과, 그 값으로 계산한 근거리 단계별 수치.</summary>
+        [Test]
+        public void DeployRules_MatchBalanceDoc()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            CollectionAssert.AreEqual(new[] { 100, 130, 160 }, balance.StackHpPercents);
+            CollectionAssert.AreEqual(new[] { 100, 130, 160 }, balance.StackAttackPercents);
+            CollectionAssert.AreEqual(new[] { 0, 0, 1 }, balance.StackBlockBonus);
+            Assert.AreEqual(100, balance.StackCostPercent);
+            Assert.AreEqual(10f, balance.RedeployCooldownSeconds);
+            Assert.AreEqual(5, balance.RedeployCostIncrease);
+            Assert.AreEqual(50, balance.RetreatRefundPercent);
+
+            var stage = AssetDatabase.LoadAssetAtPath<StageAsset>("Assets/MoaKnights/Data/Stages/Stage01.asset");
+            var definition = BattleDefinitionFactory.Create(stage, balance);
+            definition.TryGetUnit("melee_01", out var melee);
+            var deploy = definition.Deploy;
+            Assert.AreEqual(3, deploy.MaxStage);
+            Assert.AreEqual(300, deploy.RedeployCooldownTicks);
+            CollectionAssert.AreEqual(new[] { 100, 130, 160 }, new[] { 1, 2, 3 }.Select(s => deploy.MaxHp(melee, s)).ToArray());
+            CollectionAssert.AreEqual(new[] { 20, 26, 32 }, new[] { 1, 2, 3 }.Select(s => deploy.Attack(melee, s)).ToArray());
+            CollectionAssert.AreEqual(new[] { 2, 2, 3 }, new[] { 1, 2, 3 }.Select(s => deploy.BlockCount(melee, s)).ToArray());
+            Assert.AreEqual(10, deploy.StackCost(melee));
+            CollectionAssert.AreEqual(new[] { 10, 15, 20 }, new[] { 0, 1, 2 }.Select(n => deploy.DeployCost(melee, n)).ToArray());
+        }
+
         /// <summary>BALANCE 5번 검산: 초 단위 공격 간격이 틱으로 맞게 바뀐다 (1초 30틱, 1.2초 36틱, 1.5초 45틱).</summary>
         [Test]
         public void AttackIntervals_ConvertToTicks()

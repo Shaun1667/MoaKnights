@@ -3,7 +3,7 @@
 ## 0. 데이터 에셋 위치
 | 표 | 에셋 | 코드 |
 |---|---|---|
-| 1. 코스트 · 2. 시간 · 3. 디펜스 · 적 · 5. 능력자 | `Assets/MoaKnights/Data/Balance/BattleBalance.asset` | `BattleBalanceAsset` |
+| 1. 코스트 · 2. 시간 · 3. 디펜스 · 적 · 5. 능력자 · 6. 중첩 · 퇴각 · 재배치 | `Assets/MoaKnights/Data/Balance/BattleBalance.asset` | `BattleBalanceAsset` |
 | 4. 등장 (스테이지마다) | `Assets/MoaKnights/Data/Stages/Stage01.asset` | `StageAsset` |
 
 ## 1. 코스트
@@ -12,7 +12,7 @@
 | 1-1 | 시작 코스트 | 20 | 기획서 |
 | 1-2 | 1 회복에 걸리는 초 | 2 | 기획서, 작업 시트 |
 | 1-3 | 최대 코스트 | 99 | 작업 시트 |
-| 1-4 | 직접 퇴각 환급 비율 | 1/2, 내림 | 작업 시트 (코드 미구현, 에셋 없음) |
+| 1-4 | 직접 퇴각 환급 비율 | 1/2, 내림 — 6-6으로 옮김 | 작업 시트 |
 
 규칙 코드에서는 회복이 틱 정수다: 2초 x 초당 30틱 = 60틱에 1. 최대치에서는 쌓이지 않고, 쓰고 나면 처음부터 다시 찬다.
 
@@ -59,4 +59,20 @@
 
 검산: 시작 20으로 하나는 바로 놓고, 둘째는 2초마다 1씩 차서 둘 다 놓으려면 22가 필요하다 (시작 후 4초).
 
-검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.
+## 6. 중첩 · 퇴각 · 재배치 (임시값 — 원본 수치를 못 읽음, GDD 9-5)
+| 번호 | 항목 | 값 | 출처 |
+|---|---|---|---|
+| 6-1 | 최대 중첩 단계 | 3 | 기획서 (4-6) |
+| 6-2 | 단계별 HP · 공격 배율 (%) | 100 / 130 / 160 | 결정 2026-11-10, 사용자 (임시, "표준") |
+| 6-3 | 단계별 저지 보너스 | 0 / 0 / +1 | 결정 2026-11-10, 사용자 (임시, "표준") |
+| 6-4 | 한 번 겹치는 코스트 | 기본 코스트의 100% (근거리 10, 원거리 12) | 결정 2026-11-10, 사용자 (임시, "표준") |
+| 6-5 | 재배치 쿨타임 (초) | 10 | 결정 2026-11-10, 사용자 (임시, "표준") |
+| 6-6 | 직접 퇴각 환급 | 배치 · 중첩에 들인 코스트 합의 50%, 내림 | 작업 시트 (1/2) + 기준은 결정 2026-11-10, 사용자 |
+| 6-7 | 다시 놓을 때마다 배치 코스트 | +5 (누적) | 결정 2026-11-10, 사용자 (임시, "표준") |
+| 6-8 | HP 0으로 쓰러짐 | 환급 없음, 재배치 규칙은 퇴각과 같음 | 결정 2026-11-10, 사용자 (GDD 9-4) |
+
+배율 계산은 정수 퍼센트, 내림. 중첩하면 오른 최대 HP만큼 지금 HP도 오른다 (받은 피해는 유지).
+검산: 근거리 단계별 HP 100 / 130 / 160, 공격 20 / 26 / 32, 저지 2 / 2 / 3. 원거리 HP 60 / 78 / 96, 공격 15 / 19 / 24. 근거리 배치 코스트 첫 10 → 재배치 15 → 20. 근거리 2단계에서 퇴각하면 (10 + 10) / 2 = 10 환급.
+에셋의 정수 배열은 Unity 형식이라 16진수로 저장된다 (`6400000082000000a0000000` = 100, 130, 160).
+
+검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.DeployRules_MatchBalanceDoc`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.

@@ -66,6 +66,8 @@ MonoBehaviour:
   _floatingNumberSeconds: 0.8
   _floatingNumberRise: 0.6
   _floatingNumberSize: 3
+  _stagePipColor: {r: 1, g: 0.85, b: 0.3, a: 1}
+  _unitActionOffset: {x: 0, y: 40}
   _cellSize: 1
   _cellGap: 0.04
   _cameraPitch: 50
