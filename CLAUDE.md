@@ -67,16 +67,16 @@ MoaKnights/Assets/MoaKnights/
 - 에셋 · 씬 생성은 `MoaKnights/Setup/Run All` 한 곳(`ProjectSetup`), 몇 번 실행해도 같은 결과. Unity가 씬을 열 때 채우는 값(레이아웃 그룹 자식의 앵커 · 크기 0, TMP 기본 스타일)은 Setup이 미리 넣어 열기만 해도 씬이 바뀌지 않게 한다. 데이터 에셋은 없을 때만 만들고, `NewScene` 뒤에 불러와 씬에 연결한다.
 - 시뮬레이션은 `Simulation.Step` 한 곳에서만 진행, 새 시스템 = Step에 순서대로 추가. 실제 시간 → 틱, 배속, 일시정지는 `TickClock` 한 곳.
 - 플레이어 명령(배치 · 중첩 · 퇴각)은 시간을 진행하지 않으므로 `Simulation.TryXxx`로 바로 처리하고 결과 enum을 돌려준다 (일시정지 중에도 받는다). 미리보기는 같은 판정의 `CheckXxx`를 쓴다.
-- 지금 공격력 · 저지 수는 `Simulation.AttackOf` · `BlockOf` 한 곳 (단계 + 쓰고 있는 스킬). SP · 스킬은 `SkillSet`(능력자별, 단계마다 스킬 하나). 스킬 이름 글 키는 `skill.<능력자ID>_<단계>.name`.
+- 지금 공격력 · 저지 수는 `Simulation.AttackOf` · `BlockOf` 한 곳 (단계 + 쓰고 있는 스킬). SP · 스킬은 `SkillSet`(능력자별, 단계마다 스킬 하나). 스킬 이름 글 키는 `skill.<능력자ID>_<단계>.name`. 포지션은 `UnitRole`(탱커 · 딜러 · 힐러) — 힐러는 적을 치지 않고 범위 안 아군 중 HP 비율이 가장 낮은 하나를 `AttackOf`만큼 치유한다 (`UnitHealed`).
 - 중첩 · 퇴각 · 재배치 수치는 `DeployRules` 한 곳 (`BattleDefinition.Deploy`). 단계별 HP · 공격 · 저지는 `DeployRules.MaxHp/Attack/BlockCount(정의, 단계)`로만 구한다.
-- `Simulation.Step` 순서: 코스트 회복 → 스킬 시간 · 자연 SP → 능력자 공격 → 막힌 적의 반격 → 적 이동(저지 · 누수) → 등장 → 승패 판정 → 틱 증가. 판이 끝나면(`IsOver`) `Step`은 아무것도 하지 않고 플레이어 명령은 `BattleOver`로 거절한다. 새 단계는 이 순서 안 어디에 들어가는지 정하고 주석과 이 줄을 고친다.
+- `Simulation.Step` 순서: 코스트 회복 → 스킬 시간 · 자연 SP → 능력자 공격(힐러는 치유) → 막힌 적의 반격 → 적 이동(저지 · 누수) → 등장 → 승패 판정 → 틱 증가. 판이 끝나면(`IsOver`) `Step`은 아무것도 하지 않고 플레이어 명령은 `BattleOver`로 거절한다. 새 단계는 이 순서 안 어디에 들어가는지 정하고 주석과 이 줄을 고친다.
 - 공격 범위는 `AttackRange.Parse` 한 곳, 글자 격자(`O` 자리 · `@` 자리+공격 · `X` 공격 · `.` 빈 칸, 오른쪽이 앞). 적이 서 있는 칸은 `Simulation.EnemyCell`(진행도 반올림) 한 곳.
 - 이벤트 호출 `X?.Invoke(...)`의 인자에 상태 변경을 넣지 않는다 — 구독자가 없으면 인자가 계산되지 않는다 (1-2 무한 루프 원인).
 - 입력은 Input System (`Mouse.current` 등)과 uGUI EventSystem(`InputSystemUIInputModule`)만 쓴다.
 - 판 상태는 `World` 한 곳, 새 상태 = 필드 + `WorldSnapshot` 필드 + `SnapshotVersion` 증가 + 왕복 테스트.
 - 난수는 `World.Rng(RngStream.X)`로만, `UnityEngine.Random` · `System.Random` 금지. 새 용도 = enum 끝에 추가.
-- 맵은 `GridMap.Parse` 한 곳, 데이터 `StageAsset`(글자 격자: `#` 막힘, `.` 지상, `H` 언덕, `S` 입구, `E` 출구), 새 스테이지 = 에셋 하나 + `StageCatalog` 한 줄(순서 = 진행 순서). 스테이지 이름 글 키는 `stage.<스테이지ID>.name`. 씬을 다시 불러올 때 넘기는 값은 `GameRoot`의 시드와 스테이지 번호 둘뿐. 적의 길은 `EnemyRoute.Parse` 한 곳, 꺾이는 칸을 `6,3 3,3 3,1`처럼 적고 입구에서 출구까지 지상 칸만 지난다.
-- 전투 화면 표현값은 `BattleViewAsset` 한 곳, 새 칸 종류 = 표 한 줄. 그리기는 `MapView` · `EnemyView` · `UnitView`(단계 점 포함) · `CardBar` · `BattleHud` · `DamageNumbers`(떠오르는 피해 숫자) · `HealthBar` · `RangeView`(범위 판), 배치 · 중첩 입력은 `PlacementController`, 능력자 클릭 · 퇴각 · 스킬 버튼은 `UnitActionPanel`, 일시정지 · 배속 버튼과 단축키는 `SpeedControls`, 결과 창은 `ResultPanel`, 스테이지 선택 창은 `StageSelectPanel`, 카메라는 `BattleCameraRig`.
+- 맵은 `GridMap.Parse` 한 곳, 데이터 `StageAsset`(글자 격자: `#` 막힘, `.` 지상, `H` 언덕, `S` 입구, `E` 출구), 새 스테이지 = 에셋 하나 + `StageCatalog` 한 줄(순서 = 진행 순서). 스테이지 이름 글 키는 `stage.<스테이지ID>.name`. 씬을 다시 불러올 때 넘기는 값은 `GameRoot`의 시드 · 스테이지 번호 · 편성(출전 능력자 ID 목록) 셋뿐. 편성은 `BattleDefinitionFactory.IsValidDeck` · `DefaultDeck`(목록 앞 `DeckSize`명) 한 곳에서 판정하고, 판 정의에는 출전 능력자만 들어간다. 적의 길은 `EnemyRoute.Parse` 한 곳, 꺾이는 칸을 `6,3 3,3 3,1`처럼 적고 입구에서 출구까지 지상 칸만 지난다.
+- 전투 화면 표현값은 `BattleViewAsset` 한 곳, 새 칸 종류 = 표 한 줄. 그리기는 `MapView` · `EnemyView` · `UnitView`(단계 점 포함) · `CardBar` · `BattleHud` · `DamageNumbers`(떠오르는 피해 숫자) · `HealthBar` · `RangeView`(범위 판), 배치 · 중첩 입력은 `PlacementController`, 능력자 클릭 · 퇴각 · 스킬 버튼은 `UnitActionPanel`, 일시정지 · 배속 버튼과 단축키는 `SpeedControls`, 결과 창은 `ResultPanel`, 스테이지 선택 창은 `StageSelectPanel`, 판 시작 전 편성 창(능력자 · 이번 판 적 탭)은 `FormationPanel`, 카메라는 `BattleCameraRig`.
 - enum은 끝에만 추가한다.
 
 ## 핵심 설계 규칙 (변경 금지)

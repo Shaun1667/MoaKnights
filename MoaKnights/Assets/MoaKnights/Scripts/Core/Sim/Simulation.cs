@@ -292,6 +292,12 @@ namespace MoaKnights.Core.Sim
                 if (unit.AttackCooldown > 0) unit.AttackCooldown--;
                 if (unit.AttackCooldown > 0) continue;
 
+                if (definition.Role == UnitRole.Healer)
+                {
+                    HealAlly(unit, definition);
+                    continue;
+                }
+
                 var target = FindTarget(unit, definition);
                 if (target == null) continue;
 
@@ -299,6 +305,36 @@ namespace MoaKnights.Core.Sim
                 DamageEnemy(target, AttackOf(unit));
                 GainSp(unit, SpType.OnAttack);
             }
+        }
+
+        /// <summary>
+        /// 힐러의 "공격": 범위 안에서 HP 비율이 가장 낮은 다친 아군을 공격력만큼 치유한다 (최대 HP까지).
+        /// 다친 아군이 없으면 치유하지 않고 대기도 쓰지 않는다. 치유도 공격으로 쳐 타격 SP가 찬다.
+        /// </summary>
+        private void HealAlly(Unit healer, UnitDefinition definition)
+        {
+            Unit target = null;
+            var targetMaxHp = 1;
+            foreach (var ally in World.Units)
+            {
+                if (!definition.Range.Contains(healer.Cell, healer.Direction, ally.Cell)) continue;
+                var maxHp = MaxHp(ally);
+                if (ally.Hp >= maxHp) continue;
+
+                // 비율 비교는 정수 곱으로 한다: ally.Hp / maxHp < target.Hp / targetMaxHp
+                if (target == null || (long)ally.Hp * targetMaxHp < (long)target.Hp * maxHp)
+                {
+                    target = ally;
+                    targetMaxHp = maxHp;
+                }
+            }
+            if (target == null) return;
+
+            healer.AttackCooldown = definition.Stats.AttackIntervalTicks;
+            var healed = Math.Min(AttackOf(healer), targetMaxHp - target.Hp);
+            target.Hp += healed;
+            UnitHealed?.Invoke(target, healed);
+            GainSp(healer, SpType.OnAttack);
         }
 
         /// <summary>범위 안에서 출구에 가장 가까운 적. 같으면 먼저 나온 적.</summary>

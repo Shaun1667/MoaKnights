@@ -40,3 +40,48 @@ ui.select.current,{0} (지금),{0} (current)
 stage.stage_01.name,스테이지 1 · 돌아가는 길,Stage 1 · The Winding Road
 stage.stage_02.name,스테이지 2 · 갈림길,Stage 2 · The Fork
 stage.stage_03.name,스테이지 3 · 두 입구,Stage 3 · Two Gates
+ui.formation.title,편성,Formation
+ui.formation.count,출전 {0} / {1},Deploying {0} / {1}
+ui.formation.tab_unit,능력자,Unit
+ui.formation.tab_enemy,이번 판 적,Enemies
+ui.formation.confirm,출전,Deploy
+ui.formation.card_info,{0} · 코스트 {1},{0} · Cost {1}
+ui.formation.unit_kind,{0} · {1} · 코스트 {2},{0} · {1} · Cost {2}
+ui.formation.unit_stats,HP {0} · {1} {2} / {3}초 · 저지 {4},HP {0} · {1} {2} / {3}s · Block {4}
+ui.formation.attack,공격,Attack
+ui.formation.heal,치유,Heal
+ui.formation.unit_sp,SP {0} · 최대 {1},SP {0} · Max {1}
+ui.formation.skill_line,{0}단계 {1}: {2},Stage {0} {1}: {2}
+ui.formation.joiner, + , + 
+ui.formation.enemy_total,적 {0}마리,{0} enemies
+ui.formation.enemy_line,{0} ×{1} · HP {2} · 속도 {3}칸/초 · 공격 {4} · 누수 {5},{0} ×{1} · HP {2} · Speed {3}/s · Attack {4} · Leak {5}
+ui.skill.heal,HP {0}% 회복,Heal {0}% HP
+ui.skill.attack,{1}초 동안 공격 +{0}%,+{0}% attack for {1}s
+ui.skill.block,{1}초 동안 저지 +{0},+{0} block for {1}s
+ui.role.tank,탱커,Tank
+ui.role.dealer,딜러,Dealer
+ui.role.healer,힐러,Healer
+ui.terrain.ground,지상,Ground
+ui.terrain.hill,언덕,Hill
+ui.sp.natural,자연 회복,Natural
+ui.sp.on_attack,공격 시,On attack
+ui.sp.on_hit,피격 시,On hit
+unit.tank_01.name,방패병 (임시),Shieldbearer (temp)
+unit.healer_01.name,치유사 (임시),Healer (temp)
+unit.sniper_01.name,저격수 (임시),Sniper (temp)
+unit.vanguard_01.name,돌격병 (임시),Vanguard (temp)
+skill.tank_01_1.name,방패 세우기,Raise Shield
+skill.tank_01_2.name,방패 세우기 II,Raise Shield II
+skill.tank_01_3.name,철옹성,Fortress
+skill.healer_01_1.name,치유 집중,Focused Care
+skill.healer_01_2.name,치유 집중 II,Focused Care II
+skill.healer_01_3.name,치유 집중 III,Focused Care III
+skill.sniper_01_1.name,조준,Aim
+skill.sniper_01_2.name,조준 II,Aim II
+skill.sniper_01_3.name,필중,Dead Eye
+skill.vanguard_01_1.name,돌진,Charge
+skill.vanguard_01_2.name,돌진 II,Charge II
+skill.vanguard_01_3.name,돌진 III,Charge III
+enemy.dizes_01.name,디제스,Dizes
+enemy.dizes_fast.name,빠른 디제스,Swift Dizes
+enemy.dizes_tank.name,단단한 디제스,Hard Dizes

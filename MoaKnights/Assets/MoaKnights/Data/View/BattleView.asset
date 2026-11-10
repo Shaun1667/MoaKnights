@@ -51,6 +51,22 @@ MonoBehaviour:
     Prefab: {fileID: 0}
     Color: {r: 0.2, g: 0.75, b: 0.85, a: 1}
     Size: 0.4
+  - Id: tank_01
+    Prefab: {fileID: 0}
+    Color: {r: 0.55, g: 0.62, b: 0.7, a: 1}
+    Size: 0.5
+  - Id: healer_01
+    Prefab: {fileID: 0}
+    Color: {r: 0.45, g: 0.9, b: 0.55, a: 1}
+    Size: 0.36
+  - Id: sniper_01
+    Prefab: {fileID: 0}
+    Color: {r: 0.85, g: 0.85, b: 0.95, a: 1}
+    Size: 0.34
+  - Id: vanguard_01
+    Prefab: {fileID: 0}
+    Color: {r: 0.9, g: 0.4, b: 0.3, a: 1}
+    Size: 0.4
   _damageNumberColor: {r: 1, g: 0.35, b: 0.3, a: 1}
   _damageNumberSeconds: 1
   _messageSeconds: 1.5
@@ -83,6 +99,7 @@ MonoBehaviour:
   _defeatColor: {r: 0.9, g: 0.35, b: 0.3, a: 1}
   _starOnColor: {r: 1, g: 0.85, b: 0.3, a: 1}
   _starOffColor: {r: 0.3, g: 0.3, b: 0.33, a: 1}
+  _formationSelectedColor: {r: 1, g: 0.82, b: 0.4, a: 1}
   _cellSize: 1
   _cellGap: 0.04
   _cameraPitch: 50

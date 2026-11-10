@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MoaKnights.Game
 {
-    /// <summary>전투 수치 한 곳. 표는 BALANCE.md 1 · 2 · 3 · 5 · 6 · 7번, 값은 에셋에 둔다. 공격 범위 글자는 AttackRange 설명을 따른다.</summary>
+    /// <summary>전투 수치 한 곳. 표는 BALANCE.md 1 · 2 · 3 · 5 · 6 · 7 · 8 · 9번, 값은 에셋에 둔다. 공격 범위 글자는 AttackRange 설명을 따른다.</summary>
     [CreateAssetMenu(fileName = "BattleBalance", menuName = "MoaKnights/Battle Balance")]
     public sealed class BattleBalanceAsset : ScriptableObject
     {
@@ -30,6 +30,7 @@ namespace MoaKnights.Game
             public float AttackIntervalSeconds;
             public int BlockCount;
             public string[] Range;
+            public UnitRole Role;
             public SpType SpType;
             public int MaxSp;
             public float NaturalSpSeconds;
@@ -61,6 +62,7 @@ namespace MoaKnights.Game
         [SerializeField] private int _redeployCostIncrease;
         [SerializeField] private int _retreatRefundPercent;
         [SerializeField] private int _twoStarHpPercent;
+        [SerializeField] private int _deckSize;
 
         public int StartCost => _startCost;
         public float CostRegenSeconds => _costRegenSeconds;
@@ -81,5 +83,8 @@ namespace MoaKnights.Game
 
         /// <summary>별 2개 기준: 남은 디펜스 HP가 최대의 이 퍼센트 이상 (BALANCE 8번).</summary>
         public int TwoStarHpPercent => _twoStarHpPercent;
+
+        /// <summary>한 판에 출전하는 능력자 수 (BALANCE 9번). 능력자 목록 순서의 앞 이만큼이 기본 편성이다.</summary>
+        public int DeckSize => _deckSize;
     }
 }

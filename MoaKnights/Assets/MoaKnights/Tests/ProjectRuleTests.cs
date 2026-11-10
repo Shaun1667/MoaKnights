@@ -101,6 +101,60 @@ namespace MoaKnights.Tests
             CollectionAssert.AreEqual(new[] { ".XXX", "OXXX", ".XXX" }, ranged.Range);
         }
 
+        /// <summary>BALANCE 5 · 7 · 9번: 능력자 6명 · 포지션 · 출전 4명 · 기본 편성, 그리고 편성대로 카드가 만들어지는지.</summary>
+        [Test]
+        public void Roster_AndDeck_MatchBalanceDoc()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            var stage = AssetDatabase.LoadAssetAtPath<StageAsset>("Assets/MoaKnights/Data/Stages/Stage01.asset");
+
+            CollectionAssert.AreEqual(new[] { "melee_01", "ranged_01", "tank_01", "healer_01", "sniper_01", "vanguard_01" }, balance.Units.Select(u => u.Id).ToArray());
+            CollectionAssert.AreEqual(
+                new[] { UnitRole.Dealer, UnitRole.Dealer, UnitRole.Tank, UnitRole.Healer, UnitRole.Dealer, UnitRole.Dealer },
+                balance.Units.Select(u => u.Role).ToArray());
+            Assert.AreEqual(4, balance.DeckSize);
+            CollectionAssert.AreEqual(new[] { "melee_01", "ranged_01", "tank_01", "healer_01" }, BattleDefinitionFactory.DefaultDeck(balance));
+
+            var tank = balance.Units.Single(u => u.Id == "tank_01");
+            Assert.AreEqual((14, 200, 10, 1.5f, 3), (tank.Cost, tank.MaxHp, tank.Attack, tank.AttackIntervalSeconds, tank.BlockCount));
+            var healer = balance.Units.Single(u => u.Id == "healer_01");
+            Assert.AreEqual((12, 50, 15, 1.5f, SpType.Natural, 15), (healer.Cost, healer.MaxHp, healer.Attack, healer.AttackIntervalSeconds, healer.SpType, healer.MaxSp));
+            var sniper = balance.Units.Single(u => u.Id == "sniper_01");
+            Assert.AreEqual((16, 40, 2.5f, 20), (sniper.Cost, sniper.Attack, sniper.AttackIntervalSeconds, sniper.MaxSp));
+            CollectionAssert.AreEqual(new[] { "OXXXX" }, sniper.Range);
+            var vanguard = balance.Units.Single(u => u.Id == "vanguard_01");
+            Assert.AreEqual((6, 70, 12, 0.8f, 1), (vanguard.Cost, vanguard.MaxHp, vanguard.Attack, vanguard.AttackIntervalSeconds, vanguard.BlockCount));
+
+            var custom = BattleDefinitionFactory.Create(stage, balance, new[] { "vanguard_01", "sniper_01" });
+            CollectionAssert.AreEqual(new[] { "vanguard_01", "sniper_01" }, custom.Units.Select(u => u.Id).ToArray());
+            custom.TryGetUnit("vanguard_01", out var vanguardDef);
+            Assert.AreEqual(24, vanguardDef.Stats.AttackIntervalTicks);
+
+            var fallback = BattleDefinitionFactory.Create(stage, balance, new[] { "nobody" });
+            CollectionAssert.AreEqual(BattleDefinitionFactory.DefaultDeck(balance), fallback.Units.Select(u => u.Id).ToArray());
+        }
+
+        // 편성은 쉼표로 이은 문자열로 받는다 (NUnit은 배열 하나만 넘기면 인자 여러 개로 풀어 버린다).
+        [TestCase("")]                                                      // 아무도 없음
+        [TestCase("melee_01,melee_01")]                                     // 겹침
+        [TestCase("melee_01,ranged_01,tank_01,healer_01,sniper_01")]        // 4명 초과
+        [TestCase("nobody")]                                                // 목록에 없음
+        public void Deck_RejectsInvalid(string ids)
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            var deck = ids.Length == 0 ? new string[0] : ids.Split(',');
+            Assert.IsFalse(BattleDefinitionFactory.IsValidDeck(balance, deck));
+        }
+
+        [Test]
+        public void EveryEnemy_HasNameText()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            var table = TextTable.Parse(File.ReadAllText(TextCsvPath));
+            foreach (var enemy in balance.Enemies)
+                Assert.IsTrue(table.Contains("enemy." + enemy.Id + ".name"), enemy.Id);
+        }
+
         /// <summary>BALANCE 4 · 8번: 스테이지 목록 순서, 스테이지 2 · 3 길, 새 적 수치, 별 기준, 스테이지 이름 글.</summary>
         [Test]
         public void StageCatalog_MatchesBalanceDoc_AndHasNames()

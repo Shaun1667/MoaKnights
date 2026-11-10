@@ -62,6 +62,15 @@
 | 5-5 | `ranged_01` HP · 공격 · 공격 간격(초) · 저지 | 60 · 15 · 1.2 · 0 | 결정 2026-11-10, 사용자 (임시) |
 | 5-6 | `ranged_01` 공격 범위 | `.XXX` / `OXXX` / `.XXX` (앞 3x3) | 결정 2026-11-10, 사용자 (임시) |
 
+| 5-7 | `tank_01` 방패병 · 탱커 · 지상 · 코스트 14 | HP 200 · 공격 10 · 1.5초 · 저지 3 · 범위 `@` | 정한 것 (Claude, 확인 필요) |
+| 5-8 | `healer_01` 치유사 · 힐러 · 언덕 · 코스트 12 | HP 50 · 치유 15 · 1.5초 · 저지 0 · 범위 `XXX` / `X@X` / `XXX` (둘레 3x3, 자기 포함) | 정한 것 (Claude, 확인 필요) |
+| 5-9 | `sniper_01` 저격수 · 딜러 · 언덕 · 코스트 16 | HP 50 · 공격 40 · 2.5초 · 저지 0 · 범위 `OXXXX` (앞 4칸) | 정한 것 (Claude, 확인 필요) |
+| 5-10 | `vanguard_01` 돌격병 · 딜러 · 지상 · 코스트 6 | HP 70 · 공격 12 · 0.8초 · 저지 1 · 범위 `@X` | 정한 것 (Claude, 확인 필요) |
+| 5-11 | 포지션 | `melee_01` · `ranged_01`은 딜러 | 정한 것 (Claude, 확인 필요) |
+
+힐러: 공격 칸이 치유량이다. 범위 안에서 다친 아군 중 HP 비율(지금 / 최대)이 가장 낮은 하나를 치유하고(같으면 먼저 놓은 쪽), 최대 HP를 넘지 않는다. 다친 아군이 없으면 대기 시간을 쓰지 않는다. 치유도 "칠 때" SP를 준다.
+검산: 1.5초 45틱, 2.5초 75틱, 0.8초 24틱. 방패병 + 치유사(한 칸 위)로 Stage02를 300틱 돌리면 치유 7번 합 95 (플레이 관찰 2026-11-10, Claude).
+
 피해 = 공격력 (방어 없음). 공격 간격은 규칙에서 틱 정수다: 1초 30틱, 1.2초 36틱, 1.5초 45틱.
 범위 글자: `O` 능력자 자리(공격 안 함), `@` 능력자 자리(공격함), `X` 공격 칸, `.` 빈 칸. 오른쪽이 앞, 위쪽 줄이 +y. 방향에 따라 규칙이 돌린다.
 
@@ -93,7 +102,11 @@
 | 7-2 | `melee_01` 스킬 1 · 2 · 3단계 | "버티기" HP 30% · "버티기 II" HP 40% · "철벽" HP 50% + 8초 저지 +1 | 결정 2026-11-10, 사용자 (임시) |
 | 7-3 | `ranged_01` SP | 타격 회복 (칠 때 +1), 최대 10 | 결정 2026-11-10, 사용자 (임시) |
 | 7-4 | `ranged_01` 스킬 1 · 2 · 3단계 | "집중 사격" 10초 공격 +50% · II +80% · III +120% | 결정 2026-11-10, 사용자 (임시) |
-| 7-5 | 자연 회복 SP | 규칙만 있음 (쓰는 능력자 없음) | 기획서 (4-8) |
+| 7-5 | 자연 회복 SP | 1초에 +1 (`healer_01` · `sniper_01`이 씀) | 기획서 (4-8) |
+| 7-6 | `tank_01` SP · 스킬 | 피격 회복, 최대 10. "방패 세우기" HP 20% + 10초 저지 +1 · II HP 30% + 저지 +1 · "철옹성" HP 40% + 저지 +2 | 정한 것 (Claude, 확인 필요) |
+| 7-7 | `healer_01` SP · 스킬 | 자연 회복, 최대 15. "치유 집중" 10초 치유 +50% · II +80% · III +120% | 정한 것 (Claude, 확인 필요) |
+| 7-8 | `sniper_01` SP · 스킬 | 자연 회복, 최대 20. "조준" 10초 공격 +60% · II +100% · "필중" +150% | 정한 것 (Claude, 확인 필요) |
+| 7-9 | `vanguard_01` SP · 스킬 | 타격 회복, 최대 12. "돌진" 8초 공격 +40% · II +60% · III +80% | 정한 것 (Claude, 확인 필요) |
 
 회복은 최대 HP 기준 퍼센트(내림), 최대 HP를 넘지 않음. 공격 보너스는 단계 공격력에 곱함(내림). 스킬을 쓰는 동안 SP는 차지 않고, 쓰는 중에 겹쳐도 처음 쓴 단계의 효과가 이어진다. 저지 보너스가 끝나면 넘치는 적은 뒤에 막힌 순서로 풀린다.
 검산: 원거리 1단계 스킬 중 공격 15 x 150% = 22, 3단계는 24 x 220% = 52. 근거리 HP 10에서 "버티기" → 40.
@@ -107,4 +120,11 @@
 
 검산: 디펜스 HP 10에서 5가 남으면 별 2개, 4가 남으면 1개.
 
-검산 테스트: `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.DeployRules_MatchBalanceDoc`, `ProjectRuleTests.SkillData_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.StageCatalog_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.
+## 9. 편성
+| 번호 | 항목 | 값 | 출처 |
+|---|---|---|---|
+| 9-1 | 능력자 목록 | 6명 (5-1 ~ 5-10) | 결정 2026-11-10, 사용자 |
+| 9-2 | 출전 수 (`DeckSize`) | 4 (1명 이상이면 출전 가능) | 결정 2026-11-10, 사용자 |
+| 9-3 | 기본 편성 | 목록 앞 4명: 근거리 · 원거리 · 방패병 · 치유사 | 정한 것 (Claude, 확인 필요) |
+
+검산 테스트: `ProjectRuleTests.Roster_AndDeck_MatchBalanceDoc`, `ProjectRuleTests.Deck_RejectsInvalid`, `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.DeployRules_MatchBalanceDoc`, `ProjectRuleTests.SkillData_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.StageCatalog_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.

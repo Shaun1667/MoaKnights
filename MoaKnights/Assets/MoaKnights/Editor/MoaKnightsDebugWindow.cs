@@ -66,6 +66,7 @@ namespace MoaKnights.EditorTools
             var simulation = root.Simulation;
             EditorGUILayout.LabelField("지금", (root.StageIndex + 1) + " / " + root.Catalog.Count + "  (" + simulation.World.StageId + ")");
             EditorGUILayout.LabelField("결과", simulation.World.Outcome + (simulation.IsOver ? "  별 " + simulation.Stars() : ""));
+            EditorGUILayout.LabelField("편성", string.Join(", ", root.Deck));
 
             EditorGUILayout.BeginHorizontal();
             for (var i = 0; i < root.Catalog.Count; i++)

@@ -49,8 +49,8 @@ namespace MoaKnights.Tests
                 new CostRules(99, 99, 60),
                 new[]
                 {
-                    new UnitDefinition(Melee, 10, UnitTerrain.Ground, new CombatStats(s.MeleeHp, s.MeleeAttack, s.MeleeInterval), s.MeleeBlock, AttackRange.Parse(s.MeleeRange), TestRules.NoSkills()),
-                    new UnitDefinition(Ranged, 12, UnitTerrain.Hill, new CombatStats(60, 15, 36), 0, AttackRange.Parse(s.RangedRange), TestRules.NoSkills()),
+                    new UnitDefinition(Melee, 10, UnitTerrain.Ground, new CombatStats(s.MeleeHp, s.MeleeAttack, s.MeleeInterval), s.MeleeBlock, AttackRange.Parse(s.MeleeRange), TestRules.NoSkills(), UnitRole.Dealer),
+                    new UnitDefinition(Ranged, 12, UnitTerrain.Hill, new CombatStats(60, 15, 36), 0, AttackRange.Parse(s.RangedRange), TestRules.NoSkills(), UnitRole.Dealer),
                 },
                 TestRules.Deploy, TestRules.TwoStarHpPercent);
             return new Simulation(World.Create(1, "s", 10, 99), definition);

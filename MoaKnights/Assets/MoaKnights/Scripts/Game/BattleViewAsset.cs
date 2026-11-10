@@ -72,6 +72,7 @@ namespace MoaKnights.Game
         [SerializeField] private Color _defeatColor;
         [SerializeField] private Color _starOnColor;
         [SerializeField] private Color _starOffColor;
+        [SerializeField] private Color _formationSelectedColor;
         [SerializeField] private float _cellSize;
         [SerializeField] private float _cellGap;
         [SerializeField] private float _cameraPitch;
@@ -135,6 +136,9 @@ namespace MoaKnights.Game
         public Color DefeatColor => _defeatColor;
         public Color StarOnColor => _starOnColor;
         public Color StarOffColor => _starOffColor;
+
+        /// <summary>편성 창에서 출전으로 고른 능력자 카드 색.</summary>
+        public Color FormationSelectedColor => _formationSelectedColor;
 
         public bool TryGetUnit(string id, out UnitVisual visual)
         {

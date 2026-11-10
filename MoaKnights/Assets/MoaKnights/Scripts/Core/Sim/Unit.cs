@@ -10,6 +10,14 @@ namespace MoaKnights.Core.Sim
         Hill = 1,
     }
 
+    /// <summary>포지션 (기획 4-10). 힐러는 적을 치지 않고 범위 안 아군을 치유한다. enum은 끝에만 추가한다.</summary>
+    public enum UnitRole
+    {
+        Tank = 0,
+        Dealer = 1,
+        Healer = 2,
+    }
+
     /// <summary>배치 방향. 격자 기준이며 Right가 공격 범위 정의의 기준 방향이다. enum은 끝에만 추가한다.</summary>
     public enum Direction
     {
@@ -59,8 +67,9 @@ namespace MoaKnights.Core.Sim
         public AttackRange Range { get; }
 
         public SkillSet Skills { get; }
+        public UnitRole Role { get; }
 
-        public UnitDefinition(string id, int cost, UnitTerrain terrain, CombatStats stats, int blockCount, AttackRange range, SkillSet skills)
+        public UnitDefinition(string id, int cost, UnitTerrain terrain, CombatStats stats, int blockCount, AttackRange range, SkillSet skills, UnitRole role)
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentException("Unit id is empty.");
             if (cost < 0) throw new ArgumentOutOfRangeException(nameof(cost), "Unit " + id);
@@ -72,6 +81,7 @@ namespace MoaKnights.Core.Sim
             BlockCount = blockCount;
             Range = range ?? throw new ArgumentNullException(nameof(range), "Unit " + id);
             Skills = skills ?? throw new ArgumentNullException(nameof(skills), "Unit " + id);
+            Role = role;
         }
 
         public bool CanStandOn(CellType cell)

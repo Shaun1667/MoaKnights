@@ -26,7 +26,7 @@ namespace MoaKnights.Tests
                 new[] { EnemyRoute.Parse(map, "0,0 3,0") },
                 spawns.Select(t => new SpawnEvent(t, EnemyId, 0)),
                 new CostRules(99, 99, 60),
-                new[] { new UnitDefinition(Melee, 10, UnitTerrain.Ground, new CombatStats(100, meleeAttack, 30), 1, AttackRange.Parse(new[] { "@X" }), TestRules.NoSkills()) },
+                new[] { new UnitDefinition(Melee, 10, UnitTerrain.Ground, new CombatStats(100, meleeAttack, 30), 1, AttackRange.Parse(new[] { "@X" }), TestRules.NoSkills(), UnitRole.Dealer) },
                 TestRules.Deploy,
                 TestRules.TwoStarHpPercent);
             return new Simulation(World.Create(1, "s", defenseHp, 99), definition);

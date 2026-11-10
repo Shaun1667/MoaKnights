@@ -76,6 +76,10 @@ namespace MoaKnights.EditorTools
         private static readonly string[] Stage03Routes = { "0,6 3,6 3,3 8,3", "0,0 3,0 3,3 8,3" };
         private const string MeleeUnitId = "melee_01";
         private const string RangedUnitId = "ranged_01";
+        private const string TankUnitId = "tank_01";
+        private const string HealerUnitId = "healer_01";
+        private const string SniperUnitId = "sniper_01";
+        private const string VanguardUnitId = "vanguard_01";
 
         // 공격 범위 (오른쪽이 앞). 근거리: 자기 칸 + 앞 1칸. 원거리: 앞 3x3.
         private static readonly string[] MeleeRange = { "@X" };
@@ -181,6 +185,27 @@ namespace MoaKnights.EditorTools
                     FillSkills(row, SpType.OnAttack, 10, 0f, new[] { new[] { 0, 50, 0, 10 }, new[] { 0, 80, 0, 10 }, new[] { 0, 120, 0, 10 } });
             }
 
+            // 3-2 포지션: 이 칸은 처음 생겼을 때 0(탱커)이다. 근거리 · 원거리는 딜러로 맞춘다 (0일 때만).
+            for (var i = 0; i < units.arraySize; i++)
+            {
+                var row = units.GetArrayElementAtIndex(i);
+                var id = row.FindPropertyRelative("Id").stringValue;
+                var role = row.FindPropertyRelative("Role");
+                if ((id == MeleeUnitId || id == RangedUnitId) && role.enumValueIndex == (int)UnitRole.Tank)
+                    role.enumValueIndex = (int)UnitRole.Dealer;
+            }
+
+            // 3-2 새 능력자 넷 (BALANCE 5-7 ~ 5-10, 7-6 ~ 7-9). 행이 없을 때만 만든다. 목록 순서의 앞 넷이 기본 편성.
+            AddUnitIfMissing(units, TankUnitId, 14, UnitTerrain.Ground, UnitRole.Tank, 200, 10, 1.5f, 3, new[] { "@" },
+                SpType.OnHit, 10, 0f, new[] { new[] { 20, 0, 1, 10 }, new[] { 30, 0, 1, 10 }, new[] { 40, 0, 2, 10 } });
+            AddUnitIfMissing(units, HealerUnitId, 12, UnitTerrain.Hill, UnitRole.Healer, 50, 15, 1.5f, 0, new[] { "XXX", "X@X", "XXX" },
+                SpType.Natural, 15, 1f, new[] { new[] { 0, 50, 0, 10 }, new[] { 0, 80, 0, 10 }, new[] { 0, 120, 0, 10 } });
+            AddUnitIfMissing(units, SniperUnitId, 16, UnitTerrain.Hill, UnitRole.Dealer, 50, 40, 2.5f, 0, new[] { "OXXXX" },
+                SpType.Natural, 20, 1f, new[] { new[] { 0, 60, 0, 10 }, new[] { 0, 100, 0, 10 }, new[] { 0, 150, 0, 10 } });
+            AddUnitIfMissing(units, VanguardUnitId, 6, UnitTerrain.Ground, UnitRole.Dealer, 70, 12, 0.8f, 1, new[] { "@X" },
+                SpType.OnAttack, 12, 0f, new[] { new[] { 0, 40, 0, 8 }, new[] { 0, 60, 0, 8 }, new[] { 0, 80, 0, 8 } });
+            FillIfZero(so.FindProperty("_deckSize"), 4);
+
             // 중첩 · 퇴각 · 재배치 (BALANCE 6번). 비어 있을 때만 넣는다.
             FillIfEmpty(so.FindProperty("_stackHpPercents"), 100, 130, 160);
             FillIfEmpty(so.FindProperty("_stackAttackPercents"), 100, 130, 160);
@@ -219,6 +244,32 @@ namespace MoaKnights.EditorTools
             if (array.arraySize != 0) return;
             array.arraySize = values.Length;
             for (var i = 0; i < values.Length; i++) array.GetArrayElementAtIndex(i).intValue = values[i];
+        }
+
+        /// <summary>
+        /// 능력자 행이 없으면 끝에 만들고 모든 칸을 채운다. 배열을 늘리면 Unity가 마지막 행 값을 복사하므로 조건 없이 덮어쓴다.
+        /// 스킬 행: 회복 % · 공격 추가 % · 저지 추가 · 지속 초.
+        /// </summary>
+        private static void AddUnitIfMissing(SerializedProperty units, string id, int cost, UnitTerrain terrain, UnitRole role,
+            int maxHp, int attack, float interval, int blockCount, string[] range, SpType spType, int maxSp, float naturalSeconds, int[][] skills)
+        {
+            var row = RowById(units, id, out var created);
+            if (!created) return;
+
+            row.FindPropertyRelative("Cost").intValue = cost;
+            row.FindPropertyRelative("Terrain").enumValueIndex = (int)terrain;
+            row.FindPropertyRelative("Role").enumValueIndex = (int)role;
+            row.FindPropertyRelative("MaxHp").intValue = maxHp;
+            row.FindPropertyRelative("Attack").intValue = attack;
+            row.FindPropertyRelative("AttackIntervalSeconds").floatValue = interval;
+            row.FindPropertyRelative("BlockCount").intValue = blockCount;
+
+            var rangeRows = row.FindPropertyRelative("Range");
+            rangeRows.arraySize = range.Length;
+            for (var r = 0; r < range.Length; r++) rangeRows.GetArrayElementAtIndex(r).stringValue = range[r];
+
+            row.FindPropertyRelative("MaxSp").intValue = 0;   // FillSkills가 비었다고 보고 채우게 한다
+            FillSkills(row, spType, maxSp, naturalSeconds, skills);
         }
 
         /// <summary>새로 만든 적 행에 쓴다. 배열을 늘리면 Unity가 마지막 행 값을 복사하므로 조건 없이 덮어쓴다.</summary>
@@ -380,6 +431,13 @@ namespace MoaKnights.EditorTools
             FillIfEmpty(so.FindProperty("_defeatColor"), new Color(0.90f, 0.35f, 0.30f));
             FillIfEmpty(so.FindProperty("_starOnColor"), new Color(1.00f, 0.85f, 0.30f));
             FillIfEmpty(so.FindProperty("_starOffColor"), new Color(0.30f, 0.30f, 0.33f));
+            FillIfEmpty(so.FindProperty("_formationSelectedColor"), new Color(1.00f, 0.82f, 0.40f));
+
+            var unitLooks = so.FindProperty("_units");
+            SetUnitLookIfNew(unitLooks, TankUnitId, new Color(0.55f, 0.62f, 0.70f), 0.50f);
+            SetUnitLookIfNew(unitLooks, HealerUnitId, new Color(0.45f, 0.90f, 0.55f), 0.36f);
+            SetUnitLookIfNew(unitLooks, SniperUnitId, new Color(0.85f, 0.85f, 0.95f), 0.34f);
+            SetUnitLookIfNew(unitLooks, VanguardUnitId, new Color(0.90f, 0.40f, 0.30f), 0.40f);
 
             FillIfZero(so.FindProperty("_damageNumberSeconds"), 1f);
             FillIfEmpty(so.FindProperty("_damageNumberColor"), new Color(1f, 0.35f, 0.3f));
@@ -424,6 +482,15 @@ namespace MoaKnights.EditorTools
 
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
+        }
+
+        private static void SetUnitLookIfNew(SerializedProperty units, string id, Color color, float size)
+        {
+            var row = RowById(units, id, out var created);
+            if (!created) return;
+            row.FindPropertyRelative("Prefab").objectReferenceValue = null;
+            row.FindPropertyRelative("Color").colorValue = color;
+            row.FindPropertyRelative("Size").floatValue = size;
         }
 
         private static void SetEnemyLookIfNew(SerializedProperty enemies, string id, Color color, float size)
@@ -526,6 +593,7 @@ namespace MoaKnights.EditorTools
             // 판이 끝나면 뜨는 창들은 맨 나중에 만들어 다른 UI 위에 그린다.
             var result = CreateResultPanel(canvasGo.transform);
             var stageSelect = CreateStageSelectPanel(canvasGo.transform);
+            var formation = CreateFormationPanel(canvasGo.transform);
 
             var hud = canvasGo.AddComponent<BattleHud>();
             var hudSo = new SerializedObject(hud);
@@ -554,6 +622,7 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_speedControls").objectReferenceValue = speedControls;
             so.FindProperty("_result").objectReferenceValue = result;
             so.FindProperty("_stageSelect").objectReferenceValue = stageSelect;
+            so.FindProperty("_formation").objectReferenceValue = formation;
             so.FindProperty("_hud").objectReferenceValue = hud;
             so.FindProperty("_titleLabel").objectReferenceValue = title;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -684,6 +753,64 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_list").objectReferenceValue = listRect;
             so.FindProperty("_closeButton").objectReferenceValue = close;
             so.FindProperty("_closeLabel").objectReferenceValue = closeLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return panel;
+        }
+
+        /// <summary>
+        /// 편성 창: 왼쪽 능력자 목록(카드는 런타임에 템플릿을 복제), 오른쪽 정보 탭과 범위 그림, 아래 출전 버튼.
+        /// 레이아웃 그룹 없이 절대 위치라 씬을 열어도 값이 바뀌지 않는다.
+        /// </summary>
+        private static FormationPanel CreateFormationPanel(Transform parent)
+        {
+            var host = new GameObject("Formation", typeof(RectTransform), typeof(FormationPanel));
+            host.transform.SetParent(parent, false);
+            Stretch(host.GetComponent<RectTransform>());
+
+            var root = CreateDim(host.transform, "Root");
+            var box = CreateBox(root.transform, "Box", new Vector2(1500f, 820f));
+            var title = CreateText(box, "Title", new Vector2(0f, 360f), new Vector2(600f, 70f), 48);
+            var count = CreateText(box, "Count", new Vector2(-430f, 290f), new Vector2(560f, 50f), 30);
+
+            var rosterGo = new GameObject("Roster", typeof(RectTransform));
+            rosterGo.transform.SetParent(box, false);
+            var roster = rosterGo.GetComponent<RectTransform>();
+            roster.anchorMin = roster.anchorMax = new Vector2(0.5f, 0.5f);
+            roster.pivot = new Vector2(0f, 1f);
+            roster.sizeDelta = new Vector2(620f, 480f);
+            roster.anchoredPosition = new Vector2(-710f, 250f);
+            var template = CreateButtonAt(roster, "RosterTemplate", Vector2.zero, new Vector2(300f, 140f), out _);
+
+            var unitTab = CreateButtonAt(box, "UnitTab", new Vector2(110f, 290f), new Vector2(200f, 56f), out var unitTabLabel);
+            var enemyTab = CreateButtonAt(box, "EnemyTab", new Vector2(330f, 290f), new Vector2(200f, 56f), out var enemyTabLabel);
+
+            var info = CreateText(box, "Info", new Vector2(360f, 30f), new Vector2(720f, 420f), 26);
+            info.alignment = TextAlignmentOptions.TopLeft;
+
+            var rangeGo = new GameObject("Range", typeof(RectTransform));
+            rangeGo.transform.SetParent(box, false);
+            var range = rangeGo.GetComponent<RectTransform>();
+            range.anchorMin = range.anchorMax = new Vector2(0.5f, 0.5f);
+            range.sizeDelta = new Vector2(400f, 140f);
+            range.anchoredPosition = new Vector2(360f, -260f);
+
+            var confirm = CreateButtonAt(box, "Confirm", new Vector2(0f, -355f), new Vector2(260f, 64f), out var confirmLabel);
+
+            var panel = host.GetComponent<FormationPanel>();
+            var so = new SerializedObject(panel);
+            so.FindProperty("_root").objectReferenceValue = root;
+            so.FindProperty("_titleLabel").objectReferenceValue = title;
+            so.FindProperty("_countLabel").objectReferenceValue = count;
+            so.FindProperty("_rosterArea").objectReferenceValue = roster;
+            so.FindProperty("_rosterTemplate").objectReferenceValue = template;
+            so.FindProperty("_unitTabButton").objectReferenceValue = unitTab;
+            so.FindProperty("_unitTabLabel").objectReferenceValue = unitTabLabel;
+            so.FindProperty("_enemyTabButton").objectReferenceValue = enemyTab;
+            so.FindProperty("_enemyTabLabel").objectReferenceValue = enemyTabLabel;
+            so.FindProperty("_infoLabel").objectReferenceValue = info;
+            so.FindProperty("_rangeArea").objectReferenceValue = range;
+            so.FindProperty("_confirmButton").objectReferenceValue = confirm;
+            so.FindProperty("_confirmLabel").objectReferenceValue = confirmLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
             return panel;
         }

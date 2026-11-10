@@ -1,3 +1,4 @@
+using System.Linq;
 using MoaKnights.Core.Sim;
 using MoaKnights.Localization;
 using TMPro;
@@ -11,9 +12,13 @@ namespace MoaKnights.Game
     {
         private const string DefaultLanguage = "ko";
 
-        // 씬을 다시 불러올 때 넘겨주는 값은 이 둘뿐이다 (다시 · 다음 · 스테이지 선택 · 디버그 재시작).
+        // 씬을 다시 불러올 때 넘겨주는 값: 시드 · 스테이지 번호 · 편성 (다시 · 다음 · 스테이지 선택 · 출전 · 디버그 재시작).
         private static int? _pendingSeed;
         private static int? _pendingStageIndex;
+
+        // 고른 편성은 판을 다시 불러와도 이어진다 (저장은 Phase 5). 편성 창을 건너뛰는 것은 "출전"으로 다시 불러올 때뿐이다.
+        private static string[] _deck;
+        private static bool _skipFormation;
 
         [SerializeField] private TextAsset _textTable;
         [SerializeField] private Font _font;
@@ -32,6 +37,7 @@ namespace MoaKnights.Game
         [SerializeField] private SpeedControls _speedControls;
         [SerializeField] private ResultPanel _result;
         [SerializeField] private StageSelectPanel _stageSelect;
+        [SerializeField] private FormationPanel _formation;
         [SerializeField] private TMP_Text _titleLabel;
 
         private TMP_FontAsset _runtimeFont;
@@ -42,6 +48,7 @@ namespace MoaKnights.Game
         public BattleBalanceAsset Balance => _balance;
         public StageCatalogAsset Catalog => _catalog;
         public int StageIndex { get; private set; }
+        public System.Collections.Generic.IReadOnlyList<string> Deck => _deck;
 
         private void Awake()
         {
@@ -52,8 +59,12 @@ namespace MoaKnights.Game
             StageIndex = _catalog.Clamp(_pendingStageIndex ?? 0);
             _pendingStageIndex = null;
 
+            if (!BattleDefinitionFactory.IsValidDeck(_balance, _deck)) _deck = BattleDefinitionFactory.DefaultDeck(_balance);
+            var showFormation = !_skipFormation;
+            _skipFormation = false;
+
             var stage = _catalog[StageIndex];
-            var definition = BattleDefinitionFactory.Create(stage, _balance);
+            var definition = BattleDefinitionFactory.Create(stage, _balance, _deck);
             Simulation = new Simulation(World.Create(seed, stage.Id, definition.DefenseHp, definition.Cost.Start), definition);
             _clock = new TickClock(_balance.TicksPerSecond);
 
@@ -75,6 +86,31 @@ namespace MoaKnights.Game
             _stageSelect.Bind(_catalog, StageIndex, _runtimeFont, LoadStage);
             _result.Bind(Simulation, _view, _runtimeFont, StageIndex + 1 < _catalog.Count,
                 () => LoadStage(StageIndex), () => LoadStage(StageIndex + 1), _stageSelect.Open);
+            _formation.Bind(_balance, definition, _deck, _view, _runtimeFont, ConfirmFormation);
+
+            // 편성 창이 떠 있는 동안 시간은 멈춰 있다.
+            if (showFormation)
+            {
+                _clock.Paused = true;
+                _formation.Open();
+            }
+        }
+
+        /// <summary>출전: 편성이 같으면 창만 닫고 시작, 다르면 그 편성으로 판을 다시 연다 (카드 줄이 편성을 따라야 하므로).</summary>
+        private void ConfirmFormation(System.Collections.Generic.IReadOnlyList<string> deck)
+        {
+            if (deck.SequenceEqual(_deck))
+            {
+                _formation.Close();
+                _clock.Paused = false;
+                return;
+            }
+
+            _deck = deck.ToArray();
+            _skipFormation = true;
+            _pendingSeed = NewSeed();
+            _pendingStageIndex = StageIndex;
+            SceneManager.LoadScene(gameObject.scene.buildIndex);
         }
 
         private void Update()
@@ -105,6 +141,7 @@ namespace MoaKnights.Game
         {
             _pendingSeed = keepSeed ? Simulation.World.Seed : NewSeed();
             _pendingStageIndex = StageIndex;
+            _skipFormation = true;
             SceneManager.LoadScene(gameObject.scene.buildIndex);
         }
 
