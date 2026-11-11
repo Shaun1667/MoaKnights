@@ -203,6 +203,64 @@ MonoBehaviour:
       BlockBonus: 0
       DurationSeconds: 8
     Rarity: 3
+  - Id: blade_01
+    Cost: 12
+    Terrain: 0
+    MaxHp: 130
+    Attack: 26
+    AttackIntervalSeconds: 0.9
+    BlockCount: 2
+    Range:
+    - '@X'
+    Role: 1
+    SpType: 1
+    MaxSp: 10
+    NaturalSpSeconds: 0
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 60
+      BlockBonus: 0
+      DurationSeconds: 8
+    - HealPercent: 0
+      AttackBonusPercent: 90
+      BlockBonus: 0
+      DurationSeconds: 8
+    - HealPercent: 0
+      AttackBonusPercent: 130
+      BlockBonus: 0
+      DurationSeconds: 8
+    Rarity: 4
+  - Id: irene_01
+    Cost: 22
+    Terrain: 1
+    MaxHp: 90
+    Attack: 30
+    AttackIntervalSeconds: 1.4
+    BlockCount: 0
+    Range:
+    - XXXXX
+    - XXXXX
+    - XX@XX
+    - XXXXX
+    - XXXXX
+    Role: 2
+    SpType: 0
+    MaxSp: 18
+    NaturalSpSeconds: 1
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 80
+      BlockBonus: 0
+      DurationSeconds: 12
+    - HealPercent: 0
+      AttackBonusPercent: 120
+      BlockBonus: 0
+      DurationSeconds: 12
+    - HealPercent: 0
+      AttackBonusPercent: 180
+      BlockBonus: 0
+      DurationSeconds: 12
+    Rarity: 5
   _stackHpPercents: 6400000082000000a0000000
   _stackAttackPercents: 6400000082000000a0000000
   _stackBlockBonus: 000000000000000001000000

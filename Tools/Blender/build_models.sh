@@ -20,7 +20,17 @@ height_of() {
   esac
 }
 
+# 삼각형 수: 3성 3천, 4성 8천, 5성 1만5천 (장식 · 프릴이 많아 적게 줄이면 옷이 찢어진 듯 뭉개짐).
+tris_of() {
+  case "$1" in
+    blade_01) echo 8000 ;;
+    irene_01) echo 15000 ;;
+    *) echo 3000 ;;
+  esac
+}
+
 for id in "$@"; do
+  tris=$(tris_of "$id")
   src=ArtSource/$id
   h=$(height_of "$id")
   if [ -f "$src/outfit.glb" ]; then
@@ -28,7 +38,7 @@ for id in "$@"; do
     mkdir -p "$out"
     "$BLENDER" -b -P "$(w Tools/Blender/make_portrait.py)" -- "$(w $src/concept.png)" "$(w $out/${id}_portrait.png)" 256 | grep '\[portrait\] saved'
     [ "${PORTRAIT_ONLY:-0}" = 1 ] && continue
-    "$BLENDER" -b -P "$(w Tools/Blender/combine_character.py)" -- "$(w $src/body.glb)" "$(w $src/outfit.glb)" "$(w $src/body.png)" "$(w $src/outfit.png)" "$(w $out)" "$id" 3000 "$h" | grep '\[combine\]'
+    "$BLENDER" -b -P "$(w Tools/Blender/combine_character.py)" -- "$(w $src/body.glb)" "$(w $src/outfit.glb)" "$(w $src/body.png)" "$(w $src/outfit.png)" "$(w $out)" "$id" "$tris" "$h" | grep '\[combine\]'
   else
     out=$ASSETS/Enemies/$id
     mkdir -p "$out"

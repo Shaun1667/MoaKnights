@@ -92,7 +92,7 @@ MoaKnights/Assets/MoaKnights/
 
 ## 아트 · 그래픽 규칙
 - 전부 3D. 데이터는 비주얼을 ID로만 참조하고, 프리팹이 없으면 그레이박스 도형으로 그린다.
-- 모델: Varco 3D로 만든다. 능력자는 몸(속옷 차림 · 맨살) · 겉옷을 따로 만들어 합치고, 적은 한 덩어리. 카드 얼굴은 같은 스크립트가 컨셉 그림에서 잘라 `Art/Units/<ID>/<ID>_portrait.png`로 낸다(`make_portrait.py`). `Tools/Blender/build_models.sh <ID>…`(안에서 `combine_character.py`, Blender는 `D:/blender.exe`)가 삼각형 3천 개 · 앞 = Unity +X · 리그 없음 · 노멀맵 없음으로 낸다. 원본 그림 · GLB · 미리보기는 저장소 루트 `ArtSource/<ID>/`. Setup이 `Art/Units/<ID>/<ID>.fbx` · `Art/Enemies/<ID>/<ID>.fbx`에서 재질 · 프리팹을 없을 때만 만들어 `BattleView` 줄에 넣는다. 체력바 높이는 모델 꼭대기(`UnitModel.TopHeight`, 적은 `EnemyView`), 적 모델은 가는 방향을 본다.
+- 모델: Varco 3D로 만든다. 능력자는 몸(속옷 차림 · 맨살) · 겉옷을 따로 만들어 합치고, 적은 한 덩어리. 카드 얼굴은 같은 스크립트가 컨셉 그림에서 잘라 `Art/Units/<ID>/<ID>_portrait.png`로 낸다(`make_portrait.py`). `Tools/Blender/build_models.sh <ID>…`(안에서 `combine_character.py`, Blender는 `D:/blender.exe`)가 삼각형 3성 3천 · 4성 8천 · 5성 1만5천 개(스크립트의 `tris_of` 표) · 앞 = Unity +X · 리그 없음 · 노멀맵 없음으로 낸다. 원본 그림 · GLB · 미리보기는 저장소 루트 `ArtSource/<ID>/`. Setup이 `Art/Units/<ID>/<ID>.fbx` · `Art/Enemies/<ID>/<ID>.fbx`에서 재질 · 프리팹을 없을 때만 만들어 `BattleView` 줄에 넣는다. 체력바 높이는 모델 꼭대기(`UnitModel.TopHeight`, 적은 `EnemyView`), 적 모델은 가는 방향을 본다.
 - 시점(각도 · 구도)은 사용자 결정(2026-11-11)으로 참고 게임처럼 정면 원근. 그 밖의 화면 UI · 아트 · 이름은 참고 게임과 다르게 잡는다 (원본 기획서가 "참고 게임과 너무 동일한 화면"을 문제로 꼽았다).
 - 옛 팀의 일러스트 · UI 원본은 권리를 사용자가 확인하기 전에 쓰지 않는다.
 

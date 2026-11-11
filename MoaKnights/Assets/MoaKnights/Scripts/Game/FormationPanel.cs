@@ -108,6 +108,10 @@ namespace MoaKnights.Game
                 label.text = UnitName(id) + "\n" + Text.Format("ui.formation.card_info", row.Rarity, RoleName(row.Role), row.Cost);
                 _cardImages[id] = card.GetComponent<Image>();
             }
+
+            // 목록 칸(스크롤 내용)의 높이를 카드 줄 수에 맞춘다.
+            var lines = (rows.Length + columns - 1) / columns;
+            _rosterArea.sizeDelta = new Vector2(_rosterArea.sizeDelta.x, Mathf.Max(0f, lines * (size.y + gap) - gap));
         }
 
         private void Toggle(string id)

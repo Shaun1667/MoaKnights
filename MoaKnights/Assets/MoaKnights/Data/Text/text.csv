@@ -95,6 +95,14 @@ skill.sniper_01_3.name,필중,Dead Eye
 skill.vanguard_01_1.name,돌진,Charge
 skill.vanguard_01_2.name,돌진 II,Charge II
 skill.vanguard_01_3.name,돌진 III,Charge III
+unit.blade_01.name,카이,Kai
+unit.irene_01.name,아이린,Irene
+skill.blade_01_1.name,쌍월참,Twin Moon
+skill.blade_01_2.name,쌍월참 II,Twin Moon II
+skill.blade_01_3.name,쌍월참 III,Twin Moon III
+skill.irene_01_1.name,앙코르,Encore
+skill.irene_01_2.name,앙코르 II,Encore II
+skill.irene_01_3.name,앙코르 III,Encore III
 enemy.dizes_01.name,디제스,Dizes
 enemy.dizes_fast.name,빠른 디제스,Swift Dizes
 enemy.dizes_tank.name,단단한 디제스,Hard Dizes

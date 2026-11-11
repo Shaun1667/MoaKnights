@@ -73,6 +73,16 @@ MonoBehaviour:
     Color: {r: 0.9, g: 0.4, b: 0.3, a: 1}
     Size: 0.4
     Portrait: {fileID: 21300000, guid: b7fea35a591ffbe449c85507719a36f5, type: 3}
+  - Id: blade_01
+    Prefab: {fileID: 198536307413478254, guid: d0d9736a248e9824ab0d1d33e92eb324, type: 3}
+    Color: {r: 0.25, g: 0.35, b: 0.7, a: 1}
+    Size: 0.4
+    Portrait: {fileID: 21300000, guid: 86c4899f53ede1f43a8d24f643a8a2a3, type: 3}
+  - Id: irene_01
+    Prefab: {fileID: 6709201353529748997, guid: a5abe48c7555dc8438d518637a210ddd, type: 3}
+    Color: {r: 0.95, g: 0.7, b: 0.85, a: 1}
+    Size: 0.38
+    Portrait: {fileID: 21300000, guid: b21671af0e7ce1f4db759e81ef3cc3ef, type: 3}
   _damageNumberColor: {r: 1, g: 0.35, b: 0.3, a: 1}
   _damageNumberSeconds: 1
   _messageSeconds: 1.5

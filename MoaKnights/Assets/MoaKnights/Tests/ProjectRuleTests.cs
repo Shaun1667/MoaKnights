@@ -145,13 +145,21 @@ namespace MoaKnights.Tests
             var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
             var stage = AssetDatabase.LoadAssetAtPath<StageAsset>("Assets/MoaKnights/Data/Stages/Stage01.asset");
 
-            CollectionAssert.AreEqual(new[] { "melee_01", "ranged_01", "tank_01", "healer_01", "sniper_01", "vanguard_01" }, balance.Units.Select(u => u.Id).ToArray());
+            var ids = new[] { "melee_01", "ranged_01", "tank_01", "healer_01", "sniper_01", "vanguard_01", "blade_01", "irene_01" };
+            CollectionAssert.AreEqual(ids, balance.Units.Select(u => u.Id).ToArray());
             CollectionAssert.AreEqual(
-                new[] { UnitRole.Dealer, UnitRole.Dealer, UnitRole.Tank, UnitRole.Healer, UnitRole.Dealer, UnitRole.Dealer },
+                new[] { UnitRole.Dealer, UnitRole.Dealer, UnitRole.Tank, UnitRole.Healer, UnitRole.Dealer, UnitRole.Dealer, UnitRole.Dealer, UnitRole.Healer },
                 balance.Units.Select(u => u.Role).ToArray());
-            Assert.IsTrue(balance.Units.All(u => u.Rarity == 3));
+            CollectionAssert.AreEqual(new[] { 3, 3, 3, 3, 3, 3, 4, 5 }, balance.Units.Select(u => u.Rarity).ToArray());
             Assert.AreEqual(12, balance.DeckSize);
-            CollectionAssert.AreEqual(new[] { "melee_01", "ranged_01", "tank_01", "healer_01", "sniper_01", "vanguard_01" }, BattleDefinitionFactory.DefaultDeck(balance));
+            CollectionAssert.AreEqual(ids, BattleDefinitionFactory.DefaultDeck(balance));
+
+            // G-4 첫 4 · 5성 (BALANCE 5-13 · 5-14).
+            var blade = balance.Units.Single(u => u.Id == "blade_01");
+            Assert.AreEqual((12, 130, 26, 0.9f, 2, SpType.OnAttack, 10), (blade.Cost, blade.MaxHp, blade.Attack, blade.AttackIntervalSeconds, blade.BlockCount, blade.SpType, blade.MaxSp));
+            var irene = balance.Units.Single(u => u.Id == "irene_01");
+            Assert.AreEqual((22, 90, 30, 1.4f, 0, SpType.Natural, 18), (irene.Cost, irene.MaxHp, irene.Attack, irene.AttackIntervalSeconds, irene.BlockCount, irene.SpType, irene.MaxSp));
+            Assert.AreEqual(5, irene.Range.Length);
 
             var tank = balance.Units.Single(u => u.Id == "tank_01");
             Assert.AreEqual((14, 200, 10, 1.5f, 3), (tank.Cost, tank.MaxHp, tank.Attack, tank.AttackIntervalSeconds, tank.BlockCount));

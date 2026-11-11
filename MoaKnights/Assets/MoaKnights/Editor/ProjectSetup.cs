@@ -83,6 +83,8 @@ namespace MoaKnights.EditorTools
         private const string HealerUnitId = "healer_01";
         private const string SniperUnitId = "sniper_01";
         private const string VanguardUnitId = "vanguard_01";
+        private const string BladeUnitId = "blade_01";
+        private const string IreneUnitId = "irene_01";
 
         // 공격 범위 (오른쪽이 앞). 근거리: 자기 칸 + 앞 1칸. 원거리: 앞 3x3.
         private static readonly string[] MeleeRange = { "@X" };
@@ -209,6 +211,12 @@ namespace MoaKnights.EditorTools
                 SpType.Natural, 20, 1f, new[] { new[] { 0, 60, 0, 10 }, new[] { 0, 100, 0, 10 }, new[] { 0, 150, 0, 10 } });
             AddUnitIfMissing(units, VanguardUnitId, 6, UnitTerrain.Ground, UnitRole.Dealer, 70, 12, 0.8f, 1, new[] { "@X" },
                 SpType.OnAttack, 12, 0f, new[] { new[] { 0, 40, 0, 8 }, new[] { 0, 60, 0, 8 }, new[] { 0, 80, 0, 8 } });
+
+            // G-4 첫 4 · 5성 (BALANCE 5-13 · 5-14, 7-10 · 7-11). 행이 없을 때만 만든다.
+            AddUnitIfMissing(units, BladeUnitId, 12, UnitTerrain.Ground, UnitRole.Dealer, 130, 26, 0.9f, 2, new[] { "@X" },
+                SpType.OnAttack, 10, 0f, new[] { new[] { 0, 60, 0, 8 }, new[] { 0, 90, 0, 8 }, new[] { 0, 130, 0, 8 } }, 4);
+            AddUnitIfMissing(units, IreneUnitId, 22, UnitTerrain.Hill, UnitRole.Healer, 90, 30, 1.4f, 0, new[] { "XXXXX", "XXXXX", "XX@XX", "XXXXX", "XXXXX" },
+                SpType.Natural, 18, 1f, new[] { new[] { 0, 80, 0, 12 }, new[] { 0, 120, 0, 12 }, new[] { 0, 180, 0, 12 } }, 5);
             so.FindProperty("_deckSize").intValue = 12;   // 결정 2026-11-11, 사용자: 출전 12명 (예전 4명이면 바꿈)
 
             // 등급: 비어 있으면 3성 (지금 능력자는 모두 3성, BALANCE 5-12).
@@ -286,10 +294,14 @@ namespace MoaKnights.EditorTools
         /// 스킬 행: 회복 % · 공격 추가 % · 저지 추가 · 지속 초.
         /// </summary>
         private static void AddUnitIfMissing(SerializedProperty units, string id, int cost, UnitTerrain terrain, UnitRole role,
-            int maxHp, int attack, float interval, int blockCount, string[] range, SpType spType, int maxSp, float naturalSeconds, int[][] skills)
+            int maxHp, int attack, float interval, int blockCount, string[] range, SpType spType, int maxSp, float naturalSeconds, int[][] skills,
+            int rarity = 3)
         {
             var row = RowById(units, id, out var created);
             if (!created) return;
+
+            // 배열을 늘리면 Unity가 마지막 행 값을 복사하므로 등급도 덮어쓴다.
+            row.FindPropertyRelative("Rarity").intValue = rarity;
 
             row.FindPropertyRelative("Cost").intValue = cost;
             row.FindPropertyRelative("Terrain").enumValueIndex = (int)terrain;
@@ -474,6 +486,8 @@ namespace MoaKnights.EditorTools
             SetUnitLookIfNew(unitLooks, HealerUnitId, new Color(0.45f, 0.90f, 0.55f), 0.36f);
             SetUnitLookIfNew(unitLooks, SniperUnitId, new Color(0.85f, 0.85f, 0.95f), 0.34f);
             SetUnitLookIfNew(unitLooks, VanguardUnitId, new Color(0.90f, 0.40f, 0.30f), 0.40f);
+            SetUnitLookIfNew(unitLooks, BladeUnitId, new Color(0.25f, 0.35f, 0.70f), 0.40f);
+            SetUnitLookIfNew(unitLooks, IreneUnitId, new Color(0.95f, 0.70f, 0.85f), 0.38f);
             FillModelPrefabs(unitLooks, UnitArtFolder);
             FillUnitPortraits(unitLooks);
 
@@ -538,6 +552,7 @@ namespace MoaKnights.EditorTools
             var row = RowById(units, id, out var created);
             if (!created) return;
             row.FindPropertyRelative("Prefab").objectReferenceValue = null;
+            row.FindPropertyRelative("Portrait").objectReferenceValue = null;   // 마지막 행에서 복사된 얼굴을 지운다
             row.FindPropertyRelative("Color").colorValue = color;
             row.FindPropertyRelative("Size").floatValue = size;
         }
@@ -920,13 +935,31 @@ namespace MoaKnights.EditorTools
             var title = CreateText(box, "Title", new Vector2(0f, 360f), new Vector2(600f, 70f), 48);
             var count = CreateText(box, "Count", new Vector2(-430f, 290f), new Vector2(560f, 50f), 30);
 
-            var rosterGo = new GameObject("Roster", typeof(RectTransform));
-            rosterGo.transform.SetParent(box, false);
-            var roster = rosterGo.GetComponent<RectTransform>();
-            roster.anchorMin = roster.anchorMax = new Vector2(0.5f, 0.5f);
+            // 능력자 목록: 세로로 스크롤되는 칸 (능력자가 많으면 창을 넘으므로). 카드는 Content 아래에 런타임에 놓는다.
+            var viewportGo = new GameObject("Roster", typeof(RectTransform), typeof(Image), typeof(RectMask2D), typeof(ScrollRect));
+            viewportGo.transform.SetParent(box, false);
+            var viewport = viewportGo.GetComponent<RectTransform>();
+            viewport.anchorMin = viewport.anchorMax = new Vector2(0.5f, 0.5f);
+            viewport.pivot = new Vector2(0f, 1f);
+            viewport.sizeDelta = new Vector2(620f, 560f);
+            viewport.anchoredPosition = new Vector2(-710f, 250f);
+            viewportGo.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);   // 휠 입력을 받는 투명 판
+
+            var contentGo = new GameObject("Content", typeof(RectTransform));
+            contentGo.transform.SetParent(viewport, false);
+            var roster = contentGo.GetComponent<RectTransform>();
+            roster.anchorMin = roster.anchorMax = new Vector2(0f, 1f);
             roster.pivot = new Vector2(0f, 1f);
-            roster.sizeDelta = new Vector2(620f, 480f);
-            roster.anchoredPosition = new Vector2(-710f, 250f);
+            roster.sizeDelta = new Vector2(620f, 560f);
+            roster.anchoredPosition = Vector2.zero;
+
+            var scroll = viewportGo.GetComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 40f;
+            scroll.viewport = viewport;
+            scroll.content = roster;
             var template = CreateButtonAt(roster, "RosterTemplate", Vector2.zero, new Vector2(300f, 140f), out _);
 
             var unitTab = CreateButtonAt(box, "UnitTab", new Vector2(110f, 290f), new Vector2(200f, 56f), out var unitTabLabel);
