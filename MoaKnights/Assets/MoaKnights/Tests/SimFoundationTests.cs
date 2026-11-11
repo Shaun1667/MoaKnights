@@ -102,6 +102,35 @@ namespace MoaKnights.Tests
             Assert.AreEqual(6, clock.Advance(0.1d));
         }
 
+        /// <summary>BALANCE 2-2 검산: 카드를 맵 위로 끄는 동안 10% → 1배속 1초에 3틱, 2배속 6틱.</summary>
+        [Test]
+        public void Clock_Slow_ScalesTicks_AndCombinesWithSpeed()
+        {
+            var clock = new TickClock(30);
+            clock.SetSlow(10);
+            Assert.AreEqual(3, clock.Advance(1d));
+            clock.SetSpeed(2);
+            Assert.AreEqual(6, clock.Advance(1d));
+        }
+
+        [Test]
+        public void Clock_ClearSlow_RestoresNormalSpeed()
+        {
+            var clock = new TickClock(30);
+            clock.SetSlow(10);
+            clock.ClearSlow();
+            Assert.AreEqual(100, clock.SlowPercent);
+            Assert.AreEqual(3, clock.Advance(0.1d));
+        }
+
+        [Test]
+        public void Clock_SlowOutOfRange_Throws()
+        {
+            var clock = new TickClock(30);
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => clock.SetSlow(0));
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => clock.SetSlow(101));
+        }
+
         [Test]
         public void Clock_Paused_GivesNoTicks()
         {

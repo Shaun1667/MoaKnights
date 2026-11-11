@@ -34,6 +34,9 @@ namespace MoaKnights.Game
             public GameObject Prefab;
             public Color Color;
             public float Size;
+
+            /// <summary>카드에 그리는 얼굴. 없으면 카드에 이름만 나온다.</summary>
+            public Sprite Portrait;
         }
 
         [SerializeField] private Material _cellMaterial;
@@ -52,6 +55,7 @@ namespace MoaKnights.Game
         [SerializeField] private Color _cardColor;
         [SerializeField] private Color _cardDisabledColor;
         [SerializeField] private Color _cardTextColor;
+        [SerializeField] private Color _cardPortraitDisabledColor;
         [SerializeField] private float _cameraBottomReserve;
         [SerializeField] private Color _rangeColor;
         [SerializeField] private Vector2 _hpBarSize;
@@ -102,6 +106,9 @@ namespace MoaKnights.Game
         public Color CardColor => _cardColor;
         public Color CardDisabledColor => _cardDisabledColor;
         public Color CardTextColor => _cardTextColor;
+
+        /// <summary>지금 쓸 수 없는 카드의 얼굴에 곱하는 색.</summary>
+        public Color CardPortraitDisabledColor => _cardPortraitDisabledColor;
 
         /// <summary>카드 줄이 차지하는 화면 아래쪽 비율(0~1). 카메라가 이만큼 맵을 위로 올린다.</summary>
         public float CameraBottomReserve => _cameraBottomReserve;

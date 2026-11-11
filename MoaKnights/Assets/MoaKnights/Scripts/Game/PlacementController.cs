@@ -23,6 +23,8 @@ namespace MoaKnights.Game
         private MapView _mapView;
         private BattleViewAsset _view;
         private Camera _camera;
+        private TickClock _clock;
+        private int _dragSlowPercent;
 
         private State _state;
         private string _unitId;
@@ -38,9 +40,11 @@ namespace MoaKnights.Game
 
         public bool IsBusy => _state != State.Idle;
 
-        public void Bind(Simulation simulation, MapView mapView, BattleViewAsset view, Camera worldCamera, CardBar cards)
+        public void Bind(Simulation simulation, MapView mapView, BattleViewAsset view, Camera worldCamera, CardBar cards, TickClock clock, int dragSlowPercent)
         {
             _simulation = simulation;
+            _clock = clock;
+            _dragSlowPercent = dragSlowPercent;
             _mapView = mapView;
             _view = view;
             _camera = worldCamera;
@@ -48,7 +52,11 @@ namespace MoaKnights.Game
             cards.CardPressed += BeginDrag;
         }
 
-        private void OnDestroy() => _range?.Destroy();
+        private void OnDestroy()
+        {
+            _range?.Destroy();
+            _clock?.ClearSlow();
+        }
 
         private void ShowRange()
         {
@@ -103,6 +111,11 @@ namespace MoaKnights.Game
             if (stacking) _direction = own.Direction;
 
             _preview.Root.SetActive(_hasCell);
+
+            // 카드를 맵 칸 위로 끄는 동안만 시간을 느리게 한다 (BALANCE 2-2).
+            if (_hasCell) _clock.SetSlow(_dragSlowPercent);
+            else _clock.ClearSlow();
+
             if (_hasCell)
             {
                 _preview.Place(_mapView.CellTop(_cell), _direction);
@@ -138,6 +151,7 @@ namespace MoaKnights.Game
             }
 
             _preview.Tint(null);
+            _clock.ClearSlow();
             _directionDragging = false;
             _state = State.ChoosingDirection;
         }
@@ -177,6 +191,7 @@ namespace MoaKnights.Game
             _unitId = null;
             _hasCell = false;
             _state = State.Idle;
+            _clock.ClearSlow();
         }
     }
 }

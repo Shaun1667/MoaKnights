@@ -47,26 +47,32 @@ MonoBehaviour:
     Prefab: {fileID: 655007039319250345, guid: fae8ad07d67cf9845b96d2d7f218e808, type: 3}
     Color: {r: 0.95, g: 0.7, b: 0.2, a: 1}
     Size: 0.45
+    Portrait: {fileID: 21300000, guid: fc8bbab0df4f7684e9b8bdd3cf568ae1, type: 3}
   - Id: ranged_01
     Prefab: {fileID: 3618672495608609880, guid: 374d7b223647eee439a524c8afb08b55, type: 3}
     Color: {r: 0.2, g: 0.75, b: 0.85, a: 1}
     Size: 0.4
+    Portrait: {fileID: 21300000, guid: 854d4ef98e3128d48bbf5fa60aaaf1a2, type: 3}
   - Id: tank_01
     Prefab: {fileID: 7593463414435124513, guid: 2c34df99b27990647b76e032c8b42c81, type: 3}
     Color: {r: 0.55, g: 0.62, b: 0.7, a: 1}
     Size: 0.5
+    Portrait: {fileID: 21300000, guid: 8b9528d665fe8a74dbe27311cc55806b, type: 3}
   - Id: healer_01
     Prefab: {fileID: 4671456059325124877, guid: 40f2e1aab44cfe74d97f527ae55aa8c3, type: 3}
     Color: {r: 0.45, g: 0.9, b: 0.55, a: 1}
     Size: 0.36
+    Portrait: {fileID: 21300000, guid: 4cd3e3f0178790f4d9beee0ba70883d1, type: 3}
   - Id: sniper_01
     Prefab: {fileID: 107949415688889906, guid: 94250c8078140b44884fcef4f4a8db6e, type: 3}
     Color: {r: 0.85, g: 0.85, b: 0.95, a: 1}
     Size: 0.34
+    Portrait: {fileID: 21300000, guid: 3fc9b751b0235254b9f212c94ea5ef4f, type: 3}
   - Id: vanguard_01
     Prefab: {fileID: 7510002015986446084, guid: c38f576a9a81af54982406d85ec44a1f, type: 3}
     Color: {r: 0.9, g: 0.4, b: 0.3, a: 1}
     Size: 0.4
+    Portrait: {fileID: 21300000, guid: b7fea35a591ffbe449c85507719a36f5, type: 3}
   _damageNumberColor: {r: 1, g: 0.35, b: 0.3, a: 1}
   _damageNumberSeconds: 1
   _messageSeconds: 1.5
@@ -79,6 +85,7 @@ MonoBehaviour:
   _cardColor: {r: 0.9, g: 0.88, b: 0.82, a: 1}
   _cardDisabledColor: {r: 0.45, g: 0.45, b: 0.45, a: 1}
   _cardTextColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
+  _cardPortraitDisabledColor: {r: 0.55, g: 0.55, b: 0.55, a: 1}
   _cameraBottomReserve: 0.22
   _rangeColor: {r: 0.95, g: 0.55, b: 0.15, a: 1}
   _hpBarSize: {x: 0.6, y: 0.06}

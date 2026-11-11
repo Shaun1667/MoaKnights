@@ -206,3 +206,4 @@ MonoBehaviour:
   _retreatRefundPercent: 50
   _twoStarHpPercent: 50
   _deckSize: 4
+  _dragSlowPercent: 10

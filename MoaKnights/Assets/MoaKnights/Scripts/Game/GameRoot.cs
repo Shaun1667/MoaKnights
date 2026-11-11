@@ -78,7 +78,7 @@ namespace MoaKnights.Game
             _titleLabel.font = _runtimeFont;
             _titleLabel.text = StageName(StageIndex);
             _cardBar.Bind(Simulation, _view, _runtimeFont);
-            _placement.Bind(Simulation, _mapView, _view, _cameraRig.GetComponent<Camera>(), _cardBar);
+            _placement.Bind(Simulation, _mapView, _view, _cameraRig.GetComponent<Camera>(), _cardBar, _clock, _balance.DragSlowPercent);
             _hud.Bind(Simulation, _view, _runtimeFont, _placement);
             _damageNumbers.Bind(Simulation, _enemyView, _unitView, _view, _runtimeFont, _cameraRig.GetComponent<Camera>());
             _unitActions.Bind(Simulation, _mapView, _unitView, _placement, _view, _runtimeFont, _cameraRig.GetComponent<Camera>());

@@ -123,6 +123,7 @@ namespace MoaKnights.EditorTools
             FillIfZero(so.FindProperty("_costRegenSeconds"), 1f);
             FillIfZero(so.FindProperty("_maxCost"), 99);
             FillIfZero(so.FindProperty("_ticksPerSecond"), 30);
+            FillIfZero(so.FindProperty("_dragSlowPercent"), 10);
             FillIfZero(so.FindProperty("_defenseHp"), 10);
 
             var enemies = so.FindProperty("_enemies");
@@ -443,6 +444,7 @@ namespace MoaKnights.EditorTools
             SetUnitLookIfNew(unitLooks, SniperUnitId, new Color(0.85f, 0.85f, 0.95f), 0.34f);
             SetUnitLookIfNew(unitLooks, VanguardUnitId, new Color(0.90f, 0.40f, 0.30f), 0.40f);
             FillModelPrefabs(unitLooks, UnitArtFolder);
+            FillUnitPortraits(unitLooks);
 
             FillIfZero(so.FindProperty("_damageNumberSeconds"), 1f);
             FillIfEmpty(so.FindProperty("_damageNumberColor"), new Color(1f, 0.35f, 0.3f));
@@ -466,6 +468,7 @@ namespace MoaKnights.EditorTools
             FillIfEmpty(so.FindProperty("_cardColor"), new Color(0.90f, 0.88f, 0.82f));
             FillIfEmpty(so.FindProperty("_cardDisabledColor"), new Color(0.45f, 0.45f, 0.45f));
             FillIfEmpty(so.FindProperty("_cardTextColor"), new Color(0.10f, 0.10f, 0.10f));
+            FillIfEmpty(so.FindProperty("_cardPortraitDisabledColor"), new Color(0.55f, 0.55f, 0.55f));
             FillIfZero(so.FindProperty("_cameraBottomReserve"), 0.22f);
             FillIfEmpty(so.FindProperty("_rangeColor"), new Color(0.95f, 0.55f, 0.15f));
             var hpBarSize = so.FindProperty("_hpBarSize");
@@ -545,6 +548,34 @@ namespace MoaKnights.EditorTools
             var prefabAsset = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
             Object.DestroyImmediate(root);
             return prefabAsset;
+        }
+
+        /// <summary>
+        /// Art/Units/&lt;id&gt;/&lt;id&gt;_portrait.png가 있는 능력자는 스프라이트로 가져와(설정은 한 번만) 비어 있는 얼굴 칸에 넣는다.
+        /// 그림은 Tools/Blender/make_portrait.py가 컨셉 그림에서 자른 것.
+        /// </summary>
+        private static void FillUnitPortraits(SerializedProperty units)
+        {
+            for (var i = 0; i < units.arraySize; i++)
+            {
+                var row = units.GetArrayElementAtIndex(i);
+                var portrait = row.FindPropertyRelative("Portrait");
+                if (portrait.objectReferenceValue != null) continue;
+
+                var id = row.FindPropertyRelative("Id").stringValue;
+                var path = UnitArtFolder + "/" + id + "/" + id + "_portrait.png";
+                var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                if (importer == null) continue;
+                if (importer.textureType != TextureImporterType.Sprite)
+                {
+                    importer.textureType = TextureImporterType.Sprite;
+                    importer.spriteImportMode = SpriteImportMode.Single;
+                    importer.alphaIsTransparency = true;
+                    importer.mipmapEnabled = false;
+                    importer.SaveAndReimport();
+                }
+                portrait.objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            }
         }
 
         /// <summary>부위 재질. 그 부위 텍스처가 없으면(겉옷 없는 적) null.</summary>

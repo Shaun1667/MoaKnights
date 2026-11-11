@@ -72,6 +72,7 @@ namespace MoaKnights.Tests
             Assert.AreEqual(1f, balance.CostRegenSeconds);
             Assert.AreEqual(99, balance.MaxCost);
             Assert.AreEqual(30, balance.TicksPerSecond);
+            Assert.AreEqual(10, balance.DragSlowPercent);
             Assert.AreEqual(10, balance.DefenseHp);
 
             var enemy = balance.Enemies.Single(e => e.Id == "dizes_01");
@@ -250,16 +251,16 @@ namespace MoaKnights.Tests
             Assert.AreEqual(45, definition.Enemy("dizes_01").Stats.AttackIntervalTicks);
         }
 
-        /// <summary>BALANCE 1번 검산: 2초에 1 회복 = 초당 30틱에서 60틱.</summary>
+        /// <summary>BALANCE 1번 검산: 1초에 1 회복 = 초당 30틱에서 30틱 (2026-11-11 재미 검증용 임시값).</summary>
         [Test]
-        public void CostRegen_IsTwoSecondsInTicks()
+        public void CostRegen_IsOneSecondInTicks()
         {
             var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
             var stage = AssetDatabase.LoadAssetAtPath<StageAsset>("Assets/MoaKnights/Data/Stages/Stage01.asset");
             var cost = BattleDefinitionFactory.Create(stage, balance).Cost;
-            Assert.AreEqual(20, cost.Start);
+            Assert.AreEqual(40, cost.Start);
             Assert.AreEqual(99, cost.Max);
-            Assert.AreEqual(60, cost.RegenTicks);
+            Assert.AreEqual(30, cost.RegenTicks);
         }
 
         [Test]
@@ -273,6 +274,20 @@ namespace MoaKnights.Tests
             {
                 Assert.IsTrue(view.TryGetUnit(unit.Id, out _), unit.Id);
                 Assert.IsTrue(table.Contains("unit." + unit.Id + ".name"), unit.Id);
+            }
+        }
+
+        /// <summary>모델이 있는 능력자는 카드 얼굴도 있다 (Setup이 Art/Units/&lt;id&gt;/&lt;id&gt;_portrait.png를 넣는다).</summary>
+        [Test]
+        public void EveryUnitWithModel_HasCardPortrait()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            var view = AssetDatabase.LoadAssetAtPath<BattleViewAsset>("Assets/MoaKnights/Data/View/BattleView.asset");
+            foreach (var unit in balance.Units)
+            {
+                Assert.IsTrue(view.TryGetUnit(unit.Id, out var visual), unit.Id);
+                if (visual.Prefab == null) continue;
+                Assert.IsNotNull(visual.Portrait, unit.Id);
             }
         }
 

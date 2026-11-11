@@ -63,11 +63,15 @@ namespace MoaKnights.Game
         [SerializeField] private int _retreatRefundPercent;
         [SerializeField] private int _twoStarHpPercent;
         [SerializeField] private int _deckSize;
+        [SerializeField] private int _dragSlowPercent;
 
         public int StartCost => _startCost;
         public float CostRegenSeconds => _costRegenSeconds;
         public int MaxCost => _maxCost;
         public int TicksPerSecond => _ticksPerSecond;
+
+        /// <summary>카드를 맵 칸 위로 끄는 동안의 시간 비율(%). BALANCE 2-2.</summary>
+        public int DragSlowPercent => _dragSlowPercent;
         public int DefenseHp => _defenseHp;
         public EnemyRow[] Enemies => _enemies;
         public UnitRow[] Units => _units;

@@ -24,6 +24,7 @@ namespace MoaKnights.Game
         {
             public UnitDefinition Definition;
             public Image Background;
+            public Image Portrait;
             public TMP_Text CostLabel;
             public string ShownCost;
         }
@@ -81,6 +82,7 @@ namespace MoaKnights.Game
                 }
 
                 card.Background.color = usable ? _view.CardColor : _view.CardDisabledColor;
+                if (card.Portrait != null) card.Portrait.color = usable ? Color.white : _view.CardPortraitDisabledColor;
                 if (card.ShownCost == text) continue;
                 card.ShownCost = text;
                 card.CostLabel.text = text;
@@ -98,11 +100,43 @@ namespace MoaKnights.Game
 
             go.GetComponent<CardPressRelay>().Pressed = () => CardPressed?.Invoke(unit.Id);
 
-            // 이름 키는 능력자 ID로 만든다. 표에 있는지는 ProjectRuleTests가 검사한다.
-            CreateLabel(go.transform, "Name", Text.Get("unit." + unit.Id + ".name"), font, 24f, _view.CardTextColor, new Vector2(0f, 0.35f), new Vector2(1f, 1f));
-            var cost = CreateLabel(go.transform, "Cost", Text.Format("ui.card.cost", unit.Cost), font, 36f, _view.CardTextColor, new Vector2(0f, 0f), new Vector2(1f, 0.4f));
+            // 얼굴이 있으면 위쪽에 얼굴, 그 아래 이름 · 코스트. 없으면 예전처럼 이름과 코스트만.
+            Image portrait = null;
+            var hasPortrait = _view.TryGetUnit(unit.Id, out var visual) && visual.Portrait != null;
+            if (hasPortrait) portrait = CreatePortrait(go.transform, visual.Portrait);
 
-            return new Card { Definition = unit, Background = go.GetComponent<Image>(), CostLabel = cost };
+            // 이름 키는 능력자 ID로 만든다. 표에 있는지는 ProjectRuleTests가 검사한다.
+            var name = Text.Get("unit." + unit.Id + ".name");
+            var costText = Text.Format("ui.card.cost", unit.Cost);
+            TMP_Text cost;
+            if (hasPortrait)
+            {
+                CreateLabel(go.transform, "Name", name, font, 20f, _view.CardTextColor, new Vector2(0f, 0.18f), new Vector2(1f, 0.34f));
+                cost = CreateLabel(go.transform, "Cost", costText, font, 28f, _view.CardTextColor, new Vector2(0f, 0f), new Vector2(1f, 0.2f));
+            }
+            else
+            {
+                CreateLabel(go.transform, "Name", name, font, 24f, _view.CardTextColor, new Vector2(0f, 0.35f), new Vector2(1f, 1f));
+                cost = CreateLabel(go.transform, "Cost", costText, font, 36f, _view.CardTextColor, new Vector2(0f, 0f), new Vector2(1f, 0.4f));
+            }
+
+            return new Card { Definition = unit, Background = go.GetComponent<Image>(), Portrait = portrait, CostLabel = cost };
+        }
+
+        private static Image CreatePortrait(Transform parent, Sprite sprite)
+        {
+            var go = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.06f, 0.33f);
+            rect.anchorMax = new Vector2(0.94f, 0.98f);
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+
+            var image = go.GetComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            return image;
         }
 
         private static TMP_Text CreateLabel(Transform parent, string name, string text, TMP_FontAsset font, float size, Color color, Vector2 anchorMin, Vector2 anchorMax)
