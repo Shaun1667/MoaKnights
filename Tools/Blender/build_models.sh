@@ -37,8 +37,17 @@ underwear_color_of() {
   esac
 }
 
+# 몸통 속옷이 겉옷 등판보다 두꺼워 뒤로 뚫고 나오는 캐릭터: 몸통 구역에서 더 깊이 지우는 거리 (키 비율, 없으면 0).
+torso_poke_of() {
+  case "$1" in
+    irene_01) echo 0.20 ;;
+    *) echo 0 ;;
+  esac
+}
+
 for id in "$@"; do
   tris=$(tris_of "$id")
+  export TORSO_POKE="$(torso_poke_of "$id")"
   export UNDERWEAR_COLOR="$(underwear_color_of "$id")"
   src=ArtSource/$id
   h=$(height_of "$id")

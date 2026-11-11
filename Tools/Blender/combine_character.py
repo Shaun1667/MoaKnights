@@ -29,6 +29,11 @@ hidden_distance_ratio = 0.06   # 키에 대한 비율: 면 바깥쪽 이 거리 
 poke_distance_ratio = float(os.environ.get("POKE_RATIO", "0.05"))   # 키에 대한 비율: 면 안쪽 이 거리 안에 겉옷이 있으면 겉옷을 뚫고 나온 몸 면 (근거리 melee_01은 0.025로 만듦)
 outfit_push_ratio = float(os.environ.get("OUTFIT_PUSH", "0.01"))   # 키에 대한 비율: 겉옷을 법선 방향으로 이만큼 부풀려 몸을 덮게 한다 (melee_01은 0)
 lower_mask_ratio = float(os.environ.get("LOWER_MASK", "0.38"))   # 키에 대한 비율: 아래에서 이 높이까지(다리)는 겉옷 그림에서 옷이 덮은 자리의 몸 면을 모두 지운다 (0이면 끔)
+torso_poke_ratio = float(os.environ.get("TORSO_POKE", "0"))   # 키에 대한 비율: 몸통 구역(다리 위 ~ 턱 아래, 가운데 폭)에서만 쓰는 더 깊은 "뚫고 나옴" 거리. 몸통 속옷이 겉옷 등판보다 두꺼워 뒤로 나올 때 (0이면 끔)
+TORSO_TOP_RATIO = 0.68     # 키에 대한 비율: 턱 아래 높이 (2.5 ~ 3등신 기준)
+TORSO_HALF_WIDTH_RATIO = 0.15   # 키에 대한 비율: 몸통 반폭 (어깨까지. 아래팔 · 머리카락 제외)
+COLLAR_FRONT_TOP_RATIO = 0.705   # 키에 대한 비율: 앞쪽 옷깃 높이 (입 아래까지만)
+NECK_BACK_TOP_RATIO = 0.76     # 키에 대한 비율: 목 뒤 옷깃 높이 (뒤쪽 절반에서만 턱보다 높이 본다)
 os.makedirs(out_dir, exist_ok=True)
 
 
@@ -185,6 +190,16 @@ def fit_outfit_and_hide_body():
     lower_top = blo.z + (bhi.z - blo.z) * lower_mask_ratio
     body_cx = (blo.x + bhi.x) / 2
 
+    torso_top = blo.z + (bhi.z - blo.z) * TORSO_TOP_RATIO
+    torso_half = (bhi.z - blo.z) * TORSO_HALF_WIDTH_RATIO
+    torso_poke = (bhi.z - blo.z) * torso_poke_ratio
+    global body_low_z, body_height
+    body_low_z, body_height = blo.z, bhi.z - blo.z
+
+    def poke_of(c):
+        in_torso = torso_poke > 0 and lower_top < c.z < torso_top and abs(c.x - body_cx) < torso_half
+        return max(poke, torso_poke) if in_torso else poke
+
     def under_outfit_pixel(c):
         if mask is None or c.z > lower_top:
             return False
@@ -199,7 +214,7 @@ def fit_outfit_and_hide_body():
     for f in bm.faces:
         c = f.calc_center_median()
         n = f.normal
-        if tree.ray_cast(c + n * 1e-4, n, limit)[0] is not None or tree.ray_cast(c - n * 1e-4, -n, poke)[0] is not None:
+        if tree.ray_cast(c + n * 1e-4, n, limit)[0] is not None or tree.ray_cast(c - n * 1e-4, -n, poke_of(c))[0] is not None:
             hidden.append(f)
         elif under_outfit_pixel(c):
             hidden.append(f)
@@ -266,7 +281,20 @@ def skin_recolor(obj):
 
 
 def underwear_recolor(obj, color):
-    """몸 텍스처의 어두운 갈색 속옷 픽셀을 겉옷 바탕색으로 칠한다 (겉옷 등 쪽이 비어 속옷이 보이는 캐릭터용). 주름 밝기는 살린다."""
+    """몸 텍스처의 어두운 갈색 속옷 픽셀을 겉옷 바탕색으로 칠한다 (겉옷 밖으로 속옷이 보이는 캐릭터용). 주름 밝기는 살린다.
+    턱 아래 면이 쓰는 텍스처 자리만 칠한다 — 입 안 · 눈가 같은 얼굴의 어두운 갈색은 건드리지 않는다."""
+    me = obj.data
+    uv = me.uv_layers.active.data
+    chin = body_low_z + body_height * COLLAR_FRONT_TOP_RATIO
+    neck_back = body_low_z + body_height * NECK_BACK_TOP_RATIO
+    lo, hi = world_box(obj)
+    mid_y = (lo.y + hi.y) / 2   # 앞이 -Y: 가운데보다 뒤쪽이면 얼굴이 아니다
+
+    def is_clothing_zone(p):
+        c = obj.matrix_world @ p.center
+        return c.z < chin or (c.z < neck_back and c.y > mid_y)
+
+    below = [p for p in me.polygons if is_clothing_zone(p)]
     for mat in obj.data.materials:
         for node in mat.node_tree.nodes:
             if node.type != "TEX_IMAGE" or node.image is None:
@@ -274,10 +302,29 @@ def underwear_recolor(obj, color):
             if not any(l.to_socket.name == "Base Color" for o in node.outputs for l in o.links):
                 continue
             img = node.image
+            w, h = img.size
+            # 턱 아래 면들의 UV 삼각형을 칠해 "칠해도 되는 자리" 표를 만든다 (가장자리 1픽셀 여유)
+            allowed = np.zeros((h, w), dtype=bool)
+            for p in below:
+                pts = [(uv[li].uv[0] * w, uv[li].uv[1] * h) for li in p.loop_indices]
+                for k in range(1, len(pts) - 1):
+                    (ax, ay), (bx, by), (cx, cy) = pts[0], pts[k], pts[k + 1]
+                    x0, x1 = int(max(0, min(ax, bx, cx) - 1)), int(min(w - 1, max(ax, bx, cx) + 1))
+                    y0, y1 = int(max(0, min(ay, by, cy) - 1)), int(min(h - 1, max(ay, by, cy) + 1))
+                    if x1 < x0 or y1 < y0:
+                        continue
+                    gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
+                    d = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+                    if abs(d) < 1e-9:
+                        continue
+                    u = ((by - cy) * (gx - cx) + (cx - bx) * (gy - cy)) / d
+                    v = ((cy - ay) * (gx - cx) + (ax - cx) * (gy - cy)) / d
+                    m = 1.5 / max(1.0, min(x1 - x0, y1 - y0) + 1)   # 가장자리 여유
+                    allowed[y0:y1 + 1, x0:x1 + 1] |= (u >= -m) & (v >= -m) & (u + v <= 1 + m)
             px = np.array(img.pixels[:], dtype=np.float32).reshape(-1, 4)
             rgb = px[:, :3]
             mx = rgb.max(axis=1)
-            brown = (mx < 0.50) & (mx > 0.08) & (rgb[:, 0] > rgb[:, 1]) & (rgb[:, 1] >= rgb[:, 2]) & (rgb[:, 0] - rgb[:, 2] > 0.04)
+            brown = (mx < 0.50) & (mx > 0.08) & (rgb[:, 0] > rgb[:, 1]) & (rgb[:, 1] >= rgb[:, 2]) & (rgb[:, 0] - rgb[:, 2] > 0.04) & allowed.ravel()
             if not brown.any():
                 continue
             shade = np.clip(mx[brown] / np.median(mx[brown]), 0.6, 1.15)[:, None]
