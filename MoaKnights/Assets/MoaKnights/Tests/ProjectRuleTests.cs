@@ -105,6 +105,20 @@ namespace MoaKnights.Tests
 
         /// <summary>BALANCE 5 · 7 · 9번: 능력자 6명 · 포지션 · 3성 · 출전 12명 · 기본 편성, 그리고 편성대로 카드가 만들어지는지.</summary>
         [Test]
+        public void GachaView_HasRarityColorsAndTimes()
+        {
+            var view = AssetDatabase.LoadAssetAtPath<BattleViewAsset>("Assets/MoaKnights/Data/View/BattleView.asset");
+            // 등급마다 다른 빛 색 (3성 파랑 · 4성 보라 · 5성 금색), 연출 시간은 모두 0보다 크다.
+            Assert.AreNotEqual(view.GachaRarityColor(3), view.GachaRarityColor(4));
+            Assert.AreNotEqual(view.GachaRarityColor(4), view.GachaRarityColor(5));
+            Assert.Greater(view.GachaRarityColor(3).a, 0f);
+            Assert.Greater(view.GachaLightSeconds, 0f);
+            Assert.Greater(view.GachaSpreadSeconds, 0f);
+            Assert.Greater(view.GachaFlipSeconds, 0f);
+            Assert.GreaterOrEqual(view.GachaFlipIntervalSeconds, 0f);
+        }
+
+        [Test]
         public void GachaAndCurrency_MatchBalanceDoc()
         {
             var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");

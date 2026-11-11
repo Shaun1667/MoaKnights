@@ -503,6 +503,14 @@ namespace MoaKnights.EditorTools
             FillIfZero(so.FindProperty("_cameraBottomReserve"), 0.22f);
             FillIfZero(so.FindProperty("_cameraFieldOfView"), 30f);
             FillIfZero(so.FindProperty("_cameraTopReserve"), 0.13f);
+            FillIfEmpty(so.FindProperty("_gachaRarity3Color"), new Color(0.35f, 0.65f, 1.00f));
+            FillIfEmpty(so.FindProperty("_gachaRarity4Color"), new Color(0.72f, 0.42f, 1.00f));
+            FillIfEmpty(so.FindProperty("_gachaRarity5Color"), new Color(1.00f, 0.80f, 0.25f));
+            FillIfEmpty(so.FindProperty("_gachaCardBackColor"), new Color(0.16f, 0.18f, 0.24f));
+            FillIfZero(so.FindProperty("_gachaLightSeconds"), 1.6f);
+            FillIfZero(so.FindProperty("_gachaSpreadSeconds"), 0.4f);
+            FillIfZero(so.FindProperty("_gachaFlipSeconds"), 0.3f);
+            FillIfZero(so.FindProperty("_gachaFlipIntervalSeconds"), 0.15f);
             FillIfEmpty(so.FindProperty("_rangeColor"), new Color(0.95f, 0.55f, 0.15f));
             var hpBarSize = so.FindProperty("_hpBarSize");
             if (hpBarSize.vector2Value == Vector2.zero) hpBarSize.vector2Value = new Vector2(0.6f, 0.06f);
@@ -730,6 +738,7 @@ namespace MoaKnights.EditorTools
             var result = CreateResultPanel(canvasGo.transform);
             var stageSelect = CreateStageSelectPanel(canvasGo.transform);
             var formation = CreateFormationPanel(canvasGo.transform);
+            var gacha = CreateGachaPanel(canvasGo.transform);
 
             var hud = canvasGo.AddComponent<BattleHud>();
             var hudSo = new SerializedObject(hud);
@@ -759,6 +768,7 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_result").objectReferenceValue = result;
             so.FindProperty("_stageSelect").objectReferenceValue = stageSelect;
             so.FindProperty("_formation").objectReferenceValue = formation;
+            so.FindProperty("_gacha").objectReferenceValue = gacha;
             so.FindProperty("_hud").objectReferenceValue = hud;
             so.FindProperty("_titleLabel").objectReferenceValue = title;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -933,6 +943,7 @@ namespace MoaKnights.EditorTools
             range.anchoredPosition = new Vector2(360f, -260f);
 
             var confirm = CreateButtonAt(box, "Confirm", new Vector2(0f, -355f), new Vector2(260f, 64f), out var confirmLabel);
+            var gachaButton = CreateButtonAt(box, "GachaButton", new Vector2(-620f, 360f), new Vector2(200f, 56f), out var gachaLabel);
 
             var panel = host.GetComponent<FormationPanel>();
             var so = new SerializedObject(panel);
@@ -949,8 +960,135 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_rangeArea").objectReferenceValue = range;
             so.FindProperty("_confirmButton").objectReferenceValue = confirm;
             so.FindProperty("_confirmLabel").objectReferenceValue = confirmLabel;
+            so.FindProperty("_gachaButton").objectReferenceValue = gachaButton;
+            so.FindProperty("_gachaLabel").objectReferenceValue = gachaLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
             return panel;
+        }
+
+        /// <summary>
+        /// 뽑기 창. 창(별가루 · 확률 · 1회 · 10회 · 닫기) 위에 결과 연출 판(누르면 건너뛰기 · 계속)이 덮인다.
+        /// 결과 카드는 런타임에 카드 틀을 복제해 만든다 (씬에는 저장되지 않음).
+        /// </summary>
+        private static GachaPanel CreateGachaPanel(Transform parent)
+        {
+            var host = new GameObject("Gacha", typeof(RectTransform), typeof(GachaPanel));
+            host.transform.SetParent(parent, false);
+            Stretch(host.GetComponent<RectTransform>());
+
+            var root = CreateDim(host.transform, "Root");
+            var box = CreateBox(root.transform, "Box", new Vector2(900f, 560f));
+            var title = CreateText(box, "Title", new Vector2(0f, 220f), new Vector2(600f, 70f), 48);
+            var currency = CreateText(box, "Currency", new Vector2(0f, 140f), new Vector2(800f, 50f), 32);
+            var rates = CreateText(box, "Rates", new Vector2(0f, 85f), new Vector2(800f, 40f), 24);
+            var single = CreateButtonAt(box, "SingleButton", new Vector2(-200f, -20f), new Vector2(340f, 84f), out var singleLabel);
+            var multi = CreateButtonAt(box, "MultiButton", new Vector2(200f, -20f), new Vector2(340f, 84f), out var multiLabel);
+            var message = CreateText(box, "Message", new Vector2(0f, -110f), new Vector2(800f, 40f), 26);
+            var close = CreateButtonAt(box, "CloseButton", new Vector2(0f, -210f), new Vector2(220f, 60f), out var closeLabel);
+
+            // 결과 연출 판: 화면 전체를 덮는 버튼 (누르면 건너뛰기 · 계속).
+            var revealGo = new GameObject("Reveal", typeof(RectTransform), typeof(Image), typeof(Button));
+            revealGo.transform.SetParent(root.transform, false);
+            Stretch(revealGo.GetComponent<RectTransform>());
+            // 불투명: 리니어 색 공간에서는 반투명 판이 생각보다 옅어 뒤 창 글이 비친다.
+            revealGo.GetComponent<Image>().color = new Color(0.02f, 0.02f, 0.04f, 1f);
+            var reveal = revealGo.GetComponent<Button>();
+            reveal.transition = Selectable.Transition.None;
+
+            var lightGo = new GameObject("Light", typeof(RectTransform), typeof(Image));
+            lightGo.transform.SetParent(revealGo.transform, false);
+            var light = lightGo.GetComponent<RectTransform>();
+            light.anchorMin = light.anchorMax = new Vector2(0.5f, 0.5f);
+            light.sizeDelta = new Vector2(360f, 360f);
+            light.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            lightGo.GetComponent<Image>().raycastTarget = false;
+
+            var cardAreaGo = new GameObject("Cards", typeof(RectTransform));
+            cardAreaGo.transform.SetParent(revealGo.transform, false);
+            var cardArea = cardAreaGo.GetComponent<RectTransform>();
+            cardArea.anchorMin = cardArea.anchorMax = new Vector2(0.5f, 0.5f);
+            cardArea.sizeDelta = Vector2.zero;
+            cardArea.anchoredPosition = new Vector2(0f, 30f);
+            var card = CreateGachaCard(cardArea);
+
+            var flashGo = new GameObject("Flash", typeof(RectTransform), typeof(Image));
+            flashGo.transform.SetParent(revealGo.transform, false);
+            Stretch(flashGo.GetComponent<RectTransform>());
+            var flash = flashGo.GetComponent<Image>();
+            flash.color = new Color(1f, 1f, 1f, 0f);
+            flash.raycastTarget = false;
+
+            var hint = CreateText(revealGo.transform, "Hint", new Vector2(0f, -470f), new Vector2(800f, 44f), 28);
+
+            var panel = host.GetComponent<GachaPanel>();
+            var so = new SerializedObject(panel);
+            so.FindProperty("_root").objectReferenceValue = root;
+            so.FindProperty("_titleLabel").objectReferenceValue = title;
+            so.FindProperty("_currencyLabel").objectReferenceValue = currency;
+            so.FindProperty("_ratesLabel").objectReferenceValue = rates;
+            so.FindProperty("_messageLabel").objectReferenceValue = message;
+            so.FindProperty("_singleButton").objectReferenceValue = single;
+            so.FindProperty("_singleLabel").objectReferenceValue = singleLabel;
+            so.FindProperty("_multiButton").objectReferenceValue = multi;
+            so.FindProperty("_multiLabel").objectReferenceValue = multiLabel;
+            so.FindProperty("_closeButton").objectReferenceValue = close;
+            so.FindProperty("_closeLabel").objectReferenceValue = closeLabel;
+            so.FindProperty("_reveal").objectReferenceValue = reveal;
+            so.FindProperty("_light").objectReferenceValue = light;
+            so.FindProperty("_flash").objectReferenceValue = flash;
+            so.FindProperty("_cardArea").objectReferenceValue = cardArea;
+            so.FindProperty("_cardTemplate").objectReferenceValue = card;
+            so.FindProperty("_hintLabel").objectReferenceValue = hint;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return panel;
+        }
+
+        /// <summary>뽑기 결과 카드 틀: 테두리(등급 색) 안에 바탕, 그 위에 앞면(등급 · 얼굴 · 이름 · 새로 얻음/돌려받음).</summary>
+        private static GachaCard CreateGachaCard(Transform parent)
+        {
+            var go = new GameObject("CardTemplate", typeof(RectTransform), typeof(Image), typeof(GachaCard));
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = new Vector2(200f, 280f);
+            go.GetComponent<Image>().raycastTarget = false;
+
+            var innerGo = new GameObject("Inner", typeof(RectTransform), typeof(Image));
+            innerGo.transform.SetParent(go.transform, false);
+            var inner = innerGo.GetComponent<RectTransform>();
+            inner.anchorMin = Vector2.zero;
+            inner.anchorMax = Vector2.one;
+            inner.offsetMin = new Vector2(6f, 6f);
+            inner.offsetMax = new Vector2(-6f, -6f);
+            innerGo.GetComponent<Image>().raycastTarget = false;
+
+            var faceGo = new GameObject("Face", typeof(RectTransform));
+            faceGo.transform.SetParent(go.transform, false);
+            Stretch(faceGo.GetComponent<RectTransform>());
+
+            var rarity = CreateText(faceGo.transform, "Rarity", new Vector2(0f, 112f), new Vector2(180f, 34f), 26);
+            var portraitGo = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
+            portraitGo.transform.SetParent(faceGo.transform, false);
+            var portrait = portraitGo.GetComponent<RectTransform>();
+            portrait.anchorMin = portrait.anchorMax = new Vector2(0.5f, 0.5f);
+            portrait.sizeDelta = new Vector2(160f, 160f);
+            portrait.anchoredPosition = new Vector2(0f, 18f);
+            portraitGo.GetComponent<Image>().raycastTarget = false;
+            portraitGo.GetComponent<Image>().preserveAspect = true;
+            var name = CreateText(faceGo.transform, "Name", new Vector2(0f, -82f), new Vector2(190f, 34f), 22);
+            var tag = CreateText(faceGo.transform, "Tag", new Vector2(0f, -115f), new Vector2(190f, 30f), 20);
+
+            var card = go.GetComponent<GachaCard>();
+            var so = new SerializedObject(card);
+            so.FindProperty("_frame").objectReferenceValue = go.GetComponent<Image>();
+            so.FindProperty("_inner").objectReferenceValue = innerGo.GetComponent<Image>();
+            so.FindProperty("_face").objectReferenceValue = faceGo;
+            so.FindProperty("_portrait").objectReferenceValue = portraitGo.GetComponent<Image>();
+            so.FindProperty("_nameLabel").objectReferenceValue = name;
+            so.FindProperty("_rarityLabel").objectReferenceValue = rarity;
+            so.FindProperty("_tagLabel").objectReferenceValue = tag;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return card;
         }
 
         private static void Stretch(RectTransform rect)

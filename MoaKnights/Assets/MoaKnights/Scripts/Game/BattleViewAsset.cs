@@ -86,6 +86,14 @@ namespace MoaKnights.Game
         [SerializeField] private bool _cameraPerspective;
         [SerializeField] private float _cameraFieldOfView;
         [SerializeField] private float _cameraTopReserve;
+        [SerializeField] private Color _gachaRarity3Color;
+        [SerializeField] private Color _gachaRarity4Color;
+        [SerializeField] private Color _gachaRarity5Color;
+        [SerializeField] private Color _gachaCardBackColor;
+        [SerializeField] private float _gachaLightSeconds;
+        [SerializeField] private float _gachaSpreadSeconds;
+        [SerializeField] private float _gachaFlipSeconds;
+        [SerializeField] private float _gachaFlipIntervalSeconds;
 
         public Material CellMaterial => _cellMaterial;
         public float CellSize => _cellSize;
@@ -158,6 +166,18 @@ namespace MoaKnights.Game
 
         /// <summary>편성 창에서 출전으로 고른 능력자 카드 색.</summary>
         public Color FormationSelectedColor => _formationSelectedColor;
+
+        /// <summary>뽑기 연출에서 등급(3 · 4 · 5성)을 알리는 빛 · 카드 테두리 색. 그 밖의 등급은 3성 색.</summary>
+        public Color GachaRarityColor(int rarity) => rarity >= 5 ? _gachaRarity5Color : rarity == 4 ? _gachaRarity4Color : _gachaRarity3Color;
+
+        /// <summary>뒤집기 전 카드 뒷면 색.</summary>
+        public Color GachaCardBackColor => _gachaCardBackColor;
+
+        /// <summary>뽑기 연출 시간(초): 빛 예고 · 카드가 펼쳐지는 시간 · 한 장 뒤집는 시간 · 다음 장까지 간격.</summary>
+        public float GachaLightSeconds => _gachaLightSeconds;
+        public float GachaSpreadSeconds => _gachaSpreadSeconds;
+        public float GachaFlipSeconds => _gachaFlipSeconds;
+        public float GachaFlipIntervalSeconds => _gachaFlipIntervalSeconds;
 
         public bool TryGetUnit(string id, out UnitVisual visual)
         {

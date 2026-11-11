@@ -28,6 +28,8 @@ namespace MoaKnights.Game
         [SerializeField] private RectTransform _rangeArea;
         [SerializeField] private Button _confirmButton;
         [SerializeField] private TMP_Text _confirmLabel;
+        [SerializeField] private Button _gachaButton;
+        [SerializeField] private TMP_Text _gachaLabel;
 
         private readonly List<string> _deck = new List<string>();
         private readonly Dictionary<string, Image> _cardImages = new Dictionary<string, Image>();
@@ -44,7 +46,7 @@ namespace MoaKnights.Game
         public bool IsOpen => _root.activeSelf;
 
         public void Bind(BattleBalanceAsset balance, BattleDefinition battle, IReadOnlyList<string> deck, IReadOnlyList<string> owned, BattleViewAsset view,
-            TMP_FontAsset font, Action<IReadOnlyList<string>> confirm)
+            TMP_FontAsset font, Action<IReadOnlyList<string>> confirm, Action openGacha)
         {
             _balance = balance;
             _owned = owned;
@@ -54,7 +56,9 @@ namespace MoaKnights.Game
             _confirm = confirm;
             _deck.AddRange(deck);
 
-            foreach (var label in new[] { _titleLabel, _countLabel, _unitTabLabel, _enemyTabLabel, _infoLabel, _confirmLabel }) label.font = font;
+            foreach (var label in new[] { _titleLabel, _countLabel, _unitTabLabel, _enemyTabLabel, _infoLabel, _confirmLabel, _gachaLabel }) label.font = font;
+            _gachaLabel.text = Text.Get("ui.gacha.open");
+            _gachaButton.onClick.AddListener(() => openGacha());
             _titleLabel.text = Text.Get("ui.formation.title");
             _unitTabLabel.text = Text.Get("ui.formation.tab_unit");
             _enemyTabLabel.text = Text.Get("ui.formation.tab_enemy");

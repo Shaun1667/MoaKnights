@@ -116,3 +116,11 @@ MonoBehaviour:
   _cameraPerspective: 1
   _cameraFieldOfView: 30
   _cameraTopReserve: 0.13
+  _gachaRarity3Color: {r: 0.35, g: 0.65, b: 1, a: 1}
+  _gachaRarity4Color: {r: 0.72, g: 0.42, b: 1, a: 1}
+  _gachaRarity5Color: {r: 1, g: 0.8, b: 0.25, a: 1}
+  _gachaCardBackColor: {r: 0.16, g: 0.18, b: 0.24, a: 1}
+  _gachaLightSeconds: 1.6
+  _gachaSpreadSeconds: 0.4
+  _gachaFlipSeconds: 0.3
+  _gachaFlipIntervalSeconds: 0.15

@@ -35,6 +35,18 @@ ui.result.retry,다시,Retry
 ui.result.next,다음 스테이지,Next stage
 ui.result.select,스테이지 선택,Select stage
 ui.result.reward,별가루 +{0} (가진 별가루 {1}),Stardust +{0} (total {1})
+ui.gacha.open,뽑기,Recruit
+ui.gacha.title,뽑기,Recruit
+ui.gacha.currency,가진 별가루 {0},Stardust {0}
+ui.gacha.rate,{0}성 {1}%,{0}★ {1}%
+ui.gacha.rate_joiner, · , · 
+ui.gacha.roll,{0}회 뽑기 · 별가루 {1},Recruit x{0} · {1} stardust
+ui.gacha.close,닫기,Close
+ui.gacha.continue,눌러서 계속,Click to continue
+ui.gacha.not_enough,별가루가 모자랍니다,Not enough stardust
+ui.gacha.rarity,{0}성,{0}★
+ui.gacha.new,새로 얻음,New
+ui.gacha.refund,별가루 +{0},Stardust +{0}
 ui.select.title,스테이지 선택,Select stage
 ui.select.close,닫기,Close
 ui.select.current,{0} (지금),{0} (current)

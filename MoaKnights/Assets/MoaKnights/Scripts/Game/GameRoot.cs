@@ -42,6 +42,7 @@ namespace MoaKnights.Game
         [SerializeField] private ResultPanel _result;
         [SerializeField] private StageSelectPanel _stageSelect;
         [SerializeField] private FormationPanel _formation;
+        [SerializeField] private GachaPanel _gacha;
         [SerializeField] private TMP_Text _titleLabel;
 
         private TMP_FontAsset _runtimeFont;
@@ -99,7 +100,8 @@ namespace MoaKnights.Game
             Simulation.BattleEnded += GiveReward;
             _result.Bind(Simulation, _view, _runtimeFont, StageIndex + 1 < _catalog.Count,
                 () => LoadStage(StageIndex), () => LoadStage(StageIndex + 1), _stageSelect.Open, () => LastReward, () => _profile.Currency);
-            _formation.Bind(_balance, definition, _deck, _profile.Owned, _view, _runtimeFont, ConfirmFormation);
+            _formation.Bind(_balance, definition, _deck, _profile.Owned, _view, _runtimeFont, ConfirmFormation, OpenGacha);
+            _gacha.Bind(_profile, GachaRules, _view, _runtimeFont, SaveProfile, OnGachaClosed);
 
             // 편성 창이 떠 있는 동안 시간은 멈춰 있다.
             if (showFormation)
@@ -124,6 +126,20 @@ namespace MoaKnights.Game
             _pendingSeed = NewSeed();
             _pendingStageIndex = StageIndex;
             SceneManager.LoadScene(gameObject.scene.buildIndex);
+        }
+
+        /// <summary>뽑기 창을 닫을 때: 새 능력자를 얻었으면 편성 창 목록이 바뀌어야 하므로 이 스테이지를 다시 연다 (편성 창이 뜬다).</summary>
+        private void OnGachaClosed(bool gotNewUnit)
+        {
+            if (gotNewUnit) LoadStage(StageIndex);
+            else _formation.Open();
+        }
+
+        /// <summary>편성 창 대신 뽑기 창을 띄운다 (두 창이 겹쳐 보이지 않게).</summary>
+        private void OpenGacha()
+        {
+            _formation.Close();
+            _gacha.Open();
         }
 
         /// <summary>판 결과 보상: 이기면 별 수 x 별 하나 재화. 받으면 바로 저장한다.</summary>
