@@ -68,8 +68,8 @@ namespace MoaKnights.Tests
         {
             var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
             Assert.IsNotNull(balance);
-            Assert.AreEqual(20, balance.StartCost);
-            Assert.AreEqual(2f, balance.CostRegenSeconds);
+            Assert.AreEqual(40, balance.StartCost);
+            Assert.AreEqual(1f, balance.CostRegenSeconds);
             Assert.AreEqual(99, balance.MaxCost);
             Assert.AreEqual(30, balance.TicksPerSecond);
             Assert.AreEqual(10, balance.DefenseHp);

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b16874b9c491f3e458aa2289cc31e726, type: 3}
   m_Name: BattleBalance
   m_EditorClassIdentifier: MoaKnights.Game::MoaKnights.Game.BattleBalanceAsset
-  _startCost: 20
-  _costRegenSeconds: 2
+  _startCost: 40
+  _costRegenSeconds: 1
   _maxCost: 99
   _ticksPerSecond: 30
   _defenseHp: 10

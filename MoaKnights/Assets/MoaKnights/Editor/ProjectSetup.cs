@@ -119,8 +119,8 @@ namespace MoaKnights.EditorTools
             var so = new SerializedObject(asset);
 
             // 비어 있는 값에만 BALANCE.md 값을 넣는다. 이후 값은 에셋에서 고친다.
-            FillIfZero(so.FindProperty("_startCost"), 20);
-            FillIfZero(so.FindProperty("_costRegenSeconds"), 2f);
+            FillIfZero(so.FindProperty("_startCost"), 40);
+            FillIfZero(so.FindProperty("_costRegenSeconds"), 1f);
             FillIfZero(so.FindProperty("_maxCost"), 99);
             FillIfZero(so.FindProperty("_ticksPerSecond"), 30);
             FillIfZero(so.FindProperty("_defenseHp"), 10);
