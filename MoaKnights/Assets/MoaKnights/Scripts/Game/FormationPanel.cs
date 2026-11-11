@@ -34,6 +34,7 @@ namespace MoaKnights.Game
         private readonly List<GameObject> _rangeCells = new List<GameObject>();
 
         private BattleBalanceAsset _balance;
+        private IReadOnlyList<string> _owned;
         private BattleDefinition _battle;
         private BattleViewAsset _view;
         private TMP_FontAsset _font;
@@ -42,10 +43,11 @@ namespace MoaKnights.Game
 
         public bool IsOpen => _root.activeSelf;
 
-        public void Bind(BattleBalanceAsset balance, BattleDefinition battle, IReadOnlyList<string> deck, BattleViewAsset view, TMP_FontAsset font,
-            Action<IReadOnlyList<string>> confirm)
+        public void Bind(BattleBalanceAsset balance, BattleDefinition battle, IReadOnlyList<string> deck, IReadOnlyList<string> owned, BattleViewAsset view,
+            TMP_FontAsset font, Action<IReadOnlyList<string>> confirm)
         {
             _balance = balance;
+            _owned = owned;
             _battle = battle;
             _view = view;
             _font = font;
@@ -64,7 +66,7 @@ namespace MoaKnights.Game
 
             BuildRoster();
             _rosterTemplate.gameObject.SetActive(false);
-            ShowUnit(_deck.Count > 0 ? _deck[0] : _balance.Units[0].Id);
+            ShowUnit(_deck.Count > 0 ? _deck[0] : _owned[0]);
             Refresh();
             Close();
         }
@@ -73,16 +75,17 @@ namespace MoaKnights.Game
 
         public void Close() => _root.SetActive(false);
 
-        /// <summary>능력자 카드 6장을 두 줄로 놓는다. 위치는 목록 칸 안에서 계산한다.</summary>
+        /// <summary>가진 능력자 카드를 두 칸씩 줄지어 놓는다 (목록 순서). 위치는 목록 칸 안에서 계산한다.</summary>
         private void BuildRoster()
         {
             const int columns = 2;
             var size = _rosterTemplate.GetComponent<RectTransform>().sizeDelta;
             var gap = 16f;
 
-            for (var i = 0; i < _balance.Units.Length; i++)
+            var rows = _balance.Units.Where(u => _owned.Contains(u.Id)).ToArray();
+            for (var i = 0; i < rows.Length; i++)
             {
-                var row = _balance.Units[i];
+                var row = rows[i];
                 var id = row.Id;
                 var card = Instantiate(_rosterTemplate, _rosterArea);
                 card.name = "Roster_" + id;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MoaKnights.Game
 {
-    /// <summary>전투 수치 한 곳. 표는 BALANCE.md 1 · 2 · 3 · 5 · 6 · 7 · 8 · 9번, 값은 에셋에 둔다. 공격 범위 글자는 AttackRange 설명을 따른다.</summary>
+    /// <summary>전투 수치 한 곳 (뽑기 · 재화 포함). 표는 BALANCE.md 1 · 2 · 3 · 5 · 6 · 7 · 8 · 9 · 10번, 값은 에셋에 둔다. 공격 범위 글자는 AttackRange 설명을 따른다.</summary>
     [CreateAssetMenu(fileName = "BattleBalance", menuName = "MoaKnights/Battle Balance")]
     public sealed class BattleBalanceAsset : ScriptableObject
     {
@@ -50,6 +50,14 @@ namespace MoaKnights.Game
             public float DurationSeconds;
         }
 
+        /// <summary>뽑기 등급 하나의 가중치.</summary>
+        [Serializable]
+        public struct RarityWeightRow
+        {
+            public int Rarity;
+            public int Weight;
+        }
+
         [SerializeField] private int _startCost;
         [SerializeField] private float _costRegenSeconds;
         [SerializeField] private int _maxCost;
@@ -68,6 +76,14 @@ namespace MoaKnights.Game
         [SerializeField] private int _deckSize;
         [SerializeField] private int _dragSlowPercent;
         [SerializeField] private float _firstSpawnDelaySeconds;
+        [SerializeField] private int _gachaSingleCost;
+        [SerializeField] private int _gachaMultiCount;
+        [SerializeField] private int _gachaMultiCost;
+        [SerializeField] private int _gachaDuplicateRefund;
+        [SerializeField] private RarityWeightRow[] _gachaRarityWeights;
+        [SerializeField] private int _currencyPerStar;
+        [SerializeField] private int _startingCurrency;
+        [SerializeField] private string[] _startingUnits;
 
         public int StartCost => _startCost;
         public float CostRegenSeconds => _costRegenSeconds;
@@ -97,5 +113,21 @@ namespace MoaKnights.Game
 
         /// <summary>한 판에 출전하는 능력자 수 (BALANCE 9번). 능력자 목록 순서의 앞 이만큼이 기본 편성이다.</summary>
         public int DeckSize => _deckSize;
+
+        /// <summary>뽑기 1회 · 여러 회 값 (BALANCE 10번).</summary>
+        public int GachaSingleCost => _gachaSingleCost;
+        public int GachaMultiCount => _gachaMultiCount;
+        public int GachaMultiCost => _gachaMultiCost;
+
+        /// <summary>이미 가진 능력자가 나오면 돌려주는 재화.</summary>
+        public int GachaDuplicateRefund => _gachaDuplicateRefund;
+        public RarityWeightRow[] GachaRarityWeights => _gachaRarityWeights;
+
+        /// <summary>승리하면 별 하나에 받는 재화.</summary>
+        public int CurrencyPerStar => _currencyPerStar;
+
+        /// <summary>처음 시작할 때(저장 파일이 없을 때) 가진 재화와 능력자.</summary>
+        public int StartingCurrency => _startingCurrency;
+        public string[] StartingUnits => _startingUnits;
     }
 }

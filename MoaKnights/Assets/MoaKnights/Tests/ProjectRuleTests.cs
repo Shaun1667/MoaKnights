@@ -105,6 +105,27 @@ namespace MoaKnights.Tests
 
         /// <summary>BALANCE 5 · 7 · 9번: 능력자 6명 · 포지션 · 3성 · 출전 12명 · 기본 편성, 그리고 편성대로 카드가 만들어지는지.</summary>
         [Test]
+        public void GachaAndCurrency_MatchBalanceDoc()
+        {
+            var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
+            Assert.AreEqual((10, 10, 90, 2), (balance.GachaSingleCost, balance.GachaMultiCount, balance.GachaMultiCost, balance.GachaDuplicateRefund));
+            CollectionAssert.AreEqual(new[] { (3, 90), (4, 8), (5, 2) }, balance.GachaRarityWeights.Select(w => (w.Rarity, w.Weight)).ToArray());
+            Assert.AreEqual(10, balance.CurrencyPerStar);
+            Assert.AreEqual(100, balance.StartingCurrency);
+            CollectionAssert.AreEqual(new[] { "melee_01", "ranged_01", "tank_01", "healer_01" }, balance.StartingUnits);
+
+            // 가진 능력자만 출전한다.
+            var owned = balance.StartingUnits;
+            CollectionAssert.AreEqual(owned, BattleDefinitionFactory.DefaultDeck(balance, owned));
+            Assert.IsFalse(BattleDefinitionFactory.IsValidDeck(balance, new[] { "melee_01", "sniper_01" }, owned));
+            Assert.IsTrue(BattleDefinitionFactory.IsValidDeck(balance, new[] { "melee_01", "sniper_01" }, owned.Concat(new[] { "sniper_01" }).ToArray()));
+
+            // 뽑기 대상은 능력자 목록 전부, 등급은 행의 값.
+            var rules = BattleDefinitionFactory.CreateGachaRules(balance);
+            CollectionAssert.AreEqual(balance.Units.Select(u => u.Id), rules.Pool.Select(e => e.UnitId));
+        }
+
+        [Test]
         public void Roster_AndDeck_MatchBalanceDoc()
         {
             var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");

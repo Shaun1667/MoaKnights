@@ -214,3 +214,21 @@ MonoBehaviour:
   _deckSize: 12
   _dragSlowPercent: 10
   _firstSpawnDelaySeconds: 20
+  _gachaSingleCost: 10
+  _gachaMultiCount: 10
+  _gachaMultiCost: 90
+  _gachaDuplicateRefund: 2
+  _gachaRarityWeights:
+  - Rarity: 3
+    Weight: 90
+  - Rarity: 4
+    Weight: 8
+  - Rarity: 5
+    Weight: 2
+  _currencyPerStar: 10
+  _startingCurrency: 100
+  _startingUnits:
+  - melee_01
+  - ranged_01
+  - tank_01
+  - healer_01

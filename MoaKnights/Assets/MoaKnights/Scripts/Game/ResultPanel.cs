@@ -12,6 +12,7 @@ namespace MoaKnights.Game
         [SerializeField] private GameObject _root;
         [SerializeField] private TMP_Text _titleLabel;
         [SerializeField] private Image[] _stars;
+        [SerializeField] private TMP_Text _rewardLabel;
         [SerializeField] private Button _retryButton;
         [SerializeField] private TMP_Text _retryLabel;
         [SerializeField] private Button _nextButton;
@@ -21,14 +22,18 @@ namespace MoaKnights.Game
 
         private Simulation _simulation;
         private BattleViewAsset _view;
+        private System.Func<int> _reward;
+        private System.Func<int> _currency;
 
         public void Bind(Simulation simulation, BattleViewAsset view, TMP_FontAsset font, bool hasNextStage,
-            System.Action retry, System.Action next, System.Action select)
+            System.Action retry, System.Action next, System.Action select, System.Func<int> reward, System.Func<int> currency)
         {
             _simulation = simulation;
             _view = view;
+            _reward = reward;
+            _currency = currency;
 
-            foreach (var label in new[] { _titleLabel, _retryLabel, _nextLabel, _selectLabel }) label.font = font;
+            foreach (var label in new[] { _titleLabel, _rewardLabel, _retryLabel, _nextLabel, _selectLabel }) label.font = font;
             _retryLabel.text = Text.Get("ui.result.retry");
             _nextLabel.text = Text.Get("ui.result.next");
             _selectLabel.text = Text.Get("ui.result.select");
@@ -55,6 +60,10 @@ namespace MoaKnights.Game
 
             var stars = _simulation.Stars();
             for (var i = 0; i < _stars.Length; i++) _stars[i].color = i < stars ? _view.StarOnColor : _view.StarOffColor;
+
+            // 받은 재화와 지금 가진 재화. 못 받았으면 비운다.
+            var reward = _reward();
+            _rewardLabel.text = reward > 0 ? Text.Format("ui.result.reward", reward, _currency()) : string.Empty;
 
             // 지면 "다음 스테이지"는 감춘다.
             if (!victory) _nextButton.gameObject.SetActive(false);

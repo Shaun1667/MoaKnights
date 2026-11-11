@@ -129,7 +129,23 @@
 |---|---|---|---|
 | 9-1 | 능력자 목록 | 6명 (5-1 ~ 5-10) | 결정 2026-11-10, 사용자 |
 | 9-2 | 출전 수 (`DeckSize`) | 12 (1명 이상이면 출전 가능) | 결정 2026-11-11, 사용자 (예전 4, 2026-11-10) |
-| 9-3 | 기본 편성 | 목록 앞 12명 — 지금은 6명 전부 | 정한 것 (Claude, 확인 필요) |
+| 9-3 | 기본 편성 | 가진 능력자 중 목록 앞 12명 — 처음에는 4명 (BALANCE 10-8) | 정한 것 (Claude, 확인 필요) |
 | 9-4 | 등급 (`Rarity`, 3 ~ 5성) | 지금 6명 모두 3성. 4 · 5성은 나중에 만든다 | 결정 2026-11-11, 사용자 |
 
 검산 테스트: `ProjectRuleTests.Roster_AndDeck_MatchBalanceDoc`, `ProjectRuleTests.Deck_RejectsInvalid`, `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.DeployRules_MatchBalanceDoc`, `ProjectRuleTests.SkillData_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.StageCatalog_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt48Seconds`, `ProjectRuleTests.CostRegen_IsOneSecondInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.
+
+## 10. 뽑기 · 재화 (임시값 — 정한 것 Claude, 확인 필요. 결정 2026-11-11, 사용자: 보유 · 저장 + 클리어 보상 재화)
+| 번호 | 항목 | 값 | 출처 |
+|---|---|---|---|
+| 10-1 | 재화 이름 | 별가루 (글 `ui.result.reward`) | 정한 것 (Claude, 확인 필요) |
+| 10-2 | 승리 보상 (`CurrencyPerStar`) | 별 하나에 10 (별 3 = 30), 지면 0 | 정한 것 (Claude, 확인 필요) |
+| 10-3 | 1회 뽑기 (`GachaSingleCost`) | 10 | 정한 것 (Claude, 확인 필요) |
+| 10-4 | 10회 뽑기 (`GachaMultiCount` · `GachaMultiCost`) | 10회 · 90 (1회 x 10보다 10% 싸게) | 정한 것 (Claude, 확인 필요) |
+| 10-5 | 이미 가진 능력자가 나오면 돌려받음 (`GachaDuplicateRefund`) | 2 | 정한 것 (Claude, 확인 필요) |
+| 10-6 | 등급 가중치 (`GachaRarityWeights`) | 3성 90 · 4성 8 · 5성 2 (합 100 = %) | 정한 것 (Claude, 확인 필요) |
+| 10-7 | 그 등급 능력자가 없을 때 | 가장 가까운 아래 등급, 없으면 위 등급 — 지금은 3성만 나온다 | 정한 것 (Claude, 확인 필요) |
+| 10-8 | 처음 시작 (`StartingCurrency` · `StartingUnits`) | 별가루 100 · 근거리 · 원거리 · 방패병 · 치유사 (저격수 · 돌격병은 뽑기로) | 정한 것 (Claude, 확인 필요) |
+
+검산: 처음 100이면 10회 뽑기 한 번(90) 하고 10이 남는다. 별 3 승리 세 번(90)이면 10회 한 번. 3성 6명뿐인 지금은 10회 한 번이면 저격수 · 돌격병이 거의 다 나온다 (안 가진 2명이 한 번도 안 나올 확률 (4/6)^10 ≈ 1.7%).
+
+검산 테스트: `ProjectRuleTests.GachaAndCurrency_MatchBalanceDoc`, `MetaTests` (뽑기 · 프로필).

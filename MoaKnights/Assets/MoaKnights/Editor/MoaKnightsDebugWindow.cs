@@ -35,6 +35,8 @@ namespace MoaKnights.EditorTools
             EditorGUILayout.Space();
             DrawStageSection(root);
             EditorGUILayout.Space();
+            DrawProfileSection(root);
+            EditorGUILayout.Space();
             DrawClockSection(root);
             EditorGUILayout.Space();
             DrawMapSection(root);
@@ -79,6 +81,17 @@ namespace MoaKnights.EditorTools
                 root.DebugDamageDefense(10);
                 root.DebugStepTicks(1);
             }
+        }
+
+        private static void DrawProfileSection(GameRoot root)
+        {
+            EditorGUILayout.LabelField("프로필 · 뽑기 (Profile)", EditorStyles.boldLabel);
+            var profile = root.Profile;
+            EditorGUILayout.LabelField("재화", profile.Currency.ToString());
+            EditorGUILayout.LabelField("가진 능력자", string.Join(", ", profile.Owned));
+            EditorGUILayout.LabelField("저장 파일", ProfileStore.DefaultPath);
+            if (GUILayout.Button("[상태 변경] 재화 +100 (저장)")) root.DebugAddCurrency(100);
+            if (GUILayout.Button("[상태 변경] 프로필 초기화 (저장 파일 지우고 스테이지 다시 열기)")) root.DebugResetProfile();
         }
 
         private static void DrawClockSection(GameRoot root)

@@ -224,6 +224,32 @@ namespace MoaKnights.EditorTools
             FillIfZero(so.FindProperty("_redeployCostIncrease"), 5);
             FillIfZero(so.FindProperty("_retreatRefundPercent"), 50);
 
+
+            // 뽑기 · 재화 (BALANCE 10번). 비어 있을 때만 넣는다.
+            FillIfZero(so.FindProperty("_gachaSingleCost"), 10);
+            FillIfZero(so.FindProperty("_gachaMultiCount"), 10);
+            FillIfZero(so.FindProperty("_gachaMultiCost"), 90);
+            FillIfZero(so.FindProperty("_gachaDuplicateRefund"), 2);
+            FillIfZero(so.FindProperty("_currencyPerStar"), 10);
+            FillIfZero(so.FindProperty("_startingCurrency"), 100);
+            var weights = so.FindProperty("_gachaRarityWeights");
+            if (weights.arraySize == 0)
+            {
+                var table = new[] { new[] { 3, 90 }, new[] { 4, 8 }, new[] { 5, 2 } };
+                weights.arraySize = table.Length;
+                for (var w = 0; w < table.Length; w++)
+                {
+                    weights.GetArrayElementAtIndex(w).FindPropertyRelative("Rarity").intValue = table[w][0];
+                    weights.GetArrayElementAtIndex(w).FindPropertyRelative("Weight").intValue = table[w][1];
+                }
+            }
+            var starting = so.FindProperty("_startingUnits");
+            if (starting.arraySize == 0)
+            {
+                var ids = new[] { MeleeUnitId, RangedUnitId, TankUnitId, HealerUnitId };
+                starting.arraySize = ids.Length;
+                for (var u = 0; u < ids.Length; u++) starting.GetArrayElementAtIndex(u).stringValue = ids[u];
+            }
             so.ApplyModifiedPropertiesWithoutUndo();
             return asset;
         }
@@ -804,6 +830,7 @@ namespace MoaKnights.EditorTools
                 stars[i] = star.GetComponent<Image>();
             }
 
+            var reward = CreateText(box, "Reward", new Vector2(0f, -45f), new Vector2(560f, 44f), 30);
             var retry = CreateButtonAt(box, "RetryButton", new Vector2(-195f, -110f), new Vector2(180f, 60f), out var retryLabel);
             var next = CreateButtonAt(box, "NextButton", new Vector2(0f, -110f), new Vector2(180f, 60f), out var nextLabel);
             var select = CreateButtonAt(box, "SelectButton", new Vector2(195f, -110f), new Vector2(180f, 60f), out var selectLabel);
@@ -815,6 +842,7 @@ namespace MoaKnights.EditorTools
             var starList = so.FindProperty("_stars");
             starList.arraySize = stars.Length;
             for (var i = 0; i < stars.Length; i++) starList.GetArrayElementAtIndex(i).objectReferenceValue = stars[i];
+            so.FindProperty("_rewardLabel").objectReferenceValue = reward;
             so.FindProperty("_retryButton").objectReferenceValue = retry;
             so.FindProperty("_retryLabel").objectReferenceValue = retryLabel;
             so.FindProperty("_nextButton").objectReferenceValue = next;

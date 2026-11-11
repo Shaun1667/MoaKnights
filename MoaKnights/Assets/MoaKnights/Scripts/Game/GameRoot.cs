@@ -1,4 +1,5 @@
 using System.Linq;
+using MoaKnights.Core.Meta;
 using MoaKnights.Core.Sim;
 using MoaKnights.Localization;
 using TMPro;
@@ -19,6 +20,9 @@ namespace MoaKnights.Game
         // 고른 편성은 판을 다시 불러와도 이어진다 (저장은 Phase 5). 편성 창을 건너뛰는 것은 "출전"으로 다시 불러올 때뿐이다.
         private static string[] _deck;
         private static bool _skipFormation;
+
+        // 프로필은 처음 한 번 파일에서 읽고, 판을 다시 불러와도 같은 것을 쓴다. 바뀔 때마다 파일에 쓴다.
+        private static PlayerProfile _profile;
 
         [SerializeField] private TextAsset _textTable;
         [SerializeField] private Font _font;
@@ -49,6 +53,11 @@ namespace MoaKnights.Game
         public StageCatalogAsset Catalog => _catalog;
         public int StageIndex { get; private set; }
         public System.Collections.Generic.IReadOnlyList<string> Deck => _deck;
+        public PlayerProfile Profile => _profile;
+        public GachaRules GachaRules { get; private set; }
+
+        /// <summary>이번 판 결과로 받은 재화 (판이 끝나기 전에는 0).</summary>
+        public int LastReward { get; private set; }
 
         private void Awake()
         {
@@ -59,7 +68,9 @@ namespace MoaKnights.Game
             StageIndex = _catalog.Clamp(_pendingStageIndex ?? 0);
             _pendingStageIndex = null;
 
-            if (!BattleDefinitionFactory.IsValidDeck(_balance, _deck)) _deck = BattleDefinitionFactory.DefaultDeck(_balance);
+            if (_profile == null) _profile = ProfileStore.Load(_balance, ProfileStore.DefaultPath, NewSeed());
+            GachaRules = BattleDefinitionFactory.CreateGachaRules(_balance);
+            if (!BattleDefinitionFactory.IsValidDeck(_balance, _deck, _profile.Owned)) _deck = BattleDefinitionFactory.DefaultDeck(_balance, _profile.Owned);
             var showFormation = !_skipFormation;
             _skipFormation = false;
 
@@ -84,9 +95,11 @@ namespace MoaKnights.Game
             _unitActions.Bind(Simulation, _mapView, _unitView, _placement, _view, _runtimeFont, _cameraRig.GetComponent<Camera>());
             _speedControls.Bind(_clock, _runtimeFont);
             _stageSelect.Bind(_catalog, StageIndex, _runtimeFont, LoadStage);
+            // 보상을 먼저 주고(구독 순서), 결과 창이 그 값을 보여 준다.
+            Simulation.BattleEnded += GiveReward;
             _result.Bind(Simulation, _view, _runtimeFont, StageIndex + 1 < _catalog.Count,
-                () => LoadStage(StageIndex), () => LoadStage(StageIndex + 1), _stageSelect.Open);
-            _formation.Bind(_balance, definition, _deck, _view, _runtimeFont, ConfirmFormation);
+                () => LoadStage(StageIndex), () => LoadStage(StageIndex + 1), _stageSelect.Open, () => LastReward, () => _profile.Currency);
+            _formation.Bind(_balance, definition, _deck, _profile.Owned, _view, _runtimeFont, ConfirmFormation);
 
             // 편성 창이 떠 있는 동안 시간은 멈춰 있다.
             if (showFormation)
@@ -113,6 +126,18 @@ namespace MoaKnights.Game
             SceneManager.LoadScene(gameObject.scene.buildIndex);
         }
 
+        /// <summary>판 결과 보상: 이기면 별 수 x 별 하나 재화. 받으면 바로 저장한다.</summary>
+        private void GiveReward(BattleOutcome outcome)
+        {
+            LastReward = GachaRules.RewardFor(outcome == BattleOutcome.Victory, Simulation.Stars());
+            if (LastReward <= 0) return;
+            _profile.AddCurrency(LastReward);
+            SaveProfile();
+        }
+
+        /// <summary>프로필이 바뀌면 부른다 (보상 · 뽑기).</summary>
+        public void SaveProfile() => ProfileStore.Save(_profile, ProfileStore.DefaultPath);
+
         private void Update()
         {
             var ticks = _clock.Advance(Time.unscaledDeltaTime);
@@ -121,6 +146,7 @@ namespace MoaKnights.Game
 
         private void OnDestroy()
         {
+            if (Simulation != null) Simulation.BattleEnded -= GiveReward;
             if (_runtimeFont != null) Destroy(_runtimeFont);
         }
 
@@ -155,6 +181,21 @@ namespace MoaKnights.Game
 
         /// <summary>판 위 적을 모두 없애고 남은 등장을 건너뛰어 바로 승리시킨다 (결과 창 · 다음 스테이지 확인용).</summary>
         public void DebugClearStage() => Simulation.DebugClearAll();
+
+        public void DebugAddCurrency(int amount)
+        {
+            _profile.AddCurrency(amount);
+            SaveProfile();
+        }
+
+        /// <summary>저장 파일을 지우고 새 프로필(시작 능력자 · 재화)로 이 스테이지를 다시 연다.</summary>
+        public void DebugResetProfile()
+        {
+            ProfileStore.Delete(ProfileStore.DefaultPath);
+            _profile = null;
+            _deck = null;
+            LoadStage(StageIndex);
+        }
 
         public void DebugStepTicks(int ticks)
         {

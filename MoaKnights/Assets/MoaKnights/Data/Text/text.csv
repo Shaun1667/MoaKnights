@@ -34,6 +34,7 @@ ui.result.defeat,패배,Defeat
 ui.result.retry,다시,Retry
 ui.result.next,다음 스테이지,Next stage
 ui.result.select,스테이지 선택,Select stage
+ui.result.reward,별가루 +{0} (가진 별가루 {1}),Stardust +{0} (total {1})
 ui.select.title,스테이지 선택,Select stage
 ui.select.close,닫기,Close
 ui.select.current,{0} (지금),{0} (current)
