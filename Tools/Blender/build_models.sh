@@ -45,8 +45,17 @@ torso_poke_of() {
   esac
 }
 
+# 턱 밑에 짙은 그림자 띠가 텍스처로 구워져 목에 검은 줄처럼 보이는 캐릭터: 피부색으로 칠한다 (1이면 켬).
+jaw_shadow_of() {
+  case "$1" in
+    irene_01) echo 1 ;;
+    *) echo 0 ;;
+  esac
+}
+
 for id in "$@"; do
   tris=$(tris_of "$id")
+  export JAW_SHADOW="$(jaw_shadow_of "$id")"
   export TORSO_POKE="$(torso_poke_of "$id")"
   export UNDERWEAR_COLOR="$(underwear_color_of "$id")"
   src=ArtSource/$id

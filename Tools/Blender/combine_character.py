@@ -34,6 +34,9 @@ TORSO_TOP_RATIO = 0.68     # 키에 대한 비율: 턱 아래 높이 (2.5 ~ 3등
 TORSO_HALF_WIDTH_RATIO = 0.15   # 키에 대한 비율: 몸통 반폭 (어깨까지. 아래팔 · 머리카락 제외)
 COLLAR_FRONT_TOP_RATIO = 0.705   # 키에 대한 비율: 앞쪽 옷깃 높이 (입 아래까지만)
 NECK_BACK_TOP_RATIO = 0.76     # 키에 대한 비율: 목 뒤 옷깃 높이 (뒤쪽 절반에서만 턱보다 높이 본다)
+JAW_BOTTOM_RATIO = 0.645   # 키에 대한 비율: 턱 밑 그림자를 찾는 높이 (속옷 목선 위 ~ 입 아래)
+JAW_TOP_RATIO = 0.74
+JAW_SHADE = 0.86           # 턱 밑 그림자 자리에 칠하는 피부색의 밝기 (1 = 그늘 없음)
 os.makedirs(out_dir, exist_ok=True)
 
 
@@ -200,6 +203,12 @@ def fit_outfit_and_hide_body():
         in_torso = torso_poke > 0 and lower_top < c.z < torso_top and abs(c.x - body_cx) < torso_half
         return max(poke, torso_poke) if in_torso else poke
 
+    # 얼굴: 턱 아래를 향한 면은 옷깃과 가까워 "가려진 면"으로 잘못 지워져 턱이 잘린다. 턱 높이부터 위, 앞쪽 절반의 몸 면은 지우지 않는다.
+    body_cy = (blo.y + bhi.y) / 2
+
+    def is_face(c):
+        return c.z >= torso_top and c.y < body_cy and abs(c.x - body_cx) < torso_half
+
     def under_outfit_pixel(c):
         if mask is None or c.z > lower_top:
             return False
@@ -214,6 +223,8 @@ def fit_outfit_and_hide_body():
     for f in bm.faces:
         c = f.calc_center_median()
         n = f.normal
+        if is_face(c):
+            continue
         if tree.ray_cast(c + n * 1e-4, n, limit)[0] is not None or tree.ray_cast(c - n * 1e-4, -n, poke_of(c))[0] is not None:
             hidden.append(f)
         elif under_outfit_pixel(c):
@@ -280,6 +291,63 @@ def skin_recolor(obj):
             log("skin recolor", img.name, int(suit.sum()), "px, skin", tuple(np.round(skin, 3)))
 
 
+def base_color_images(obj):
+    for mat in obj.data.materials:
+        for node in mat.node_tree.nodes:
+            if node.type == "TEX_IMAGE" and node.image is not None and any(l.to_socket.name == "Base Color" for o in node.outputs for l in o.links):
+                yield node.image
+
+
+def uv_mask(polys, uv, w, h):
+    """면들의 UV 삼각형을 칠해 "이 면들이 쓰는 텍스처 자리" 표 [y][x]를 만든다 (가장자리 1픽셀 여유)."""
+    allowed = np.zeros((h, w), dtype=bool)
+    for p in polys:
+        pts = [(uv[li].uv[0] * w, uv[li].uv[1] * h) for li in p.loop_indices]
+        for k in range(1, len(pts) - 1):
+            (ax, ay), (bx, by), (cx, cy) = pts[0], pts[k], pts[k + 1]
+            x0, x1 = int(max(0, min(ax, bx, cx) - 1)), int(min(w - 1, max(ax, bx, cx) + 1))
+            y0, y1 = int(max(0, min(ay, by, cy) - 1)), int(min(h - 1, max(ay, by, cy) + 1))
+            if x1 < x0 or y1 < y0:
+                continue
+            gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
+            d = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+            if abs(d) < 1e-9:
+                continue
+            u = ((by - cy) * (gx - cx) + (cx - bx) * (gy - cy)) / d
+            v = ((cy - ay) * (gx - cx) + (ax - cx) * (gy - cy)) / d
+            m = 1.5 / max(1.0, min(x1 - x0, y1 - y0) + 1)   # 가장자리 여유
+            allowed[y0:y1 + 1, x0:x1 + 1] |= (u >= -m) & (v >= -m) & (u + v <= 1 + m)
+    return allowed
+
+
+def jaw_shadow_recolor(obj):
+    """Varco가 턱 밑에 짙은 그림자 띠를 텍스처로 구워 넣으면 목에 검은 줄(초커)처럼 보인다.
+    턱 밑을 향한 면(아래를 보는 면, 옷깃 위 ~ 입 아래)이 쓰는 텍스처 자리의 어두운 픽셀을 같은 그림의 피부색(조금 어둡게)으로 칠한다."""
+    me = obj.data
+    uv = me.uv_layers.active.data
+    low = body_low_z + body_height * JAW_BOTTOM_RATIO
+    high = body_low_z + body_height * JAW_TOP_RATIO
+    jaw = [p for p in me.polygons if p.normal.z < -0.25 and low < (obj.matrix_world @ p.center).z < high]
+    for img in base_color_images(obj):
+        w, h = img.size
+        allowed = uv_mask(jaw, uv, w, h)
+        px = np.array(img.pixels[:], dtype=np.float32).reshape(-1, 4)
+        rgb = px[:, :3]
+        mx = rgb.max(axis=1)
+        mn = rgb.min(axis=1)
+        sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+        skin_mask = (rgb[:, 0] > rgb[:, 1] * 1.15) & (rgb[:, 1] > rgb[:, 2] * 1.05) & (mx > 0.55) & (sat > 0.2) & (sat < 0.6)
+        skin = rgb[skin_mask].mean(axis=0) if skin_mask.any() else np.array([0.9, 0.6, 0.45])
+        dark = (mx < 0.5) & allowed.ravel()
+        if not dark.any():
+            continue
+        rgb[dark] = np.clip(skin * JAW_SHADE, 0, 1)[None, :]
+        px[:, :3] = rgb
+        img.pixels[:] = px.ravel()
+        img.update()
+        log("jaw shadow recolor", img.name, int(dark.sum()), "px, faces", len(jaw))
+
+
 def underwear_recolor(obj, color):
     """몸 텍스처의 어두운 갈색 속옷 픽셀을 겉옷 바탕색으로 칠한다 (겉옷 밖으로 속옷이 보이는 캐릭터용). 주름 밝기는 살린다.
     턱 아래 면이 쓰는 텍스처 자리만 칠한다 — 입 안 · 눈가 같은 얼굴의 어두운 갈색은 건드리지 않는다."""
@@ -303,28 +371,11 @@ def underwear_recolor(obj, color):
                 continue
             img = node.image
             w, h = img.size
-            # 턱 아래 면들의 UV 삼각형을 칠해 "칠해도 되는 자리" 표를 만든다 (가장자리 1픽셀 여유)
-            allowed = np.zeros((h, w), dtype=bool)
-            for p in below:
-                pts = [(uv[li].uv[0] * w, uv[li].uv[1] * h) for li in p.loop_indices]
-                for k in range(1, len(pts) - 1):
-                    (ax, ay), (bx, by), (cx, cy) = pts[0], pts[k], pts[k + 1]
-                    x0, x1 = int(max(0, min(ax, bx, cx) - 1)), int(min(w - 1, max(ax, bx, cx) + 1))
-                    y0, y1 = int(max(0, min(ay, by, cy) - 1)), int(min(h - 1, max(ay, by, cy) + 1))
-                    if x1 < x0 or y1 < y0:
-                        continue
-                    gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
-                    d = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
-                    if abs(d) < 1e-9:
-                        continue
-                    u = ((by - cy) * (gx - cx) + (cx - bx) * (gy - cy)) / d
-                    v = ((cy - ay) * (gx - cx) + (ax - cx) * (gy - cy)) / d
-                    m = 1.5 / max(1.0, min(x1 - x0, y1 - y0) + 1)   # 가장자리 여유
-                    allowed[y0:y1 + 1, x0:x1 + 1] |= (u >= -m) & (v >= -m) & (u + v <= 1 + m)
+            allowed = uv_mask(below, uv, w, h)
             px = np.array(img.pixels[:], dtype=np.float32).reshape(-1, 4)
             rgb = px[:, :3]
             mx = rgb.max(axis=1)
-            brown = (mx < 0.50) & (mx > 0.08) & (rgb[:, 0] > rgb[:, 1]) & (rgb[:, 1] >= rgb[:, 2]) & (rgb[:, 0] - rgb[:, 2] > 0.04) & allowed.ravel()
+            brown = (mx < 0.50) & (rgb[:, 0] >= rgb[:, 1] - 0.02) & (rgb[:, 1] >= rgb[:, 2] - 0.03) & allowed.ravel()   # 검은 박음질 선 · 회갈색 얼룩까지
             if not brown.any():
                 continue
             shade = np.clip(mx[brown] / np.median(mx[brown]), 0.6, 1.15)[:, None]
@@ -349,6 +400,9 @@ if not single:
     # 겉옷 등 쪽이 비어 속옷이 보이면 UNDERWEAR_COLOR="r,g,b"(0~1)로 속옷을 겉옷 바탕색으로 칠한다.
     if os.environ.get("UNDERWEAR_COLOR"):
         underwear_recolor(body, [float(x) for x in os.environ["UNDERWEAR_COLOR"].split(",")])
+    # 턱 밑에 짙은 그림자 띠가 구워진 캐릭터는 JAW_SHADOW=1로 피부색으로 칠한다.
+    if os.environ.get("JAW_SHADOW", "0") == "1":
+        jaw_shadow_recolor(body)
     outfit.data.materials[0].name = "outfit"
     # 합치기
     bpy.ops.object.select_all(action="DESELECT")
