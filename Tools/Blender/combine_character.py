@@ -34,6 +34,11 @@ TORSO_TOP_RATIO = 0.68     # 키에 대한 비율: 턱 아래 높이 (2.5 ~ 3등
 TORSO_HALF_WIDTH_RATIO = 0.15   # 키에 대한 비율: 몸통 반폭 (어깨까지. 아래팔 · 머리카락 제외)
 COLLAR_FRONT_TOP_RATIO = 0.705   # 키에 대한 비율: 앞쪽 옷깃 높이 (입 아래까지만)
 NECK_BACK_TOP_RATIO = 0.76     # 키에 대한 비율: 목 뒤 옷깃 높이 (뒤쪽 절반에서만 턱보다 높이 본다)
+depth_align = os.environ.get("DEPTH_ALIGN", "box")   # 겉옷 깊이 맞추기: box = 상자 가운데(예전), front = 가슴 앞면 (방패 · 망토 · 긴 무기가 있는 캐릭터)
+CHEST_BOTTOM_RATIO = 0.48   # 키에 대한 비율: 가슴 높이 구간 (2.5등신)
+CHEST_TOP_RATIO = 0.60
+CHEST_HALF_WIDTH_RATIO = 0.07   # 가운데 기둥 반폭
+CHEST_GAP_RATIO = 0.012     # 겉옷 앞면이 몸 앞면보다 이만큼 앞
 JAW_BOTTOM_RATIO = 0.645   # 키에 대한 비율: 턱 밑 그림자를 찾는 높이 (속옷 목선 위 ~ 입 아래)
 JAW_TOP_RATIO = 0.74
 JAW_SHADE = 0.86           # 턱 밑 그림자 자리에 칠하는 피부색의 밝기 (1 = 그늘 없음)
@@ -170,7 +175,25 @@ def fit_outfit_and_hide_body():
     outfit_cx_px = (ob[0] + ob[1]) / 2
     target_cx = (blo.x + bhi.x) / 2 + (outfit_cx_px - body_cx_px) * m_per_px
     target_cy = (blo.y + bhi.y) / 2
-    outfit.location += Vector((target_cx - (olo.x + ohi.x) / 2, target_cy - (olo.y + ohi.y) / 2, target_bottom - olo.z))
+    shift = Vector((target_cx - (olo.x + ohi.x) / 2, target_cy - (olo.y + ohi.y) / 2, target_bottom - olo.z))
+    if depth_align == "front":
+        # 방패 · 망토 · 무기가 앞뒤로 튀어나오면 상자 가운데가 몸통에서 벗어나 겉옷이 통째로 뒤(앞)로 밀린다.
+        # 가슴 높이 · 가운데 기둥에서 몸의 앞면과 겉옷의 앞면을 재서, 겉옷 앞면이 몸 앞면 바로 앞에 오게 한다 (앞이 -Y).
+        height = bhi.z - blo.z
+        z0, z1 = blo.z + height * CHEST_BOTTOM_RATIO, blo.z + height * CHEST_TOP_RATIO
+        half = height * CHEST_HALF_WIDTH_RATIO
+        body_cx_world = (blo.x + bhi.x) / 2
+
+        def front_of(obj, dx, dz):
+            ys = sorted(v.co.y for v in obj.data.vertices if z0 < v.co.z + dz < z1 and abs(v.co.x + dx - body_cx_world) < half)
+            return ys[int(len(ys) * 0.03)] if len(ys) >= 20 else None
+
+        body_front = front_of(body, 0.0, 0.0)
+        outfit_front = front_of(outfit, shift.x, shift.z)
+        if body_front is not None and outfit_front is not None:
+            log("depth align front: body", body_front, "outfit", outfit_front, "box shift", shift.y, "-> front shift", body_front - height * CHEST_GAP_RATIO - outfit_front)
+            shift.y = body_front - height * CHEST_GAP_RATIO - outfit_front
+    outfit.location += shift
     bpy.ops.object.transform_apply(location=True)
     olo, ohi = world_box(outfit)
     log("outfit fitted", tuple(olo), tuple(ohi), "scale", scale)

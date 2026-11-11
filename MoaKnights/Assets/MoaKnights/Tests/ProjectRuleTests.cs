@@ -145,14 +145,28 @@ namespace MoaKnights.Tests
             var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
             var stage = AssetDatabase.LoadAssetAtPath<StageAsset>("Assets/MoaKnights/Data/Stages/Stage01.asset");
 
-            var ids = new[] { "melee_01", "ranged_01", "tank_01", "healer_01", "sniper_01", "vanguard_01", "blade_01", "irene_01" };
+            var ids = new[]
+            {
+                "melee_01", "ranged_01", "tank_01", "healer_01", "sniper_01", "vanguard_01", "blade_01", "irene_01",
+                "guardian_01", "bulwark_01", "warden_01", "lancer_01", "archer_01", "gunner_01", "mage_01", "cleric_01", "medic_01",
+                "mano_01", "paladin_01", "swordmaster_01", "starshot_01",
+            };
             CollectionAssert.AreEqual(ids, balance.Units.Select(u => u.Id).ToArray());
             CollectionAssert.AreEqual(
-                new[] { UnitRole.Dealer, UnitRole.Dealer, UnitRole.Tank, UnitRole.Healer, UnitRole.Dealer, UnitRole.Dealer, UnitRole.Dealer, UnitRole.Healer },
+                new[]
+                {
+                    UnitRole.Dealer, UnitRole.Dealer, UnitRole.Tank, UnitRole.Healer, UnitRole.Dealer, UnitRole.Dealer, UnitRole.Dealer, UnitRole.Healer,
+                    UnitRole.Tank, UnitRole.Tank, UnitRole.Tank, UnitRole.Dealer, UnitRole.Dealer, UnitRole.Dealer, UnitRole.Dealer, UnitRole.Healer, UnitRole.Healer,
+                    UnitRole.Dealer, UnitRole.Tank, UnitRole.Dealer, UnitRole.Dealer,
+                },
                 balance.Units.Select(u => u.Role).ToArray());
-            CollectionAssert.AreEqual(new[] { 3, 3, 3, 3, 3, 3, 4, 5 }, balance.Units.Select(u => u.Rarity).ToArray());
+            CollectionAssert.AreEqual(
+                new[] { 3, 3, 3, 3, 3, 3, 4, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5 },
+                balance.Units.Select(u => u.Rarity).ToArray());
+            Assert.AreEqual(10, balance.Units.Count(u => u.Rarity == 4));
+            Assert.AreEqual(5, balance.Units.Count(u => u.Rarity == 5));
             Assert.AreEqual(12, balance.DeckSize);
-            CollectionAssert.AreEqual(ids, BattleDefinitionFactory.DefaultDeck(balance));
+            CollectionAssert.AreEqual(ids.Take(12).ToArray(), BattleDefinitionFactory.DefaultDeck(balance));   // 목록 앞 12명
 
             // G-4 첫 4 · 5성 (BALANCE 5-13 · 5-14).
             var blade = balance.Units.Single(u => u.Id == "blade_01");
@@ -160,6 +174,36 @@ namespace MoaKnights.Tests
             var irene = balance.Units.Single(u => u.Id == "irene_01");
             Assert.AreEqual((22, 90, 30, 1.4f, 0, SpType.Natural, 18), (irene.Cost, irene.MaxHp, irene.Attack, irene.AttackIntervalSeconds, irene.BlockCount, irene.SpType, irene.MaxSp));
             Assert.AreEqual(5, irene.Range.Length);
+
+            // G-5 나머지 4성 9명 · 5성 4명 (BALANCE 5-15 ~ 5-27, 7-12 ~ 7-24): 코스트 · HP · 공격 · 간격 · 저지 · SP.
+            var rare = new (string Id, int Cost, int MaxHp, int Attack, float Interval, int Block, SpType Sp, int MaxSp)[]
+            {
+                ("guardian_01", 18, 260, 13, 1.5f, 3, SpType.OnHit, 12),
+                ("bulwark_01", 20, 300, 15, 2f, 3, SpType.OnHit, 12),
+                ("warden_01", 16, 230, 18, 1.2f, 2, SpType.OnHit, 10),
+                ("lancer_01", 14, 140, 24, 1.1f, 2, SpType.OnAttack, 12),
+                ("archer_01", 14, 75, 20, 1.1f, 0, SpType.Natural, 12),
+                ("gunner_01", 15, 70, 14, 0.6f, 0, SpType.OnAttack, 14),
+                ("mage_01", 18, 60, 34, 1.6f, 0, SpType.Natural, 15),
+                ("cleric_01", 14, 65, 20, 1.5f, 0, SpType.Natural, 14),
+                ("medic_01", 15, 70, 16, 1.2f, 0, SpType.Natural, 14),
+                ("mano_01", 24, 85, 48, 1.8f, 0, SpType.Natural, 20),
+                ("paladin_01", 26, 420, 22, 1.4f, 4, SpType.OnHit, 14),
+                ("swordmaster_01", 20, 200, 42, 0.8f, 2, SpType.OnAttack, 12),
+                ("starshot_01", 24, 80, 70, 2.2f, 0, SpType.Natural, 20),
+            };
+            foreach (var expected in rare)
+            {
+                var unit = balance.Units.Single(u => u.Id == expected.Id);
+                Assert.AreEqual(
+                    (expected.Cost, expected.MaxHp, expected.Attack, expected.Interval, expected.Block, expected.Sp, expected.MaxSp),
+                    (unit.Cost, unit.MaxHp, unit.Attack, unit.AttackIntervalSeconds, unit.BlockCount, unit.SpType, unit.MaxSp), expected.Id);
+                Assert.AreEqual(3, unit.Skills.Length, expected.Id);
+                Assert.DoesNotThrow(() => AttackRange.Parse(unit.Range), expected.Id);
+            }
+            var paladin = balance.Units.Single(u => u.Id == "paladin_01");
+            Assert.AreEqual((70, 120, 2, 12f), (paladin.Skills[2].HealPercent, paladin.Skills[2].AttackBonusPercent, paladin.Skills[2].BlockBonus, paladin.Skills[2].DurationSeconds));
+            CollectionAssert.AreEqual(new[] { "OXXXXX" }, balance.Units.Single(u => u.Id == "starshot_01").Range);
 
             var tank = balance.Units.Single(u => u.Id == "tank_01");
             Assert.AreEqual((14, 200, 10, 1.5f, 3), (tank.Cost, tank.MaxHp, tank.Attack, tank.AttackIntervalSeconds, tank.BlockCount));

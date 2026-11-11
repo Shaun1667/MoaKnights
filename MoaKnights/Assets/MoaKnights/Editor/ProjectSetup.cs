@@ -85,6 +85,19 @@ namespace MoaKnights.EditorTools
         private const string VanguardUnitId = "vanguard_01";
         private const string BladeUnitId = "blade_01";
         private const string IreneUnitId = "irene_01";
+        private const string GuardianUnitId = "guardian_01";
+        private const string BulwarkUnitId = "bulwark_01";
+        private const string WardenUnitId = "warden_01";
+        private const string LancerUnitId = "lancer_01";
+        private const string ArcherUnitId = "archer_01";
+        private const string GunnerUnitId = "gunner_01";
+        private const string MageUnitId = "mage_01";
+        private const string ClericUnitId = "cleric_01";
+        private const string MedicUnitId = "medic_01";
+        private const string ManoUnitId = "mano_01";
+        private const string PaladinUnitId = "paladin_01";
+        private const string SwordmasterUnitId = "swordmaster_01";
+        private const string StarshotUnitId = "starshot_01";
 
         // 공격 범위 (오른쪽이 앞). 근거리: 자기 칸 + 앞 1칸. 원거리: 앞 3x3.
         private static readonly string[] MeleeRange = { "@X" };
@@ -217,6 +230,33 @@ namespace MoaKnights.EditorTools
                 SpType.OnAttack, 10, 0f, new[] { new[] { 0, 60, 0, 8 }, new[] { 0, 90, 0, 8 }, new[] { 0, 130, 0, 8 } }, 4);
             AddUnitIfMissing(units, IreneUnitId, 22, UnitTerrain.Hill, UnitRole.Healer, 90, 30, 1.4f, 0, new[] { "XXXXX", "XXXXX", "XX@XX", "XXXXX", "XXXXX" },
                 SpType.Natural, 18, 1f, new[] { new[] { 0, 80, 0, 12 }, new[] { 0, 120, 0, 12 }, new[] { 0, 180, 0, 12 } }, 5);
+            // G-5 나머지 4성 9명 · 5성 4명 (BALANCE 5-15 ~ 5-27, 7-12 ~ 7-24). 행이 없을 때만 만든다.
+            AddUnitIfMissing(units, GuardianUnitId, 18, UnitTerrain.Ground, UnitRole.Tank, 260, 13, 1.5f, 3, new[] { "@" },
+                SpType.OnHit, 12, 0.0f, new[] { new[] { 30, 0, 1, 10 }, new[] { 40, 0, 1, 10 }, new[] { 50, 0, 2, 10 } }, 4);
+            AddUnitIfMissing(units, BulwarkUnitId, 20, UnitTerrain.Ground, UnitRole.Tank, 300, 15, 2.0f, 3, new[] { "@X" },
+                SpType.OnHit, 12, 0.0f, new[] { new[] { 20, 60, 0, 10 }, new[] { 30, 90, 0, 10 }, new[] { 40, 120, 0, 10 } }, 4);
+            AddUnitIfMissing(units, WardenUnitId, 16, UnitTerrain.Ground, UnitRole.Tank, 230, 18, 1.2f, 2, new[] { "@X" },
+                SpType.OnHit, 10, 0.0f, new[] { new[] { 25, 30, 0, 10 }, new[] { 35, 40, 0, 10 }, new[] { 45, 50, 0, 10 } }, 4);
+            AddUnitIfMissing(units, LancerUnitId, 14, UnitTerrain.Ground, UnitRole.Dealer, 140, 24, 1.1f, 2, new[] { "@XX" },
+                SpType.OnAttack, 12, 0.0f, new[] { new[] { 0, 50, 0, 8 }, new[] { 0, 80, 0, 8 }, new[] { 0, 110, 0, 8 } }, 4);
+            AddUnitIfMissing(units, ArcherUnitId, 14, UnitTerrain.Hill, UnitRole.Dealer, 75, 20, 1.1f, 0, new[] { ".XXX", "OXXX", ".XXX" },
+                SpType.Natural, 12, 1.0f, new[] { new[] { 0, 60, 0, 10 }, new[] { 0, 90, 0, 10 }, new[] { 0, 130, 0, 10 } }, 4);
+            AddUnitIfMissing(units, GunnerUnitId, 15, UnitTerrain.Hill, UnitRole.Dealer, 70, 14, 0.6f, 0, new[] { "OXXX" },
+                SpType.OnAttack, 14, 0.0f, new[] { new[] { 0, 60, 0, 8 }, new[] { 0, 90, 0, 8 }, new[] { 0, 130, 0, 8 } }, 4);
+            AddUnitIfMissing(units, MageUnitId, 18, UnitTerrain.Hill, UnitRole.Dealer, 60, 34, 1.6f, 0, new[] { ".XX", "OXX", ".XX" },
+                SpType.Natural, 15, 1.0f, new[] { new[] { 0, 70, 0, 10 }, new[] { 0, 100, 0, 10 }, new[] { 0, 150, 0, 10 } }, 4);
+            AddUnitIfMissing(units, ClericUnitId, 14, UnitTerrain.Hill, UnitRole.Healer, 65, 20, 1.5f, 0, new[] { "XXX", "X@X", "XXX" },
+                SpType.Natural, 14, 1.0f, new[] { new[] { 0, 60, 0, 10 }, new[] { 0, 90, 0, 10 }, new[] { 0, 130, 0, 10 } }, 4);
+            AddUnitIfMissing(units, MedicUnitId, 15, UnitTerrain.Hill, UnitRole.Healer, 70, 16, 1.2f, 0, new[] { "..X..", "..X..", "XX@XX", "..X..", "..X.." },
+                SpType.Natural, 14, 1.0f, new[] { new[] { 0, 60, 0, 10 }, new[] { 0, 90, 0, 10 }, new[] { 0, 130, 0, 10 } }, 4);
+            AddUnitIfMissing(units, ManoUnitId, 24, UnitTerrain.Hill, UnitRole.Dealer, 85, 48, 1.8f, 0, new[] { ".XXX.", "OXXXX", ".XXX." },
+                SpType.Natural, 20, 1.0f, new[] { new[] { 0, 100, 0, 12 }, new[] { 0, 150, 0, 12 }, new[] { 0, 220, 0, 12 } }, 5);
+            AddUnitIfMissing(units, PaladinUnitId, 26, UnitTerrain.Ground, UnitRole.Tank, 420, 22, 1.4f, 4, new[] { "@X" },
+                SpType.OnHit, 14, 0.0f, new[] { new[] { 40, 50, 1, 12 }, new[] { 55, 80, 1, 12 }, new[] { 70, 120, 2, 12 } }, 5);
+            AddUnitIfMissing(units, SwordmasterUnitId, 20, UnitTerrain.Ground, UnitRole.Dealer, 200, 42, 0.8f, 2, new[] { "@XX" },
+                SpType.OnAttack, 12, 0.0f, new[] { new[] { 0, 100, 0, 10 }, new[] { 0, 150, 0, 10 }, new[] { 0, 220, 1, 10 } }, 5);
+            AddUnitIfMissing(units, StarshotUnitId, 24, UnitTerrain.Hill, UnitRole.Dealer, 80, 70, 2.2f, 0, new[] { "OXXXXX" },
+                SpType.Natural, 20, 1.0f, new[] { new[] { 0, 120, 0, 10 }, new[] { 0, 180, 0, 10 }, new[] { 0, 260, 0, 10 } }, 5);
             so.FindProperty("_deckSize").intValue = 12;   // 결정 2026-11-11, 사용자: 출전 12명 (예전 4명이면 바꿈)
 
             // 등급: 비어 있으면 3성 (지금 능력자는 모두 3성, BALANCE 5-12).
@@ -488,6 +528,19 @@ namespace MoaKnights.EditorTools
             SetUnitLookIfNew(unitLooks, VanguardUnitId, new Color(0.90f, 0.40f, 0.30f), 0.40f);
             SetUnitLookIfNew(unitLooks, BladeUnitId, new Color(0.25f, 0.35f, 0.70f), 0.40f);
             SetUnitLookIfNew(unitLooks, IreneUnitId, new Color(0.95f, 0.70f, 0.85f), 0.38f);
+            SetUnitLookIfNew(unitLooks, GuardianUnitId, new Color(0.95f, 0.90f, 0.70f), 0.48f);
+            SetUnitLookIfNew(unitLooks, BulwarkUnitId, new Color(0.55f, 0.45f, 0.30f), 0.52f);
+            SetUnitLookIfNew(unitLooks, WardenUnitId, new Color(0.75f, 0.20f, 0.25f), 0.46f);
+            SetUnitLookIfNew(unitLooks, LancerUnitId, new Color(0.55f, 0.75f, 0.95f), 0.40f);
+            SetUnitLookIfNew(unitLooks, ArcherUnitId, new Color(0.40f, 0.70f, 0.45f), 0.36f);
+            SetUnitLookIfNew(unitLooks, GunnerUnitId, new Color(0.90f, 0.55f, 0.25f), 0.36f);
+            SetUnitLookIfNew(unitLooks, MageUnitId, new Color(0.20f, 0.35f, 0.75f), 0.36f);
+            SetUnitLookIfNew(unitLooks, ClericUnitId, new Color(0.85f, 0.95f, 0.80f), 0.36f);
+            SetUnitLookIfNew(unitLooks, MedicUnitId, new Color(0.95f, 0.60f, 0.30f), 0.36f);
+            SetUnitLookIfNew(unitLooks, ManoUnitId, new Color(0.60f, 0.35f, 0.85f), 0.38f);
+            SetUnitLookIfNew(unitLooks, PaladinUnitId, new Color(0.95f, 0.85f, 0.45f), 0.52f);
+            SetUnitLookIfNew(unitLooks, SwordmasterUnitId, new Color(0.30f, 0.50f, 0.90f), 0.42f);
+            SetUnitLookIfNew(unitLooks, StarshotUnitId, new Color(0.20f, 0.20f, 0.50f), 0.38f);
             FillModelPrefabs(unitLooks, UnitArtFolder);
             FillUnitPortraits(unitLooks);
 

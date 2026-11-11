@@ -12,7 +12,7 @@ w() { cygpath -w "$PWD/$1"; }
 
 height_of() {
   case "$1" in
-    tank_01) echo 1.0 ;;
+    tank_01|bulwark_01|paladin_01) echo 1.0 ;;
     dizes_fast) echo 0.7 ;;
     dizes_tank) echo 1.0 ;;
     dizes_01) echo 0.7 ;;
@@ -23,8 +23,8 @@ height_of() {
 # 삼각형 수: 3성 3천, 4성 8천, 5성 1만5천 (장식 · 프릴이 많아 적게 줄이면 옷이 찢어진 듯 뭉개짐).
 tris_of() {
   case "$1" in
-    blade_01) echo 8000 ;;
-    irene_01) echo 15000 ;;
+    blade_01|guardian_01|bulwark_01|warden_01|lancer_01|archer_01|gunner_01|mage_01|cleric_01|medic_01) echo 8000 ;;
+    irene_01|mano_01|paladin_01|swordmaster_01|starshot_01) echo 15000 ;;
     *) echo 3000 ;;
   esac
 }
@@ -33,6 +33,10 @@ tris_of() {
 underwear_color_of() {
   case "$1" in
     irene_01) echo "0.93,0.90,0.96" ;;
+    lancer_01) echo "0.90,0.92,0.96" ;;
+    cleric_01) echo "0.93,0.91,0.84" ;;
+    swordmaster_01) echo "0.10,0.10,0.14" ;;
+    starshot_01) echo "0.12,0.13,0.28" ;;
     *) echo "" ;;
   esac
 }
@@ -40,7 +44,7 @@ underwear_color_of() {
 # 몸통 속옷이 겉옷 등판보다 두꺼워 뒤로 뚫고 나오는 캐릭터: 몸통 구역에서 더 깊이 지우는 거리 (키 비율, 없으면 0).
 torso_poke_of() {
   case "$1" in
-    irene_01) echo 0.20 ;;
+    irene_01|lancer_01|archer_01|cleric_01|swordmaster_01|starshot_01) echo 0.20 ;;
     *) echo 0 ;;
   esac
 }
@@ -53,8 +57,18 @@ jaw_shadow_of() {
   esac
 }
 
+# 겉옷 깊이 맞추기: 방패 · 망토 · 긴 무기가 앞뒤로 튀어나와 상자 가운데가 몸통에서 벗어나면 겉옷이 통째로 밀린다.
+# G-5부터는 가슴 앞면으로 맞춘다 (front). 그 전에 만든 모델은 예전 방식 그대로 (box).
+depth_align_of() {
+  case "$1" in
+    melee_01|ranged_01|tank_01|healer_01|sniper_01|vanguard_01|blade_01|irene_01) echo box ;;
+    *) echo front ;;
+  esac
+}
+
 for id in "$@"; do
   tris=$(tris_of "$id")
+  export DEPTH_ALIGN="$(depth_align_of "$id")"
   export JAW_SHADOW="$(jaw_shadow_of "$id")"
   export TORSO_POKE="$(torso_poke_of "$id")"
   export UNDERWEAR_COLOR="$(underwear_color_of "$id")"

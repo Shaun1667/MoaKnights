@@ -83,6 +83,71 @@ MonoBehaviour:
     Color: {r: 0.95, g: 0.7, b: 0.85, a: 1}
     Size: 0.38
     Portrait: {fileID: 21300000, guid: b21671af0e7ce1f4db759e81ef3cc3ef, type: 3}
+  - Id: guardian_01
+    Prefab: {fileID: 3254025396716421263, guid: 610c9f87b05bb0541bf9f585129853a5, type: 3}
+    Color: {r: 0.95, g: 0.9, b: 0.7, a: 1}
+    Size: 0.48
+    Portrait: {fileID: 21300000, guid: 3483eebfd40e87646b9cbe666617a9b5, type: 3}
+  - Id: bulwark_01
+    Prefab: {fileID: 6009650660501525795, guid: 71ef096428037444ab57a5b099289f0c, type: 3}
+    Color: {r: 0.55, g: 0.45, b: 0.3, a: 1}
+    Size: 0.52
+    Portrait: {fileID: 21300000, guid: 0c3782d585e4a714ab06bb9e2bc47976, type: 3}
+  - Id: warden_01
+    Prefab: {fileID: 2330683264926185184, guid: a77c92e8517db314b922067c32bcc206, type: 3}
+    Color: {r: 0.75, g: 0.2, b: 0.25, a: 1}
+    Size: 0.46
+    Portrait: {fileID: 21300000, guid: 5fcb67eb935445f498ec99567b78ec03, type: 3}
+  - Id: lancer_01
+    Prefab: {fileID: 332304585513865323, guid: 02a7fbae409bd5b44b7067096f98adf3, type: 3}
+    Color: {r: 0.55, g: 0.75, b: 0.95, a: 1}
+    Size: 0.4
+    Portrait: {fileID: 21300000, guid: 7afb2347dafc3654f8d52bba320eb033, type: 3}
+  - Id: archer_01
+    Prefab: {fileID: 1220083583022499655, guid: a540fdcffc48c7e43a7216c1b7f6f3d4, type: 3}
+    Color: {r: 0.4, g: 0.7, b: 0.45, a: 1}
+    Size: 0.36
+    Portrait: {fileID: 21300000, guid: 4113271f5445bf34fa9f5cb582787ed8, type: 3}
+  - Id: gunner_01
+    Prefab: {fileID: 93168564645140313, guid: 760697a496db1d74eb89fa134a1b6c31, type: 3}
+    Color: {r: 0.9, g: 0.55, b: 0.25, a: 1}
+    Size: 0.36
+    Portrait: {fileID: 21300000, guid: 85aaf15b1f820a641b067f4be7f56cab, type: 3}
+  - Id: mage_01
+    Prefab: {fileID: 1794132621030279098, guid: c3fc35ca052cb5d479b859a3b66a268e, type: 3}
+    Color: {r: 0.2, g: 0.35, b: 0.75, a: 1}
+    Size: 0.36
+    Portrait: {fileID: 21300000, guid: 25dc70ba1109b2d469d21681cc234ff5, type: 3}
+  - Id: cleric_01
+    Prefab: {fileID: 1959888948559301048, guid: 70c957dc665b8bf4fa0d91bd88d2b85e, type: 3}
+    Color: {r: 0.85, g: 0.95, b: 0.8, a: 1}
+    Size: 0.36
+    Portrait: {fileID: 21300000, guid: cdebb7a86efa75441afedea706322576, type: 3}
+  - Id: medic_01
+    Prefab: {fileID: 6886422865861244049, guid: 9f721139dfac26d4c9e77d63cb49d84f, type: 3}
+    Color: {r: 0.95, g: 0.6, b: 0.3, a: 1}
+    Size: 0.36
+    Portrait: {fileID: 21300000, guid: 892e10f331b28744b84ac95a185fd3ff, type: 3}
+  - Id: mano_01
+    Prefab: {fileID: 3708459489563407727, guid: 2c2bcff0a40f34b4bb86d981b5509d53, type: 3}
+    Color: {r: 0.6, g: 0.35, b: 0.85, a: 1}
+    Size: 0.38
+    Portrait: {fileID: 21300000, guid: 7c0b0142343e5664e9bad197251baf36, type: 3}
+  - Id: paladin_01
+    Prefab: {fileID: 7094723503352851035, guid: f3d4f14bd7513594baf64f53f5d3693a, type: 3}
+    Color: {r: 0.95, g: 0.85, b: 0.45, a: 1}
+    Size: 0.52
+    Portrait: {fileID: 21300000, guid: a72237f43feb62a40b13e176ec715928, type: 3}
+  - Id: swordmaster_01
+    Prefab: {fileID: 7865213250216936383, guid: 69b7c999640973a49950f8c73f546e6d, type: 3}
+    Color: {r: 0.3, g: 0.5, b: 0.9, a: 1}
+    Size: 0.42
+    Portrait: {fileID: 21300000, guid: f635ed9368821cc4aadf3368a20297ea, type: 3}
+  - Id: starshot_01
+    Prefab: {fileID: 1766944054045677100, guid: d43e3fa2410150c45811eaaba37ed219, type: 3}
+    Color: {r: 0.2, g: 0.2, b: 0.5, a: 1}
+    Size: 0.38
+    Portrait: {fileID: 21300000, guid: 9c8d4bcc5c8c53341920f234b722d8b6, type: 3}
   _damageNumberColor: {r: 1, g: 0.35, b: 0.3, a: 1}
   _damageNumberSeconds: 1
   _messageSeconds: 1.5

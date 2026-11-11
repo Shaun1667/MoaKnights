@@ -261,6 +261,369 @@ MonoBehaviour:
       BlockBonus: 0
       DurationSeconds: 12
     Rarity: 5
+  - Id: guardian_01
+    Cost: 18
+    Terrain: 0
+    MaxHp: 260
+    Attack: 13
+    AttackIntervalSeconds: 1.5
+    BlockCount: 3
+    Range:
+    - '@'
+    Role: 0
+    SpType: 2
+    MaxSp: 12
+    NaturalSpSeconds: 0
+    Skills:
+    - HealPercent: 30
+      AttackBonusPercent: 0
+      BlockBonus: 1
+      DurationSeconds: 10
+    - HealPercent: 40
+      AttackBonusPercent: 0
+      BlockBonus: 1
+      DurationSeconds: 10
+    - HealPercent: 50
+      AttackBonusPercent: 0
+      BlockBonus: 2
+      DurationSeconds: 10
+    Rarity: 4
+  - Id: bulwark_01
+    Cost: 20
+    Terrain: 0
+    MaxHp: 300
+    Attack: 15
+    AttackIntervalSeconds: 2
+    BlockCount: 3
+    Range:
+    - '@X'
+    Role: 0
+    SpType: 2
+    MaxSp: 12
+    NaturalSpSeconds: 0
+    Skills:
+    - HealPercent: 20
+      AttackBonusPercent: 60
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 30
+      AttackBonusPercent: 90
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 40
+      AttackBonusPercent: 120
+      BlockBonus: 0
+      DurationSeconds: 10
+    Rarity: 4
+  - Id: warden_01
+    Cost: 16
+    Terrain: 0
+    MaxHp: 230
+    Attack: 18
+    AttackIntervalSeconds: 1.2
+    BlockCount: 2
+    Range:
+    - '@X'
+    Role: 0
+    SpType: 2
+    MaxSp: 10
+    NaturalSpSeconds: 0
+    Skills:
+    - HealPercent: 25
+      AttackBonusPercent: 30
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 35
+      AttackBonusPercent: 40
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 45
+      AttackBonusPercent: 50
+      BlockBonus: 0
+      DurationSeconds: 10
+    Rarity: 4
+  - Id: lancer_01
+    Cost: 14
+    Terrain: 0
+    MaxHp: 140
+    Attack: 24
+    AttackIntervalSeconds: 1.1
+    BlockCount: 2
+    Range:
+    - '@XX'
+    Role: 1
+    SpType: 1
+    MaxSp: 12
+    NaturalSpSeconds: 0
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 50
+      BlockBonus: 0
+      DurationSeconds: 8
+    - HealPercent: 0
+      AttackBonusPercent: 80
+      BlockBonus: 0
+      DurationSeconds: 8
+    - HealPercent: 0
+      AttackBonusPercent: 110
+      BlockBonus: 0
+      DurationSeconds: 8
+    Rarity: 4
+  - Id: archer_01
+    Cost: 14
+    Terrain: 1
+    MaxHp: 75
+    Attack: 20
+    AttackIntervalSeconds: 1.1
+    BlockCount: 0
+    Range:
+    - .XXX
+    - OXXX
+    - .XXX
+    Role: 1
+    SpType: 0
+    MaxSp: 12
+    NaturalSpSeconds: 1
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 60
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 90
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 130
+      BlockBonus: 0
+      DurationSeconds: 10
+    Rarity: 4
+  - Id: gunner_01
+    Cost: 15
+    Terrain: 1
+    MaxHp: 70
+    Attack: 14
+    AttackIntervalSeconds: 0.6
+    BlockCount: 0
+    Range:
+    - OXXX
+    Role: 1
+    SpType: 1
+    MaxSp: 14
+    NaturalSpSeconds: 0
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 60
+      BlockBonus: 0
+      DurationSeconds: 8
+    - HealPercent: 0
+      AttackBonusPercent: 90
+      BlockBonus: 0
+      DurationSeconds: 8
+    - HealPercent: 0
+      AttackBonusPercent: 130
+      BlockBonus: 0
+      DurationSeconds: 8
+    Rarity: 4
+  - Id: mage_01
+    Cost: 18
+    Terrain: 1
+    MaxHp: 60
+    Attack: 34
+    AttackIntervalSeconds: 1.6
+    BlockCount: 0
+    Range:
+    - .XX
+    - OXX
+    - .XX
+    Role: 1
+    SpType: 0
+    MaxSp: 15
+    NaturalSpSeconds: 1
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 70
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 100
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 150
+      BlockBonus: 0
+      DurationSeconds: 10
+    Rarity: 4
+  - Id: cleric_01
+    Cost: 14
+    Terrain: 1
+    MaxHp: 65
+    Attack: 20
+    AttackIntervalSeconds: 1.5
+    BlockCount: 0
+    Range:
+    - XXX
+    - X@X
+    - XXX
+    Role: 2
+    SpType: 0
+    MaxSp: 14
+    NaturalSpSeconds: 1
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 60
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 90
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 130
+      BlockBonus: 0
+      DurationSeconds: 10
+    Rarity: 4
+  - Id: medic_01
+    Cost: 15
+    Terrain: 1
+    MaxHp: 70
+    Attack: 16
+    AttackIntervalSeconds: 1.2
+    BlockCount: 0
+    Range:
+    - ..X..
+    - ..X..
+    - XX@XX
+    - ..X..
+    - ..X..
+    Role: 2
+    SpType: 0
+    MaxSp: 14
+    NaturalSpSeconds: 1
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 60
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 90
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 130
+      BlockBonus: 0
+      DurationSeconds: 10
+    Rarity: 4
+  - Id: mano_01
+    Cost: 24
+    Terrain: 1
+    MaxHp: 85
+    Attack: 48
+    AttackIntervalSeconds: 1.8
+    BlockCount: 0
+    Range:
+    - .XXX.
+    - OXXXX
+    - .XXX.
+    Role: 1
+    SpType: 0
+    MaxSp: 20
+    NaturalSpSeconds: 1
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 100
+      BlockBonus: 0
+      DurationSeconds: 12
+    - HealPercent: 0
+      AttackBonusPercent: 150
+      BlockBonus: 0
+      DurationSeconds: 12
+    - HealPercent: 0
+      AttackBonusPercent: 220
+      BlockBonus: 0
+      DurationSeconds: 12
+    Rarity: 5
+  - Id: paladin_01
+    Cost: 26
+    Terrain: 0
+    MaxHp: 420
+    Attack: 22
+    AttackIntervalSeconds: 1.4
+    BlockCount: 4
+    Range:
+    - '@X'
+    Role: 0
+    SpType: 2
+    MaxSp: 14
+    NaturalSpSeconds: 0
+    Skills:
+    - HealPercent: 40
+      AttackBonusPercent: 50
+      BlockBonus: 1
+      DurationSeconds: 12
+    - HealPercent: 55
+      AttackBonusPercent: 80
+      BlockBonus: 1
+      DurationSeconds: 12
+    - HealPercent: 70
+      AttackBonusPercent: 120
+      BlockBonus: 2
+      DurationSeconds: 12
+    Rarity: 5
+  - Id: swordmaster_01
+    Cost: 20
+    Terrain: 0
+    MaxHp: 200
+    Attack: 42
+    AttackIntervalSeconds: 0.8
+    BlockCount: 2
+    Range:
+    - '@XX'
+    Role: 1
+    SpType: 1
+    MaxSp: 12
+    NaturalSpSeconds: 0
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 100
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 150
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 220
+      BlockBonus: 1
+      DurationSeconds: 10
+    Rarity: 5
+  - Id: starshot_01
+    Cost: 24
+    Terrain: 1
+    MaxHp: 80
+    Attack: 70
+    AttackIntervalSeconds: 2.2
+    BlockCount: 0
+    Range:
+    - OXXXXX
+    Role: 1
+    SpType: 0
+    MaxSp: 20
+    NaturalSpSeconds: 1
+    Skills:
+    - HealPercent: 0
+      AttackBonusPercent: 120
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 180
+      BlockBonus: 0
+      DurationSeconds: 10
+    - HealPercent: 0
+      AttackBonusPercent: 260
+      BlockBonus: 0
+      DurationSeconds: 10
+    Rarity: 5
   _stackHpPercents: 6400000082000000a0000000
   _stackAttackPercents: 6400000082000000a0000000
   _stackBlockBonus: 000000000000000001000000

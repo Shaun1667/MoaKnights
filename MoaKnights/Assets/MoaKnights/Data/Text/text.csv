@@ -106,3 +106,55 @@ skill.irene_01_3.name,앙코르 III,Encore III
 enemy.dizes_01.name,디제스,Dizes
 enemy.dizes_fast.name,빠른 디제스,Swift Dizes
 enemy.dizes_tank.name,단단한 디제스,Hard Dizes
+unit.guardian_01.name,세라,Sera
+unit.bulwark_01.name,그로브,Grove
+unit.warden_01.name,하린,Harin
+unit.lancer_01.name,루시아,Lucia
+unit.archer_01.name,엘린,Elin
+unit.gunner_01.name,레오,Leo
+unit.mage_01.name,노아,Noah
+unit.cleric_01.name,미르,Mir
+unit.medic_01.name,유나,Yuna
+unit.mano_01.name,마노,Mano
+unit.paladin_01.name,아스트라,Astra
+unit.swordmaster_01.name,시온,Sion
+unit.starshot_01.name,베가,Vega
+skill.guardian_01_1.name,빛의 방벽,Light Barrier
+skill.guardian_01_2.name,빛의 방벽 II,Light Barrier II
+skill.guardian_01_3.name,빛의 방벽 III,Light Barrier III
+skill.bulwark_01_1.name,대지 울림,Earthshake
+skill.bulwark_01_2.name,대지 울림 II,Earthshake II
+skill.bulwark_01_3.name,대지 울림 III,Earthshake III
+skill.warden_01_1.name,수호의 맹세,Oath of Guard
+skill.warden_01_2.name,수호의 맹세 II,Oath of Guard II
+skill.warden_01_3.name,수호의 맹세 III,Oath of Guard III
+skill.lancer_01_1.name,천공창,Sky Lance
+skill.lancer_01_2.name,천공창 II,Sky Lance II
+skill.lancer_01_3.name,천공창 III,Sky Lance III
+skill.archer_01_1.name,바람 화살,Wind Arrow
+skill.archer_01_2.name,바람 화살 II,Wind Arrow II
+skill.archer_01_3.name,바람 화살 III,Wind Arrow III
+skill.gunner_01_1.name,난사,Rapid Fire
+skill.gunner_01_2.name,난사 II,Rapid Fire II
+skill.gunner_01_3.name,난사 III,Rapid Fire III
+skill.mage_01_1.name,해일,Tidal Wave
+skill.mage_01_2.name,해일 II,Tidal Wave II
+skill.mage_01_3.name,해일 III,Tidal Wave III
+skill.cleric_01_1.name,축복,Blessing
+skill.cleric_01_2.name,축복 II,Blessing II
+skill.cleric_01_3.name,축복 III,Blessing III
+skill.medic_01_1.name,응급 드론,Rescue Drone
+skill.medic_01_2.name,응급 드론 II,Rescue Drone II
+skill.medic_01_3.name,응급 드론 III,Rescue Drone III
+skill.mano_01_1.name,결정 소환,Crystal Call
+skill.mano_01_2.name,결정 소환 II,Crystal Call II
+skill.mano_01_3.name,결정 소환 III,Crystal Call III
+skill.paladin_01_1.name,성역,Sanctuary
+skill.paladin_01_2.name,성역 II,Sanctuary II
+skill.paladin_01_3.name,성역 III,Sanctuary III
+skill.swordmaster_01_1.name,창천일섬,Azure Flash
+skill.swordmaster_01_2.name,창천일섬 II,Azure Flash II
+skill.swordmaster_01_3.name,창천일섬 III,Azure Flash III
+skill.starshot_01_1.name,유성,Meteor
+skill.starshot_01_2.name,유성 II,Meteor II
+skill.starshot_01_3.name,유성 III,Meteor III
