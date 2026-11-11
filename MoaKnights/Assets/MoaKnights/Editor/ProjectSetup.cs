@@ -209,7 +209,11 @@ namespace MoaKnights.EditorTools
                 SpType.Natural, 20, 1f, new[] { new[] { 0, 60, 0, 10 }, new[] { 0, 100, 0, 10 }, new[] { 0, 150, 0, 10 } });
             AddUnitIfMissing(units, VanguardUnitId, 6, UnitTerrain.Ground, UnitRole.Dealer, 70, 12, 0.8f, 1, new[] { "@X" },
                 SpType.OnAttack, 12, 0f, new[] { new[] { 0, 40, 0, 8 }, new[] { 0, 60, 0, 8 }, new[] { 0, 80, 0, 8 } });
-            FillIfZero(so.FindProperty("_deckSize"), 4);
+            so.FindProperty("_deckSize").intValue = 12;   // 결정 2026-11-11, 사용자: 출전 12명 (예전 4명이면 바꿈)
+
+            // 등급: 비어 있으면 3성 (지금 능력자는 모두 3성, BALANCE 5-12).
+            for (var i = 0; i < units.arraySize; i++)
+                FillIfZero(units.GetArrayElementAtIndex(i).FindPropertyRelative("Rarity"), 3);
 
             // 중첩 · 퇴각 · 재배치 (BALANCE 6번). 비어 있을 때만 넣는다.
             FillIfEmpty(so.FindProperty("_stackHpPercents"), 100, 130, 160);
@@ -471,6 +475,8 @@ namespace MoaKnights.EditorTools
             FillIfEmpty(so.FindProperty("_cardTextColor"), new Color(0.10f, 0.10f, 0.10f));
             FillIfEmpty(so.FindProperty("_cardPortraitDisabledColor"), new Color(0.55f, 0.55f, 0.55f));
             FillIfZero(so.FindProperty("_cameraBottomReserve"), 0.22f);
+            FillIfZero(so.FindProperty("_cameraFieldOfView"), 30f);
+            FillIfZero(so.FindProperty("_cameraTopReserve"), 0.13f);
             FillIfEmpty(so.FindProperty("_rangeColor"), new Color(0.95f, 0.55f, 0.15f));
             var hpBarSize = so.FindProperty("_hpBarSize");
             if (hpBarSize.vector2Value == Vector2.zero) hpBarSize.vector2Value = new Vector2(0.6f, 0.06f);
@@ -622,8 +628,10 @@ namespace MoaKnights.EditorTools
             so.FindProperty("_cellMaterial").objectReferenceValue = EnsureGreyboxMaterial();
             so.FindProperty("_cellSize").floatValue = 1f;
             so.FindProperty("_cellGap").floatValue = 0.04f;
-            so.FindProperty("_cameraPitch").floatValue = 50f;
-            so.FindProperty("_cameraYaw").floatValue = 45f;
+            so.FindProperty("_cameraPitch").floatValue = 58f;
+            so.FindProperty("_cameraYaw").floatValue = 0f;
+            so.FindProperty("_cameraPerspective").boolValue = true;
+            so.FindProperty("_cameraFieldOfView").floatValue = 30f;
             so.FindProperty("_cameraDistance").floatValue = 30f;
             so.FindProperty("_cameraPadding").floatValue = 0.6f;
 

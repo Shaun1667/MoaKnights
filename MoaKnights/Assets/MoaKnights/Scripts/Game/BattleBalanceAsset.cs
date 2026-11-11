@@ -35,6 +35,9 @@ namespace MoaKnights.Game
             public int MaxSp;
             public float NaturalSpSeconds;
             public SkillRow[] Skills;
+
+            /// <summary>등급(성). 지금 능력자는 모두 3성 (결정 2026-11-11, 사용자). 뽑기 확률 표가 쓴다.</summary>
+            public int Rarity;
         }
 
         /// <summary>스킬 한 단계. 칸 0이 1단계. 회복은 즉시, 나머지는 지속 시간 동안.</summary>

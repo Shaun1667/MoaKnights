@@ -9,6 +9,7 @@ namespace MoaKnights.Core.Sim
         Combat = 1,
         Item = 2,
         Visual = 3,
+        Gacha = 4,   // 판 밖 뽑기 (프로필에 상태 저장)
     }
 
     /// <summary>SplitMix64 시드 난수. 상태가 64비트 하나라 스냅샷에 그대로 담을 수 있다.</summary>

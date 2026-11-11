@@ -45,8 +45,8 @@ ui.formation.count,출전 {0} / {1},Deploying {0} / {1}
 ui.formation.tab_unit,능력자,Unit
 ui.formation.tab_enemy,이번 판 적,Enemies
 ui.formation.confirm,출전,Deploy
-ui.formation.card_info,{0} · 코스트 {1},{0} · Cost {1}
-ui.formation.unit_kind,{0} · {1} · 코스트 {2},{0} · {1} · Cost {2}
+ui.formation.card_info,{0}성 · {1} · 코스트 {2},{0}★ · {1} · Cost {2}
+ui.formation.unit_kind,{0}성 · {1} · {2} · 코스트 {3},{0}★ · {1} · {2} · Cost {3}
 ui.formation.unit_stats,HP {0} · {1} {2} / {3}초 · 저지 {4},HP {0} · {1} {2} / {3}s · Block {4}
 ui.formation.attack,공격,Attack
 ui.formation.heal,치유,Heal

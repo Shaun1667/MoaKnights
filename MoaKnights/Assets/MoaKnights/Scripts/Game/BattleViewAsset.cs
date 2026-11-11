@@ -83,6 +83,9 @@ namespace MoaKnights.Game
         [SerializeField] private float _cameraYaw;
         [SerializeField] private float _cameraDistance;
         [SerializeField] private float _cameraPadding;
+        [SerializeField] private bool _cameraPerspective;
+        [SerializeField] private float _cameraFieldOfView;
+        [SerializeField] private float _cameraTopReserve;
 
         public Material CellMaterial => _cellMaterial;
         public float CellSize => _cellSize;
@@ -91,6 +94,15 @@ namespace MoaKnights.Game
         public float CameraYaw => _cameraYaw;
         public float CameraDistance => _cameraDistance;
         public float CameraPadding => _cameraPadding;
+
+        /// <summary>참이면 원근 카메라(정면에서 내려다봄, 결정 2026-11-11), 거짓이면 예전 직교 쿼터뷰.</summary>
+        public bool CameraPerspective => _cameraPerspective;
+
+        /// <summary>원근 카메라의 세로 시야각(도).</summary>
+        public float CameraFieldOfView => _cameraFieldOfView;
+
+        /// <summary>화면 위쪽에서 비워 둘 비율 (제목 · 디펜스 HP 자리). 원근 카메라만 쓴다.</summary>
+        public float CameraTopReserve => _cameraTopReserve;
         public Color DamageNumberColor => _damageNumberColor;
         public float DamageNumberSeconds => _damageNumberSeconds;
         public float MessageSeconds => _messageSeconds;

@@ -103,7 +103,7 @@ namespace MoaKnights.Tests
             CollectionAssert.AreEqual(new[] { ".XXX", "OXXX", ".XXX" }, ranged.Range);
         }
 
-        /// <summary>BALANCE 5 · 7 · 9번: 능력자 6명 · 포지션 · 출전 4명 · 기본 편성, 그리고 편성대로 카드가 만들어지는지.</summary>
+        /// <summary>BALANCE 5 · 7 · 9번: 능력자 6명 · 포지션 · 3성 · 출전 12명 · 기본 편성, 그리고 편성대로 카드가 만들어지는지.</summary>
         [Test]
         public void Roster_AndDeck_MatchBalanceDoc()
         {
@@ -114,8 +114,9 @@ namespace MoaKnights.Tests
             CollectionAssert.AreEqual(
                 new[] { UnitRole.Dealer, UnitRole.Dealer, UnitRole.Tank, UnitRole.Healer, UnitRole.Dealer, UnitRole.Dealer },
                 balance.Units.Select(u => u.Role).ToArray());
-            Assert.AreEqual(4, balance.DeckSize);
-            CollectionAssert.AreEqual(new[] { "melee_01", "ranged_01", "tank_01", "healer_01" }, BattleDefinitionFactory.DefaultDeck(balance));
+            Assert.IsTrue(balance.Units.All(u => u.Rarity == 3));
+            Assert.AreEqual(12, balance.DeckSize);
+            CollectionAssert.AreEqual(new[] { "melee_01", "ranged_01", "tank_01", "healer_01", "sniper_01", "vanguard_01" }, BattleDefinitionFactory.DefaultDeck(balance));
 
             var tank = balance.Units.Single(u => u.Id == "tank_01");
             Assert.AreEqual((14, 200, 10, 1.5f, 3), (tank.Cost, tank.MaxHp, tank.Attack, tank.AttackIntervalSeconds, tank.BlockCount));
@@ -139,7 +140,7 @@ namespace MoaKnights.Tests
         // 편성은 쉼표로 이은 문자열로 받는다 (NUnit은 배열 하나만 넘기면 인자 여러 개로 풀어 버린다).
         [TestCase("")]                                                      // 아무도 없음
         [TestCase("melee_01,melee_01")]                                     // 겹침
-        [TestCase("melee_01,ranged_01,tank_01,healer_01,sniper_01")]        // 4명 초과
+        // 출전 12명이 되며 "인원 초과"는 지금 능력자 6명으로 만들 수 없어 뺐다 (2026-11-11).
         [TestCase("nobody")]                                                // 목록에 없음
         public void Deck_RejectsInvalid(string ids)
         {

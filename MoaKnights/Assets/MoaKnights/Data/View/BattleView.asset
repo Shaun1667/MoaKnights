@@ -109,7 +109,10 @@ MonoBehaviour:
   _formationSelectedColor: {r: 1, g: 0.82, b: 0.4, a: 1}
   _cellSize: 1
   _cellGap: 0.04
-  _cameraPitch: 50
-  _cameraYaw: 45
+  _cameraPitch: 58
+  _cameraYaw: 0
   _cameraDistance: 30
   _cameraPadding: 0.6
+  _cameraPerspective: 1
+  _cameraFieldOfView: 30
+  _cameraTopReserve: 0.13

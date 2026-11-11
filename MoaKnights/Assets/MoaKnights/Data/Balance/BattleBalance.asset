@@ -63,6 +63,7 @@ MonoBehaviour:
       AttackBonusPercent: 0
       BlockBonus: 1
       DurationSeconds: 8
+    Rarity: 3
   - Id: ranged_01
     Cost: 12
     Terrain: 1
@@ -91,6 +92,7 @@ MonoBehaviour:
       AttackBonusPercent: 120
       BlockBonus: 0
       DurationSeconds: 10
+    Rarity: 3
   - Id: tank_01
     Cost: 14
     Terrain: 0
@@ -117,6 +119,7 @@ MonoBehaviour:
       AttackBonusPercent: 0
       BlockBonus: 2
       DurationSeconds: 10
+    Rarity: 3
   - Id: healer_01
     Cost: 12
     Terrain: 1
@@ -145,6 +148,7 @@ MonoBehaviour:
       AttackBonusPercent: 120
       BlockBonus: 0
       DurationSeconds: 10
+    Rarity: 3
   - Id: sniper_01
     Cost: 16
     Terrain: 1
@@ -171,6 +175,7 @@ MonoBehaviour:
       AttackBonusPercent: 150
       BlockBonus: 0
       DurationSeconds: 10
+    Rarity: 3
   - Id: vanguard_01
     Cost: 6
     Terrain: 0
@@ -197,6 +202,7 @@ MonoBehaviour:
       AttackBonusPercent: 80
       BlockBonus: 0
       DurationSeconds: 8
+    Rarity: 3
   _stackHpPercents: 6400000082000000a0000000
   _stackAttackPercents: 6400000082000000a0000000
   _stackBlockBonus: 000000000000000001000000
@@ -205,6 +211,6 @@ MonoBehaviour:
   _redeployCostIncrease: 5
   _retreatRefundPercent: 50
   _twoStarHpPercent: 50
-  _deckSize: 4
+  _deckSize: 12
   _dragSlowPercent: 10
   _firstSpawnDelaySeconds: 20

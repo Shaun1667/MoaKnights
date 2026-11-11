@@ -98,7 +98,7 @@ namespace MoaKnights.Game
                 var label = card.GetComponentInChildren<TMP_Text>();
                 label.font = _font;
                 label.color = _view.CardTextColor;
-                label.text = UnitName(id) + "\n" + Text.Format("ui.formation.card_info", RoleName(row.Role), row.Cost);
+                label.text = UnitName(id) + "\n" + Text.Format("ui.formation.card_info", row.Rarity, RoleName(row.Role), row.Cost);
                 _cardImages[id] = card.GetComponent<Image>();
             }
         }
@@ -129,7 +129,7 @@ namespace MoaKnights.Game
             var lines = new List<string>
             {
                 UnitName(id),
-                Text.Format("ui.formation.unit_kind", RoleName(row.Role), Text.Get(row.Terrain == UnitTerrain.Ground ? "ui.terrain.ground" : "ui.terrain.hill"), row.Cost),
+                Text.Format("ui.formation.unit_kind", row.Rarity, RoleName(row.Role), Text.Get(row.Terrain == UnitTerrain.Ground ? "ui.terrain.ground" : "ui.terrain.hill"), row.Cost),
                 Text.Format("ui.formation.unit_stats", row.MaxHp, Text.Get(healer ? "ui.formation.heal" : "ui.formation.attack"), row.Attack, row.AttackIntervalSeconds, row.BlockCount),
                 Text.Format("ui.formation.unit_sp", SpName(row.SpType), row.MaxSp),
             };

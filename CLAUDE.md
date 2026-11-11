@@ -35,7 +35,7 @@ MoaKnights — 3D 타워 디펜스 RPG. 격자 맵에 코스트로 능력자를 
 | 렌더 | URP 17.3 (PC_RPAsset), 리니어 색 공간 | 확정 2026-11-09, 변경 금지 |
 | 플랫폼 | PC 우선 (Windows) | 결정 2026-11-09, 사용자 |
 | 그래픽 | 전부 3D 모델 (그레이박스로 시작) | 결정 2026-11-09, 사용자 |
-| 시점 | 비스듬한 쿼터뷰 (직교 카메라) | 결정 2026-11-09, 사용자 |
+| 시점 | 정면에서 내려다보는 원근 (pitch 58 · FOV 30) | 결정 2026-11-11, 사용자 (예전 쿼터뷰 직교, 2026-11-09) |
 | 입력 | Input System 패키지 | 프로젝트 기본값, 변경 금지 |
 | UI | uGUI + TextMeshPro | 정한 것 (Claude, 확인 필요) |
 | 폰트 | Noto Sans KR (OFL 라이선스) | 정한 것 (Claude, 확인 필요) |
@@ -77,7 +77,7 @@ MoaKnights/Assets/MoaKnights/
 - 판 상태는 `World` 한 곳, 새 상태 = 필드 + `WorldSnapshot` 필드 + `SnapshotVersion` 증가 + 왕복 테스트.
 - 난수는 `World.Rng(RngStream.X)`로만, `UnityEngine.Random` · `System.Random` 금지. 새 용도 = enum 끝에 추가.
 - 맵은 `GridMap.Parse` 한 곳, 데이터 `StageAsset`(글자 격자: `#` 막힘, `.` 지상, `H` 언덕, `S` 입구, `E` 출구), 새 스테이지 = 에셋 하나 + `StageCatalog` 한 줄(순서 = 진행 순서). 스테이지 이름 글 키는 `stage.<스테이지ID>.name`. 씬을 다시 불러올 때 넘기는 값은 `GameRoot`의 시드 · 스테이지 번호 · 편성(출전 능력자 ID 목록) 셋뿐. 편성은 `BattleDefinitionFactory.IsValidDeck` · `DefaultDeck`(목록 앞 `DeckSize`명) 한 곳에서 판정하고, 판 정의에는 출전 능력자만 들어간다. 적의 길은 `EnemyRoute.Parse` 한 곳, 꺾이는 칸을 `6,3 3,3 3,1`처럼 적고 입구에서 출구까지 지상 칸만 지난다.
-- 전투 화면 표현값은 `BattleViewAsset` 한 곳, 새 칸 종류 = 표 한 줄. 그리기는 `MapView` · `EnemyView` · `UnitView`(단계 점 포함) · `CardBar`(얼굴 `UnitVisual.Portrait` · 이름 · 코스트) · `BattleHud` · `DamageNumbers`(떠오르는 피해 숫자) · `HealthBar` · `RangeView`(범위 판), 배치 · 중첩 입력은 `PlacementController`, 능력자 클릭 · 퇴각 · 스킬 버튼은 `UnitActionPanel`, 일시정지 · 배속 버튼과 단축키는 `SpeedControls`, 결과 창은 `ResultPanel`, 스테이지 선택 창은 `StageSelectPanel`, 판 시작 전 편성 창(능력자 · 이번 판 적 탭)은 `FormationPanel`, 카메라는 `BattleCameraRig`.
+- 전투 화면 표현값은 `BattleViewAsset` 한 곳, 새 칸 종류 = 표 한 줄. 그리기는 `MapView` · `EnemyView` · `UnitView`(단계 점 포함) · `CardBar`(얼굴 `UnitVisual.Portrait` · 이름 · 코스트) · `BattleHud` · `DamageNumbers`(떠오르는 피해 숫자) · `HealthBar` · `RangeView`(범위 판), 배치 · 중첩 입력은 `PlacementController`, 능력자 클릭 · 퇴각 · 스킬 버튼은 `UnitActionPanel`, 일시정지 · 배속 버튼과 단축키는 `SpeedControls`, 결과 창은 `ResultPanel`, 스테이지 선택 창은 `StageSelectPanel`, 판 시작 전 편성 창(능력자 · 이번 판 적 탭)은 `FormationPanel`, 카메라는 `BattleCameraRig`(원근이면 맵 전체가 위 글(`CameraTopReserve`)과 카드 줄 사이에 들어오게 거리 · 초점을 맞춤, 카드는 많으면 한 줄에 들어가게 작아짐).
 - enum은 끝에만 추가한다.
 
 ## 핵심 설계 규칙 (변경 금지)
@@ -92,7 +92,7 @@ MoaKnights/Assets/MoaKnights/
 ## 아트 · 그래픽 규칙
 - 전부 3D. 데이터는 비주얼을 ID로만 참조하고, 프리팹이 없으면 그레이박스 도형으로 그린다.
 - 모델: Varco 3D로 만든다. 능력자는 몸(속옷 차림 · 맨살) · 겉옷을 따로 만들어 합치고, 적은 한 덩어리. 카드 얼굴은 같은 스크립트가 컨셉 그림에서 잘라 `Art/Units/<ID>/<ID>_portrait.png`로 낸다(`make_portrait.py`). `Tools/Blender/build_models.sh <ID>…`(안에서 `combine_character.py`, Blender는 `D:/blender.exe`)가 삼각형 3천 개 · 앞 = Unity +X · 리그 없음 · 노멀맵 없음으로 낸다. 원본 그림 · GLB · 미리보기는 저장소 루트 `ArtSource/<ID>/`. Setup이 `Art/Units/<ID>/<ID>.fbx` · `Art/Enemies/<ID>/<ID>.fbx`에서 재질 · 프리팹을 없을 때만 만들어 `BattleView` 줄에 넣는다. 체력바 높이는 모델 꼭대기(`UnitModel.TopHeight`, 적은 `EnemyView`), 적 모델은 가는 방향을 본다.
-- 전투 화면 구성은 참고 게임과 다르게 잡는다 (원본 기획서가 "참고 게임과 너무 동일한 화면"을 문제로 꼽았다).
+- 시점(각도 · 구도)은 사용자 결정(2026-11-11)으로 참고 게임처럼 정면 원근. 그 밖의 화면 UI · 아트 · 이름은 참고 게임과 다르게 잡는다 (원본 기획서가 "참고 게임과 너무 동일한 화면"을 문제로 꼽았다).
 - 옛 팀의 일러스트 · UI 원본은 권리를 사용자가 확인하기 전에 쓰지 않는다.
 
 ## Git · 환경

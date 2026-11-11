@@ -128,7 +128,8 @@
 | 번호 | 항목 | 값 | 출처 |
 |---|---|---|---|
 | 9-1 | 능력자 목록 | 6명 (5-1 ~ 5-10) | 결정 2026-11-10, 사용자 |
-| 9-2 | 출전 수 (`DeckSize`) | 4 (1명 이상이면 출전 가능) | 결정 2026-11-10, 사용자 |
-| 9-3 | 기본 편성 | 목록 앞 4명: 근거리 · 원거리 · 방패병 · 치유사 | 정한 것 (Claude, 확인 필요) |
+| 9-2 | 출전 수 (`DeckSize`) | 12 (1명 이상이면 출전 가능) | 결정 2026-11-11, 사용자 (예전 4, 2026-11-10) |
+| 9-3 | 기본 편성 | 목록 앞 12명 — 지금은 6명 전부 | 정한 것 (Claude, 확인 필요) |
+| 9-4 | 등급 (`Rarity`, 3 ~ 5성) | 지금 6명 모두 3성. 4 · 5성은 나중에 만든다 | 결정 2026-11-11, 사용자 |
 
-검산 테스트: `ProjectRuleTests.Roster_AndDeck_MatchBalanceDoc`, `ProjectRuleTests.Deck_RejectsInvalid`, `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.DeployRules_MatchBalanceDoc`, `ProjectRuleTests.SkillData_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.StageCatalog_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds`, `ProjectRuleTests.CostRegen_IsTwoSecondsInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.
+검산 테스트: `ProjectRuleTests.Roster_AndDeck_MatchBalanceDoc`, `ProjectRuleTests.Deck_RejectsInvalid`, `ProjectRuleTests.BattleBalance_MatchesBalanceDoc`, `ProjectRuleTests.DeployRules_MatchBalanceDoc`, `ProjectRuleTests.SkillData_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.StageCatalog_MatchesBalanceDoc_AndHasNames`, `ProjectRuleTests.Stage01_WithoutUnits_DefenseFallsToZeroAt48Seconds`, `ProjectRuleTests.CostRegen_IsOneSecondInTicks`, `ProjectRuleTests.AttackIntervals_ConvertToTicks`.

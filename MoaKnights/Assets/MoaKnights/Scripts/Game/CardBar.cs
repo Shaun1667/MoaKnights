@@ -16,6 +16,10 @@ namespace MoaKnights.Game
 
         private Simulation _simulation;
         private BattleViewAsset _view;
+        private Vector2 _cardSize;
+
+        // 카드 줄이 차지할 수 있는 가로 비율. 카드가 많으면(출전 최대 12명) 이 안에 들어가게 카드를 줄인다.
+        private const float MaxWidthRatio = 0.94f;
 
         /// <summary>카드를 누르기 시작했을 때. 값은 능력자 ID.</summary>
         public event Action<string> CardPressed;
@@ -36,6 +40,7 @@ namespace MoaKnights.Game
 
             var layout = gameObject.GetComponent<HorizontalLayoutGroup>();
             if (layout != null) layout.spacing = view.CardSpacing;
+            _cardSize = FitCardSize(simulation.Definition.Units.Count);
 
             foreach (var unit in simulation.Definition.Units) _cards.Add(CreateCard(unit, font));
             Refresh();
@@ -91,12 +96,13 @@ namespace MoaKnights.Game
 
         private Card CreateCard(UnitDefinition unit, TMP_FontAsset font)
         {
+            var fontScale = _cardSize.x / _view.CardSize.x;
             var go = new GameObject("Card_" + unit.Id, typeof(RectTransform), typeof(Image), typeof(LayoutElement), typeof(CardPressRelay));
             go.transform.SetParent(transform, false);
 
             var element = go.GetComponent<LayoutElement>();
-            element.preferredWidth = _view.CardSize.x;
-            element.preferredHeight = _view.CardSize.y;
+            element.preferredWidth = _cardSize.x;
+            element.preferredHeight = _cardSize.y;
 
             go.GetComponent<CardPressRelay>().Pressed = () => CardPressed?.Invoke(unit.Id);
 
@@ -111,13 +117,13 @@ namespace MoaKnights.Game
             TMP_Text cost;
             if (hasPortrait)
             {
-                CreateLabel(go.transform, "Name", name, font, 20f, _view.CardTextColor, new Vector2(0f, 0.18f), new Vector2(1f, 0.34f));
-                cost = CreateLabel(go.transform, "Cost", costText, font, 28f, _view.CardTextColor, new Vector2(0f, 0f), new Vector2(1f, 0.2f));
+                CreateLabel(go.transform, "Name", name, font, 20f * fontScale, _view.CardTextColor, new Vector2(0f, 0.18f), new Vector2(1f, 0.34f));
+                cost = CreateLabel(go.transform, "Cost", costText, font, 28f * fontScale, _view.CardTextColor, new Vector2(0f, 0f), new Vector2(1f, 0.2f));
             }
             else
             {
-                CreateLabel(go.transform, "Name", name, font, 24f, _view.CardTextColor, new Vector2(0f, 0.35f), new Vector2(1f, 1f));
-                cost = CreateLabel(go.transform, "Cost", costText, font, 36f, _view.CardTextColor, new Vector2(0f, 0f), new Vector2(1f, 0.4f));
+                CreateLabel(go.transform, "Name", name, font, 24f * fontScale, _view.CardTextColor, new Vector2(0f, 0.35f), new Vector2(1f, 1f));
+                cost = CreateLabel(go.transform, "Cost", costText, font, 36f * fontScale, _view.CardTextColor, new Vector2(0f, 0f), new Vector2(1f, 0.4f));
             }
 
             return new Card { Definition = unit, Background = go.GetComponent<Image>(), Portrait = portrait, CostLabel = cost };
@@ -137,6 +143,16 @@ namespace MoaKnights.Game
             image.preserveAspect = true;
             image.raycastTarget = false;
             return image;
+        }
+
+        /// <summary>카드 n장과 사이 간격이 줄 너비 안에 들어가는 카드 크기 (비율 유지, 기본 크기보다 크지 않음).</summary>
+        private Vector2 FitCardSize(int count)
+        {
+            var width = ((RectTransform)transform).rect.width;
+            if (count <= 0 || width <= 0f) return _view.CardSize;
+            var room = width * MaxWidthRatio - _view.CardSpacing * (count - 1);
+            var scale = Mathf.Min(1f, room / (count * _view.CardSize.x));
+            return _view.CardSize * scale;
         }
 
         private static TMP_Text CreateLabel(Transform parent, string name, string text, TMP_FontAsset font, float size, Color color, Vector2 anchorMin, Vector2 anchorMax)
