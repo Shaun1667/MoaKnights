@@ -9,7 +9,7 @@
 #   2. 두 GLB를 불러와 메시마다 하나로 합치고 변환을 적용한다.
 #   3. 겉옷을 그림 비율대로 몸에 맞춘다: 몸의 "그림 1픽셀 = 몇 m"로 겉옷 높이 · 아래 · 가로 위치를 정하고, 깊이는 몸 가운데에 맞춘다.
 #   4. 겉옷에 가려 안 보이는 몸 면과 겉옷을 뚫고 나온 몸 면을 지운다 (면 법선 앞뒤로 가까이 겉옷이 있으면).
-#      몸 그림의 회색 바탕옷은 피부색으로 바꾼다 (겉옷 밖으로 보이는 팔 등).
+#      (예전 회색 타이즈 몸 그림은 SKIN_RECOLOR=1로 회색을 피부색으로 바꿨다. 지금 몸 그림은 속옷 차림이라 끔.)
 #   5. 하나로 합치고 Decimate로 목표 삼각형 수까지 줄인 뒤 삼각형화한다.
 #   6. 앞이 Unity +X를 보게 돌리고 높이를 맞춰 FBX와 텍스처 PNG, 확인용 렌더 PNG를 낸다.
 
@@ -195,7 +195,9 @@ body.select_set(True)
 bpy.context.view_layer.objects.active = body
 if not single:
     fit_outfit_and_hide_body()
-    skin_recolor(body)
+    # 몸 그림이 회색 전신 타이즈였던 때(G-1 · G-2)만 쓰던 단계. 지금은 속옷 차림이라 끈다 (SKIN_RECOLOR=1로 켬).
+    if os.environ.get("SKIN_RECOLOR", "0") == "1":
+        skin_recolor(body)
     outfit.data.materials[0].name = "outfit"
     # 합치기
     bpy.ops.object.select_all(action="DESELECT")
