@@ -6,7 +6,7 @@
 #
 # 순서
 #   1. 두 원본 그림(같은 구도)에서 흰 바탕이 아닌 영역의 위치를 잰다.
-#   2. 두 GLB를 불러와 메시마다 하나로 합치고 변환을 적용한다.
+#   2. 두 GLB를 불러와 메시마다 하나로 합치고 변환을 적용한 뒤, 텍스처 이음매에서 끊긴 꼭짓점을 이어 붙인다 (weld).
 #   3. 겉옷을 그림 비율대로 몸에 맞춘다: 몸의 "그림 1픽셀 = 몇 m"로 겉옷 높이 · 아래 · 가로 위치를 정하고, 깊이는 몸 가운데에 맞춘다.
 #   4. 겉옷에 가려 안 보이는 몸 면과 겉옷을 뚫고 나온 몸 면을 지운다 (면 법선 앞뒤로 가까이 겉옷이 있으면).
 #      (예전 회색 타이즈 몸 그림은 SKIN_RECOLOR=1로 회색을 피부색으로 바꿨다. 지금 몸 그림은 속옷 차림이라 끔.)
@@ -28,6 +28,7 @@ height_m = float(argv[7]) if len(argv) > 7 else 1.0
 hidden_distance_ratio = 0.06   # 키에 대한 비율: 면 바깥쪽 이 거리 안에 겉옷이 있으면 가려진 몸 면
 poke_distance_ratio = float(os.environ.get("POKE_RATIO", "0.05"))   # 키에 대한 비율: 면 안쪽 이 거리 안에 겉옷이 있으면 겉옷을 뚫고 나온 몸 면 (근거리 melee_01은 0.025로 만듦)
 outfit_push_ratio = float(os.environ.get("OUTFIT_PUSH", "0.01"))   # 키에 대한 비율: 겉옷을 법선 방향으로 이만큼 부풀려 몸을 덮게 한다 (melee_01은 0)
+lower_mask_ratio = float(os.environ.get("LOWER_MASK", "0.38"))   # 키에 대한 비율: 아래에서 이 높이까지(다리)는 겉옷 그림에서 옷이 덮은 자리의 몸 면을 모두 지운다 (0이면 끔)
 os.makedirs(out_dir, exist_ok=True)
 
 
@@ -53,6 +54,16 @@ def image_box(path, threshold=0.92):
     return min(xs), max(xs), min(ys), max(ys)
 
 
+def image_mask(path, threshold=0.92):
+    """흰 바탕이 아닌 픽셀이 참인 표 [그림 y(위가 0)][x]."""
+    import numpy
+    img = bpy.data.images.load(path)
+    w, h = img.size
+    px = numpy.array(img.pixels[:], dtype=numpy.float32).reshape(h, w, 4)[::-1]
+    bpy.data.images.remove(img)
+    return px[:, :, :3].min(axis=2) < threshold
+
+
 def import_mesh(path, label):
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=path)
@@ -74,7 +85,32 @@ def import_mesh(path, label):
         if o is not obj:
             bpy.data.objects.remove(o, do_unlink=True)
     obj.name = label
+    weld(obj)
     return obj
+
+
+def weld(obj):
+    """Varco GLB는 텍스처 이음매마다 꼭짓점이 끊겨 있다 (모서리 만여 개가 열림). 그대로 줄이면 이음매마다 찢어지고
+    법선 방향으로 부풀릴 때 틈이 벌어진다. 같은 자리의 꼭짓점을 이어 붙인다 — UV는 면 모서리마다 따로라 그대로 남는다."""
+    me = obj.data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    before_verts = len(bm.verts)
+    open_before = sum(1 for e in bm.edges if e.is_boundary)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    open_after = sum(1 for e in bm.edges if e.is_boundary)
+    bm.normal_update()
+    bm.to_mesh(me)
+    after_verts = len(bm.verts)
+    bm.free()
+    # 불러온 법선(이음매에서 갈라짐) 대신 이어 붙인 메시의 부드러운 법선을 쓴다
+    if me.has_custom_normals:
+        bpy.context.view_layer.objects.active = obj
+        bpy.ops.mesh.customdata_custom_splitnormals_clear()
+    for poly in me.polygons:
+        poly.use_smooth = True
+    me.update()
+    log("weld", obj.name, "verts", before_verts, "->", after_verts, "open edges", open_before, "->", open_after)
 
 
 def world_box(obj):
@@ -143,16 +179,58 @@ def fit_outfit_and_hide_body():
     tree = BVHTree.FromObject(outfit, deps)
     limit = (bhi.z - blo.z) * hidden_distance_ratio
     poke = (bhi.z - blo.z) * poke_distance_ratio
+    # 다리: 몸 그림과 겉옷 그림의 다리 자세가 조금 달라 바지 · 스타킹 옆으로 몸 다리가 비친다.
+    # 아래쪽(다리 높이)에서는 앞에서 본 자리가 겉옷 그림의 옷 픽셀이면 그 몸 면을 지운다. 옷이 없는 맨살 자리(흰 픽셀)는 남는다.
+    mask = image_mask(outfit_png) if lower_mask_ratio > 0 else None
+    lower_top = blo.z + (bhi.z - blo.z) * lower_mask_ratio
+    body_cx = (blo.x + bhi.x) / 2
+
+    def under_outfit_pixel(c):
+        if mask is None or c.z > lower_top:
+            return False
+        x = int(round(body_cx_px + (c.x - body_cx) / m_per_px))
+        y = int(round(bb[3] - (c.z - blo.z) / m_per_px))
+        return 0 <= y < mask.shape[0] and 0 <= x < mask.shape[1] and bool(mask[y, x])
+
     bm = bmesh.new()
     bm.from_mesh(body.data)
     hidden = []
+    masked = 0
     for f in bm.faces:
         c = f.calc_center_median()
         n = f.normal
         if tree.ray_cast(c + n * 1e-4, n, limit)[0] is not None or tree.ray_cast(c - n * 1e-4, -n, poke)[0] is not None:
             hidden.append(f)
+        elif under_outfit_pixel(c):
+            hidden.append(f)
+            masked += 1
+    log("body faces under outfit pixels (legs)", masked)
     before_faces = len(bm.faces)
     bmesh.ops.delete(bm, geom=hidden, context="FACES")
+
+    # 다리 높이에 떨어져 남은 작은 몸 조각(지우고 남은 부스러기)을 지운다. 맨살 다리처럼 큰 덩어리는 남는다.
+    if mask is not None:
+        bm.faces.index_update()   # 지운 뒤 번호가 어긋나므로 다시 매긴다
+        seen = set()
+        crumbs = []
+        crumb_limit = max(1, before_faces // 100)
+        for start in bm.faces:
+            if start.index in seen:
+                continue
+            island = [start]
+            seen.add(start.index)
+            i = 0
+            while i < len(island):
+                for e in island[i].edges:
+                    for g in e.link_faces:
+                        if g.index not in seen:
+                            seen.add(g.index)
+                            island.append(g)
+                i += 1
+            if len(island) < crumb_limit and all(g.calc_center_median().z <= lower_top for g in island):
+                crumbs.extend(island)
+        bmesh.ops.delete(bm, geom=crumbs, context="FACES")
+        log("body crumbs removed", len(crumbs))
     bm.to_mesh(body.data)
     bm.free()
     log("body faces", before_faces, "-> hidden removed", len(hidden))
@@ -187,6 +265,29 @@ def skin_recolor(obj):
             log("skin recolor", img.name, int(suit.sum()), "px, skin", tuple(np.round(skin, 3)))
 
 
+def underwear_recolor(obj, color):
+    """몸 텍스처의 어두운 갈색 속옷 픽셀을 겉옷 바탕색으로 칠한다 (겉옷 등 쪽이 비어 속옷이 보이는 캐릭터용). 주름 밝기는 살린다."""
+    for mat in obj.data.materials:
+        for node in mat.node_tree.nodes:
+            if node.type != "TEX_IMAGE" or node.image is None:
+                continue
+            if not any(l.to_socket.name == "Base Color" for o in node.outputs for l in o.links):
+                continue
+            img = node.image
+            px = np.array(img.pixels[:], dtype=np.float32).reshape(-1, 4)
+            rgb = px[:, :3]
+            mx = rgb.max(axis=1)
+            brown = (mx < 0.50) & (mx > 0.08) & (rgb[:, 0] > rgb[:, 1]) & (rgb[:, 1] >= rgb[:, 2]) & (rgb[:, 0] - rgb[:, 2] > 0.04)
+            if not brown.any():
+                continue
+            shade = np.clip(mx[brown] / np.median(mx[brown]), 0.6, 1.15)[:, None]
+            rgb[brown] = np.clip(np.array(color, dtype=np.float32)[None, :] * shade, 0, 1)
+            px[:, :3] = rgb
+            img.pixels[:] = px.ravel()
+            img.update()
+            log("underwear recolor", img.name, int(brown.sum()), "px")
+
+
 # Unity가 이름으로 재질을 연결하도록 재질 이름을 body / outfit으로 둔다 (FBX 서브메시 이름)
 body.data.materials[0].name = "body"
 body_material = "body"
@@ -198,6 +299,9 @@ if not single:
     # 몸 그림이 회색 전신 타이즈였던 때(G-1 · G-2)만 쓰던 단계. 지금은 속옷 차림이라 끈다 (SKIN_RECOLOR=1로 켬).
     if os.environ.get("SKIN_RECOLOR", "0") == "1":
         skin_recolor(body)
+    # 겉옷 등 쪽이 비어 속옷이 보이면 UNDERWEAR_COLOR="r,g,b"(0~1)로 속옷을 겉옷 바탕색으로 칠한다.
+    if os.environ.get("UNDERWEAR_COLOR"):
+        underwear_recolor(body, [float(x) for x in os.environ["UNDERWEAR_COLOR"].split(",")])
     outfit.data.materials[0].name = "outfit"
     # 합치기
     bpy.ops.object.select_all(action="DESELECT")
@@ -218,6 +322,8 @@ if before > target_tris:
     bpy.ops.object.modifier_apply(modifier=mod.name)
 tri = merged.modifiers.new("Triangulate", "TRIANGULATE")
 bpy.ops.object.modifier_apply(modifier=tri.name)
+for poly in merged.data.polygons:
+    poly.use_smooth = True
 log("tris", before, "->", tri_count(merged))
 
 # 앞(-Y)을 +X로 돌리고, 높이를 맞추고, 바닥 가운데를 원점으로
@@ -258,7 +364,7 @@ bpy.ops.export_scene.fbx(
     axis_up="Y",
     path_mode="RELATIVE",
     embed_textures=False,
-    mesh_smooth_type="FACE",
+    mesh_smooth_type="OFF",   # 꼭짓점 법선만 (부드러운 음영). 예전 FACE는 면마다 각져 보였다
     add_leaf_bones=False,
 )
 log("fbx", fbx_path)

@@ -29,8 +29,17 @@ tris_of() {
   esac
 }
 
+# 겉옷 등 쪽이 비어 속옷이 보이는 캐릭터: 몸 텍스처의 갈색 속옷을 칠할 겉옷 바탕색 (없으면 안 칠함).
+underwear_color_of() {
+  case "$1" in
+    irene_01) echo "0.93,0.90,0.96" ;;
+    *) echo "" ;;
+  esac
+}
+
 for id in "$@"; do
   tris=$(tris_of "$id")
+  export UNDERWEAR_COLOR="$(underwear_color_of "$id")"
   src=ArtSource/$id
   h=$(height_of "$id")
   if [ -f "$src/outfit.glb" ]; then
