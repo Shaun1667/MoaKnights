@@ -212,6 +212,12 @@ namespace MoaKnights.Core.Sim
 
         public void End(BattleOutcome outcome) => Outcome = outcome;
 
+        /// <summary>남은 등장을 모두 나온 것으로 친다 (개발자 디버그 바로 클리어 전용).</summary>
+        public void SkipRemainingSpawns(int spawnCount)
+        {
+            if (NextSpawnIndex < spawnCount) NextSpawnIndex = spawnCount;
+        }
+
         public Enemy SpawnEnemy(string definitionId, int routeIndex, int hp)
         {
             NextSpawnIndex++;

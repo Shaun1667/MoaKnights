@@ -153,6 +153,9 @@ namespace MoaKnights.Game
 
         public void DebugDamageDefense(int amount) => Simulation.World.DamageDefense(amount);
 
+        /// <summary>판 위 적을 모두 없애고 남은 등장을 건너뛰어 바로 승리시킨다 (결과 창 · 다음 스테이지 확인용).</summary>
+        public void DebugClearStage() => Simulation.DebugClearAll();
+
         public void DebugStepTicks(int ticks)
         {
             for (var i = 0; i < ticks; i++) Simulation.Step();

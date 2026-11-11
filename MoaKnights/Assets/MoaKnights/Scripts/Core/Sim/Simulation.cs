@@ -84,6 +84,23 @@ namespace MoaKnights.Core.Sim
             BattleEnded?.Invoke(outcome);
         }
 
+        /// <summary>
+        /// 개발자 디버그(바로 클리어): 판 위 적을 모두 쓰러뜨리고(EnemyKilled) 남은 등장을 건너뛴 뒤 승패를 판정한다.
+        /// 디펜스 HP는 그대로라 별은 지금 HP로 정해진다. 시간은 진행하지 않는다. 끝난 판에서는 아무것도 하지 않는다.
+        /// </summary>
+        public void DebugClearAll()
+        {
+            if (IsOver) return;
+            while (World.Enemies.Count > 0)
+            {
+                var enemy = World.Enemies[0];
+                World.RemoveEnemy(enemy);
+                EnemyKilled?.Invoke(enemy);
+            }
+            World.SkipRemainingSpawns(Definition.Spawns.Count);
+            CheckOutcome();
+        }
+
         /// <summary>별 0~3. 판이 끝나기 전이나 패배면 0. 새지 않으면 3, HP가 기준 이상이면 2, 아니면 1.</summary>
         public int Stars()
         {

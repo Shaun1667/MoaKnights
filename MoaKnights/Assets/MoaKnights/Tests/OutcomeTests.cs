@@ -43,6 +43,45 @@ namespace MoaKnights.Tests
             return steps;
         }
 
+        /// <summary>디버그 바로 클리어: 판 위 적은 쓰러짐 이벤트로 사라지고, 남은 등장은 건너뛰고, 그 자리에서 승리.</summary>
+        [Test]
+        public void DebugClearAll_KillsEnemies_SkipsSpawns_AndWins()
+        {
+            var s = Build(10, new long[] { 0, 10, 500, 900 });
+            for (var i = 0; i < 20; i++) s.Step();
+            Assert.AreEqual(2, s.World.Enemies.Count);
+
+            var killed = 0;
+            var ended = new List<BattleOutcome>();
+            s.EnemyKilled += e => killed++;
+            s.BattleEnded += ended.Add;
+            var tick = s.World.Tick;
+
+            s.DebugClearAll();
+            Assert.AreEqual(2, killed);
+            CollectionAssert.IsEmpty(s.World.Enemies);
+            Assert.AreEqual(4, s.World.NextSpawnIndex);
+            Assert.AreEqual(BattleOutcome.Victory, s.World.Outcome);
+            CollectionAssert.AreEqual(new[] { BattleOutcome.Victory }, ended);
+            Assert.AreEqual(tick, s.World.Tick);
+            Assert.AreEqual(3, s.Stars());
+        }
+
+        [Test]
+        public void DebugClearAll_StarsFollowCurrentHp_AndDoesNothingAfterEnd()
+        {
+            var s = Build(10, new long[] { 0 });
+            s.World.DamageDefense(6);
+            s.DebugClearAll();
+            Assert.AreEqual(BattleOutcome.Victory, s.World.Outcome);
+            Assert.AreEqual(1, s.Stars());
+
+            var ended = 0;
+            s.BattleEnded += o => ended++;
+            s.DebugClearAll();
+            Assert.AreEqual(0, ended);
+        }
+
         [Test]
         public void AllLeak_DefenseZero_IsDefeat_WithZeroStars()
         {

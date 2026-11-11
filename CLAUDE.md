@@ -61,7 +61,7 @@ MoaKnights/Assets/MoaKnights/
 - 네임스페이스 `MoaKnights.<어셈블리>`. private 필드 `_camelCase`, public은 PascalCase.
 - 화면에 보이는 모든 글은 `Data/Text/text.csv` 한곳 — 코드 · 프리팹 · 데이터에 문장 금지, 코드는 `Text.Get(키)` · `Text.Format(키, 값…)`, 문장을 이어 붙이지 않고 `{0}` 자리표시자. 키는 `분류.대상.용도`. 새 글 = 표 한 줄.
 - 규칙 코드는 글을 만들지 않는다. 이벤트와 값만 내보내고, 글은 화면 계층이 표에서 만든다.
-- 개발자 디버그 기능은 `MoaKnights/Debug/Debug Window`에 섹션으로, 게임 쪽 진입점은 `GameRoot.DebugXxx`, 상태를 바꾸면 [상태 변경] 표시.
+- 개발자 디버그 기능은 `MoaKnights/Debug/Debug Window`에 섹션으로, 게임 쪽 진입점은 `GameRoot.DebugXxx`, 상태를 바꾸면 [상태 변경] 표시. 규칙 쪽에 디버그 입구가 필요하면 `Simulation.DebugXxx`(예: `DebugClearAll` 바로 클리어)로 이름에 표시한다.
 - 씬 연결은 `GameRoot` 한 곳. 싱글턴 금지.
 - 전투 수치는 `BattleBalanceAsset`(`Data/Balance/BattleBalance.asset`) 한 곳, 새 수치 = BALANCE 표 + 필드 + 검산 테스트. 스테이지마다 다른 등장 표만 `StageAsset`에 둔다 (모든 스테이지 공통 준비 시간 `FirstSpawnDelaySeconds`는 팩토리가 더함).
 - 규칙이 쓰는 값은 `BattleDefinitionFactory`가 에셋에서 `BattleDefinition`으로 바꾼다. 규칙 코드의 시간과 위치는 정수(틱, 진행도)이고 실수는 화면 보간에만 쓴다.

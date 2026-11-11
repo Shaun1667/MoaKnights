@@ -73,6 +73,7 @@ namespace MoaKnights.EditorTools
                 if (GUILayout.Button("[상태 변경] " + (i + 1))) root.LoadStage(i);
             EditorGUILayout.EndHorizontal();
 
+            if (GUILayout.Button("[상태 변경] 바로 클리어 (적 모두 없애고 남은 등장 건너뜀, 별은 지금 HP)")) root.DebugClearStage();
             if (GUILayout.Button("[상태 변경] 디펜스 HP -10 (패배 확인용, 1틱 진행)"))
             {
                 root.DebugDamageDefense(10);
