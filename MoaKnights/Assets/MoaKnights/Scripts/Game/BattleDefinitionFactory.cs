@@ -50,7 +50,7 @@ namespace MoaKnights.Game
             {
                 for (var i = 0; i < group.Count; i++)
                 {
-                    var seconds = group.StartSeconds + group.IntervalSeconds * i;
+                    var seconds = balance.FirstSpawnDelaySeconds + group.StartSeconds + group.IntervalSeconds * i;
                     spawns.Add(new SpawnEvent(Mathf.RoundToInt(seconds * ticksPerSecond), group.EnemyId, group.RouteIndex));
                 }
             }

@@ -63,10 +63,10 @@ MoaKnights/Assets/MoaKnights/
 - 규칙 코드는 글을 만들지 않는다. 이벤트와 값만 내보내고, 글은 화면 계층이 표에서 만든다.
 - 개발자 디버그 기능은 `MoaKnights/Debug/Debug Window`에 섹션으로, 게임 쪽 진입점은 `GameRoot.DebugXxx`, 상태를 바꾸면 [상태 변경] 표시.
 - 씬 연결은 `GameRoot` 한 곳. 싱글턴 금지.
-- 전투 수치는 `BattleBalanceAsset`(`Data/Balance/BattleBalance.asset`) 한 곳, 새 수치 = BALANCE 표 + 필드 + 검산 테스트. 스테이지마다 다른 등장 표만 `StageAsset`에 둔다.
+- 전투 수치는 `BattleBalanceAsset`(`Data/Balance/BattleBalance.asset`) 한 곳, 새 수치 = BALANCE 표 + 필드 + 검산 테스트. 스테이지마다 다른 등장 표만 `StageAsset`에 둔다 (모든 스테이지 공통 준비 시간 `FirstSpawnDelaySeconds`는 팩토리가 더함).
 - 규칙이 쓰는 값은 `BattleDefinitionFactory`가 에셋에서 `BattleDefinition`으로 바꾼다. 규칙 코드의 시간과 위치는 정수(틱, 진행도)이고 실수는 화면 보간에만 쓴다.
 - 에셋 · 씬 생성은 `MoaKnights/Setup/Run All` 한 곳(`ProjectSetup`), 몇 번 실행해도 같은 결과. Unity가 씬을 열 때 채우는 값(레이아웃 그룹 자식의 앵커 · 크기 0, TMP 기본 스타일)은 Setup이 미리 넣어 열기만 해도 씬이 바뀌지 않게 한다. 데이터 에셋은 없을 때만 만들고, `NewScene` 뒤에 불러와 씬에 연결한다.
-- 시뮬레이션은 `Simulation.Step` 한 곳에서만 진행, 새 시스템 = Step에 순서대로 추가. 실제 시간 → 틱, 배속, 일시정지, 느린 시간(`SetSlow`, 카드를 맵 위로 끄는 동안 `DragSlowPercent`)은 `TickClock` 한 곳.
+- 시뮬레이션은 `Simulation.Step` 한 곳에서만 진행, 새 시스템 = Step에 순서대로 추가. 실제 시간 → 틱, 배속, 일시정지, 느린 시간(`SetSlow`, 카드를 맵 위로 끈 뒤 방향을 골라 배치할 때까지 `DragSlowPercent`)은 `TickClock` 한 곳.
 - 플레이어 명령(배치 · 중첩 · 퇴각)은 시간을 진행하지 않으므로 `Simulation.TryXxx`로 바로 처리하고 결과 enum을 돌려준다 (일시정지 중에도 받는다). 미리보기는 같은 판정의 `CheckXxx`를 쓴다.
 - 지금 공격력 · 저지 수는 `Simulation.AttackOf` · `BlockOf` 한 곳 (단계 + 쓰고 있는 스킬). SP · 스킬은 `SkillSet`(능력자별, 단계마다 스킬 하나). 스킬 이름 글 키는 `skill.<능력자ID>_<단계>.name`. 포지션은 `UnitRole`(탱커 · 딜러 · 힐러) — 힐러는 적을 치지 않고 범위 안 아군 중 HP 비율이 가장 낮은 하나를 `AttackOf`만큼 치유한다 (`UnitHealed`).
 - 중첩 · 퇴각 · 재배치 수치는 `DeployRules` 한 곳 (`BattleDefinition.Deploy`). 단계별 HP · 공격 · 저지는 `DeployRules.MaxHp/Attack/BlockCount(정의, 단계)`로만 구한다.

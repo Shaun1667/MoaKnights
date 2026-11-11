@@ -64,6 +64,7 @@ namespace MoaKnights.Game
         [SerializeField] private int _twoStarHpPercent;
         [SerializeField] private int _deckSize;
         [SerializeField] private int _dragSlowPercent;
+        [SerializeField] private float _firstSpawnDelaySeconds;
 
         public int StartCost => _startCost;
         public float CostRegenSeconds => _costRegenSeconds;
@@ -72,6 +73,9 @@ namespace MoaKnights.Game
 
         /// <summary>카드를 맵 칸 위로 끄는 동안의 시간 비율(%). BALANCE 2-2.</summary>
         public int DragSlowPercent => _dragSlowPercent;
+
+        /// <summary>판 시작 뒤 적이 나오기까지의 준비 시간(초). 모든 스테이지 등장 표에 더한다. BALANCE 4-0.</summary>
+        public float FirstSpawnDelaySeconds => _firstSpawnDelaySeconds;
         public int DefenseHp => _defenseHp;
         public EnemyRow[] Enemies => _enemies;
         public UnitRow[] Units => _units;

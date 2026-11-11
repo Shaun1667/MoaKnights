@@ -124,6 +124,7 @@ namespace MoaKnights.EditorTools
             FillIfZero(so.FindProperty("_maxCost"), 99);
             FillIfZero(so.FindProperty("_ticksPerSecond"), 30);
             FillIfZero(so.FindProperty("_dragSlowPercent"), 10);
+            FillIfZero(so.FindProperty("_firstSpawnDelaySeconds"), 20f);
             FillIfZero(so.FindProperty("_defenseHp"), 10);
 
             var enemies = so.FindProperty("_enemies");

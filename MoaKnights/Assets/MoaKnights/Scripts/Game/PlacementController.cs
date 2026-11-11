@@ -150,8 +150,9 @@ namespace MoaKnights.Game
                 return;
             }
 
+            // 칸에 놓은 뒤 방향을 고르는 동안에도 느린 시간을 유지한다. 배치 · 취소(Cancel)에서 푼다.
             _preview.Tint(null);
-            _clock.ClearSlow();
+            _clock.SetSlow(_dragSlowPercent);
             _directionDragging = false;
             _state = State.ChoosingDirection;
         }

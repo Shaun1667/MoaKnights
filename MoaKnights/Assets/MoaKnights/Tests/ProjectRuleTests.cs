@@ -73,6 +73,7 @@ namespace MoaKnights.Tests
             Assert.AreEqual(99, balance.MaxCost);
             Assert.AreEqual(30, balance.TicksPerSecond);
             Assert.AreEqual(10, balance.DragSlowPercent);
+            Assert.AreEqual(20f, balance.FirstSpawnDelaySeconds);
             Assert.AreEqual(10, balance.DefenseHp);
 
             var enemy = balance.Enemies.Single(e => e.Id == "dizes_01");
@@ -313,9 +314,9 @@ namespace MoaKnights.Tests
             }
         }
 
-        /// <summary>BALANCE 4번 검산: 능력자가 없으면 10마리가 모두 새고, 마지막 한 마리가 28초에 HP를 0으로 만든다.</summary>
+        /// <summary>BALANCE 4번 검산: 능력자가 없으면 10마리가 모두 새고, 마지막 한 마리가 준비 20초 + 28초 = 48초에 HP를 0으로 만든다.</summary>
         [Test]
-        public void Stage01_WithoutUnits_DefenseFallsToZeroAt28Seconds()
+        public void Stage01_WithoutUnits_DefenseFallsToZeroAt48Seconds()
         {
             var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
             var stage = AssetDatabase.LoadAssetAtPath<StageAsset>("Assets/MoaKnights/Data/Stages/Stage01.asset");
@@ -325,7 +326,7 @@ namespace MoaKnights.Tests
             Assert.AreEqual(10, definition.Routes[0].Length);
             Assert.AreEqual(10, definition.Spawns.Count);
 
-            while (simulation.World.Tick < 28 * balance.TicksPerSecond) simulation.Step();
+            while (simulation.World.Tick < 48 * balance.TicksPerSecond) simulation.Step();
             Assert.AreEqual(1, simulation.World.DefenseHp);
 
             simulation.Step();
