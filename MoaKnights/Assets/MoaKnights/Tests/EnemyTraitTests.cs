@@ -99,20 +99,23 @@ namespace MoaKnights.Tests
             s.TryPlaceUnit(Watcher, new GridPos(3, 1), Direction.Up);
             var watcher = s.World.Units.Single();
             var hitCells = new List<GridPos>();
+            var hitWhileBlocked = 0;
             s.UnitDamaged += (unit, damage) =>
             {
                 Assert.AreEqual(12, damage);
-                hitCells.Add(s.EnemyCell(s.World.Enemies.Single()));
+                var spitter = s.World.Enemies.Single();
+                hitCells.Add(s.EnemyCell(spitter));
+                if (spitter.IsBlocked) hitWhileBlocked++;
             };
 
-            Run(s, 300);
+            Run(s, 300);   // 0.9칸/초라 300틱 안에 출구로 새어 나간다
 
             Assert.IsNotEmpty(hitCells);
             // 처음 친 곳은 감시자와 거리 2가 된 칸 (2,0). 거리 3인 (1,0)에서는 치지 않는다.
             Assert.AreEqual(new GridPos(2, 0), hitCells[0]);
             Assert.IsTrue(hitCells.All(c => Math.Abs(c.X - 3) + Math.Abs(c.Y - 1) <= 2));
             Assert.AreEqual(100 - 12 * hitCells.Count, watcher.Hp);
-            Assert.IsFalse(s.World.Enemies.Single().IsBlocked);
+            Assert.AreEqual(0, hitWhileBlocked);
         }
 
         [Test]
@@ -219,17 +222,18 @@ namespace MoaKnights.Tests
             var s = Build(enemies, new[] { new SpawnEvent(0, "splitter", 0) }, meleeAttack: 50);
             s.TryPlaceUnit(Melee, new GridPos(3, 0), Direction.Right);
             var killedProgress = -1;
-            var splits = new List<Enemy>();
+            var splits = new List<(int Id, string DefinitionId, int Progress, int Route, int Hp)>();
             s.EnemyKilled += e => { if (e.DefinitionId == "splitter") killedProgress = e.Progress; };
-            s.EnemySplit += e => splits.Add(e);
+            // 나뉜 적은 같은 틱의 이동 단계에서 바로 걸어가므로, 나뉜 순간의 값을 기록한다.
+            s.EnemySplit += e => splits.Add((e.Id, e.DefinitionId, e.Progress, e.RouteIndex, e.Hp));
 
             while (killedProgress < 0 && s.World.Tick < 400) s.Step();
 
             Assert.GreaterOrEqual(killedProgress, 0);
             Assert.AreEqual(2, splits.Count);
-            Assert.IsTrue(splits.All(e => e.DefinitionId == "e" && e.Progress == killedProgress && e.RouteIndex == 0 && e.Hp == 60));
+            Assert.IsTrue(splits.All(e => e.DefinitionId == "e" && e.Progress == killedProgress && e.Route == 0 && e.Hp == 60));
             Assert.AreNotEqual(splits[0].Id, splits[1].Id);
-            CollectionAssert.AreEquivalent(splits, s.World.Enemies);
+            CollectionAssert.AreEquivalent(splits.Select(e => e.Id), s.World.Enemies.Select(e => e.Id));
             Assert.AreEqual(BattleOutcome.None, s.World.Outcome, "나뉜 적이 남아 있으면 아직 이기지 않는다");
 
             Run(s, 600);
