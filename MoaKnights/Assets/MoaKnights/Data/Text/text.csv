@@ -53,6 +53,13 @@ ui.select.current,{0} (지금),{0} (current)
 stage.stage_01.name,스테이지 1 · 돌아가는 길,Stage 1 · The Winding Road
 stage.stage_02.name,스테이지 2 · 갈림길,Stage 2 · The Fork
 stage.stage_03.name,스테이지 3 · 두 입구,Stage 3 · Two Gates
+stage.stage_04.name,스테이지 4 · 뱀길,Stage 4 · Serpent Path
+stage.stage_05.name,스테이지 5 · 세 갈래,Stage 5 · Three Ways
+stage.stage_06.name,스테이지 6 · 교차로,Stage 6 · Crossroads
+stage.stage_07.name,스테이지 7 · 긴 복도,Stage 7 · Long Corridor
+stage.stage_08.name,스테이지 8 · 소용돌이,Stage 8 · Spiral
+stage.stage_09.name,스테이지 9 · 양쪽 협공,Stage 9 · Pincer
+stage.stage_10.name,스테이지 10 · 마지막 성문,Stage 10 · Last Gate
 ui.formation.title,편성,Formation
 ui.formation.count,출전 {0} / {1},Deploying {0} / {1}
 ui.formation.tab_unit,능력자,Unit

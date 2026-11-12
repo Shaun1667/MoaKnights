@@ -252,8 +252,8 @@ namespace MoaKnights.Tests
             var catalog = AssetDatabase.LoadAssetAtPath<StageCatalogAsset>("Assets/MoaKnights/Data/Stages/StageCatalog.asset");
             var balance = AssetDatabase.LoadAssetAtPath<BattleBalanceAsset>("Assets/MoaKnights/Data/Balance/BattleBalance.asset");
             Assert.IsNotNull(catalog);
-            Assert.AreEqual(3, catalog.Count);
-            CollectionAssert.AreEqual(new[] { "stage_01", "stage_02", "stage_03" }, Enumerable.Range(0, catalog.Count).Select(i => catalog[i].Id).ToArray());
+            Assert.AreEqual(10, catalog.Count);
+            CollectionAssert.AreEqual(Enumerable.Range(1, 10).Select(n => "stage_" + n.ToString("00")).ToArray(), Enumerable.Range(0, catalog.Count).Select(i => catalog[i].Id).ToArray());
 
             var table = TextTable.Parse(File.ReadAllText(TextCsvPath));
             for (var i = 0; i < catalog.Count; i++)
@@ -266,6 +266,28 @@ namespace MoaKnights.Tests
             Assert.AreEqual(22, stage2.Spawns.Count);
             Assert.AreEqual(20, stage3.Spawns.Count);
             Assert.AreEqual(2, stage3.Map.Entrances.Count);
+
+            // 6-1 스테이지 4 ~ 10 (BALANCE 4-7 ~ 4-13): 맵 크기 · 입구 수 · 길 길이 · 등장 수. 길은 팩토리가 지상 칸만 지나는지 검사한다.
+            var later = new (int Width, int Height, int Entrances, int[] Routes, int Spawns)[]
+            {
+                (9, 7, 1, new[] { 22 }, 20),
+                (9, 7, 1, new[] { 12, 8, 12 }, 23),
+                (9, 7, 3, new[] { 8, 7, 7 }, 25),
+                (11, 7, 2, new[] { 13, 13 }, 29),
+                (11, 9, 1, new[] { 43 }, 29),
+                (11, 7, 2, new[] { 11, 11 }, 36),
+                (11, 9, 3, new[] { 18, 18, 13 }, 45),
+            };
+            for (var i = 0; i < later.Length; i++)
+            {
+                var expected = later[i];
+                var definition = BattleDefinitionFactory.Create(catalog[3 + i], balance);
+                var label = catalog[3 + i].Id;
+                Assert.AreEqual((expected.Width, expected.Height), (definition.Map.Width, definition.Map.Height), label);
+                Assert.AreEqual(expected.Entrances, definition.Map.Entrances.Count, label);
+                CollectionAssert.AreEqual(expected.Routes, definition.Routes.Select(r => r.Length).ToArray(), label);
+                Assert.AreEqual(expected.Spawns, definition.Spawns.Count, label);
+            }
 
             var fast = balance.Enemies.Single(e => e.Id == "dizes_fast");
             Assert.AreEqual((2f, 1, 30, 5, 1f), (fast.SpeedCellsPerSecond, fast.LeakDamage, fast.MaxHp, fast.Attack, fast.AttackIntervalSeconds));

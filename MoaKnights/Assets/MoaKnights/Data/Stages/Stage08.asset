@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d822d4990169c94d98a99c58c970061, type: 3}
+  m_Name: Stage08
+  m_EditorClassIdentifier: MoaKnights.Game::MoaKnights.Game.StageAsset
+  _id: stage_08
+  _mapRows:
+  - S.........H
+  - HHHHHHHHH.H
+  - H.......H.H
+  - H.HHHHH.H.H
+  - H.HEHHH.H.H
+  - H.H.....H.H
+  - H.HHHHHHH.H
+  - H.........H
+  - HHHHHHHHHHH
+  _routes:
+  - 0,8 9,8 9,1 1,1 1,6 7,6 7,3 3,3 3,4
+  _spawnGroups:
+  - EnemyId: dizes_01
+    RouteIndex: 0
+    StartSeconds: 0
+    IntervalSeconds: 2
+    Count: 16
+  - EnemyId: dizes_tank
+    RouteIndex: 0
+    StartSeconds: 15
+    IntervalSeconds: 6
+    Count: 5
+  - EnemyId: dizes_fast
+    RouteIndex: 0
+    StartSeconds: 40
+    IntervalSeconds: 1.5
+    Count: 8

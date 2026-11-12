@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MoaKnights.Core.Map;
 using MoaKnights.Core.Sim;
 using MoaKnights.Game;
@@ -23,6 +24,7 @@ namespace MoaKnights.EditorTools
         private const string Stage01Path = Root + "/Data/Stages/Stage01.asset";
         private const string Stage02Path = Root + "/Data/Stages/Stage02.asset";
         private const string Stage03Path = Root + "/Data/Stages/Stage03.asset";
+        private const string StageFolder = Root + "/Data/Stages";
         private const string CatalogPath = Root + "/Data/Stages/StageCatalog.asset";
         private const string ViewPath = Root + "/Data/View/BattleView.asset";
         private const string GreyboxMaterialPath = Root + "/Art/Greybox/Greybox.mat";
@@ -77,6 +79,56 @@ namespace MoaKnights.EditorTools
         };
 
         private static readonly string[] Stage03Routes = { "0,6 3,6 3,3 8,3", "0,0 3,0 3,3 8,3" };
+
+        // 6-1 스테이지 4 ~ 10 (결정 2026-11-12, 사용자 "이대로 6-1 시작"). 4 ~ 6은 9x7, 7 ~ 10은 11x7 ~ 11x9.
+        // 등장 표는 지금 적 3종으로 만든 임시값이다 — 새 적과 난이도는 6-4에서 맞춘다.
+        private static readonly StageDef[] LaterStages =
+        {
+            new StageDef(4, new[] { "S......HH", "HHHHHH.HH", "HH.....HH", "HH.HHHHHH", "HH.....HH", "HHHHHH.HH", "HHHHHH..E" },
+                new[] { "0,6 6,6 6,4 2,4 2,2 6,2 6,0 8,0" },
+                new[] { new Spawn(FirstEnemyId, 0, 0f, 2.5f, 14), new Spawn(FastEnemyId, 0, 25f, 3f, 4), new Spawn(TankEnemyId, 0, 35f, 8f, 2) }),
+            new StageDef(5, new[] { "#HHHHHHH#", "H.......H", "H.HHHHH.H", "S.......E", "H.HHHHH.H", "H.......H", "#HHHHHHH#" },
+                new[] { "0,3 1,3 1,5 7,5 7,3 8,3", "0,3 8,3", "0,3 1,3 1,1 7,1 7,3 8,3" },
+                new[]
+                {
+                    new Spawn(FirstEnemyId, 0, 0f, 3f, 6), new Spawn(FirstEnemyId, 1, 1f, 3f, 6), new Spawn(FirstEnemyId, 2, 2f, 3f, 6),
+                    new Spawn(FastEnemyId, 1, 25f, 3f, 3), new Spawn(TankEnemyId, 2, 30f, 8f, 2),
+                }),
+            new StageDef(6, new[] { "HHHHSHHHH", "HHHH.HHHH", "HHHH.HHHH", "S.......E", "HHHH.HHHH", "HHHH.HHHH", "HHHHSHHHH" },
+                new[] { "0,3 8,3", "4,6 4,3 8,3", "4,0 4,3 8,3" },
+                new[]
+                {
+                    new Spawn(FirstEnemyId, 0, 0f, 3f, 6), new Spawn(FirstEnemyId, 1, 1f, 3f, 6), new Spawn(FirstEnemyId, 2, 2f, 3f, 6),
+                    new Spawn(TankEnemyId, 0, 25f, 8f, 1), new Spawn(TankEnemyId, 1, 27f, 8f, 1), new Spawn(TankEnemyId, 2, 29f, 8f, 1),
+                    new Spawn(FastEnemyId, 0, 40f, 2f, 4),
+                }),
+            new StageDef(7, new[] { "S..HHHHHHHH", "HH.HHHHHHHH", "HH.HHHHHHHH", "HH........E", "HH.HHHHHHHH", "HH.HHHHHHHH", "S..HHHHHHHH" },
+                new[] { "0,6 2,6 2,3 10,3", "0,0 2,0 2,3 10,3" },
+                new[]
+                {
+                    new Spawn(FirstEnemyId, 0, 0f, 2.5f, 9), new Spawn(FirstEnemyId, 1, 1.25f, 2.5f, 9),
+                    new Spawn(TankEnemyId, 0, 20f, 8f, 3), new Spawn(TankEnemyId, 1, 24f, 8f, 3), new Spawn(FastEnemyId, 1, 45f, 2f, 5),
+                }),
+            new StageDef(8, new[] { "S.........H", "HHHHHHHHH.H", "H.......H.H", "H.HHHHH.H.H", "H.HEHHH.H.H", "H.H.....H.H", "H.HHHHHHH.H", "H.........H", "HHHHHHHHHHH" },
+                new[] { "0,8 9,8 9,1 1,1 1,6 7,6 7,3 3,3 3,4" },
+                new[] { new Spawn(FirstEnemyId, 0, 0f, 2f, 16), new Spawn(TankEnemyId, 0, 15f, 6f, 5), new Spawn(FastEnemyId, 0, 40f, 1.5f, 8) }),
+            new StageDef(9, new[] { "S...HHH...S", "HHH.HHH.HHH", "HHH.HHH.HHH", "HHH.....HHH", "HHHHH.HHHHH", "HHHHH.HHHHH", "HHHHHEHHHHH" },
+                new[] { "0,6 3,6 3,3 5,3 5,0", "10,6 7,6 7,3 5,3 5,0" },
+                new[]
+                {
+                    new Spawn(FirstEnemyId, 0, 0f, 2.5f, 10), new Spawn(FirstEnemyId, 1, 1.25f, 2.5f, 10),
+                    new Spawn(TankEnemyId, 0, 25f, 8f, 3), new Spawn(TankEnemyId, 1, 29f, 8f, 3),
+                    new Spawn(FastEnemyId, 0, 45f, 2f, 5), new Spawn(FastEnemyId, 1, 46f, 2f, 5),
+                }),
+            new StageDef(10, new[] { "S..HHSHHHHH", "HH.HH.HHHHH", "HH.HH.HHHHH", "HH.HH.HHHHH", "HH......H.E", "HH.HHHH.H.H", "HH.HHHH...H", "HH.HHHHHHHH", "S..HHHHHHHH" },
+                new[] { "0,8 2,8 2,4 7,4 7,2 9,2 9,4 10,4", "0,0 2,0 2,4 7,4 7,2 9,2 9,4 10,4", "5,8 5,4 7,4 7,2 9,2 9,4 10,4" },
+                new[]
+                {
+                    new Spawn(FirstEnemyId, 0, 0f, 3f, 8), new Spawn(FirstEnemyId, 1, 1f, 3f, 8), new Spawn(FirstEnemyId, 2, 2f, 3f, 8),
+                    new Spawn(TankEnemyId, 0, 20f, 7f, 3), new Spawn(TankEnemyId, 1, 23f, 7f, 3), new Spawn(TankEnemyId, 2, 26f, 7f, 3),
+                    new Spawn(FastEnemyId, 0, 40f, 2f, 4), new Spawn(FastEnemyId, 1, 41f, 2f, 4), new Spawn(FastEnemyId, 2, 42f, 2f, 4),
+                }),
+        };
         private const string MeleeUnitId = "melee_01";
         private const string RangedUnitId = "ranged_01";
         private const string TankUnitId = "tank_01";
@@ -411,16 +463,42 @@ namespace MoaKnights.EditorTools
                 new Spawn(FastEnemyId, 0, 30f, 2f, 4),
             });
 
+            var stages = new List<StageAsset> { stage01, stage02, stage03 };
+            foreach (var def in LaterStages)
+            {
+                var number = def.Number.ToString("00");
+                stages.Add(EnsureStage(StageFolder + "/Stage" + number + ".asset", "stage_" + number, def.Rows, def.Routes, def.Spawns));
+            }
+
+            // 목록 순서 = 진행 순서. 목록에 없는 스테이지만 끝에 붙인다 (손으로 바꾼 순서는 그대로 둔다).
             var catalog = LoadOrCreate<StageCatalogAsset>(CatalogPath);
             var so = new SerializedObject(catalog);
             var list = so.FindProperty("_stages");
-            if (list.arraySize == 0)
+            var listed = new HashSet<StageAsset>();
+            for (var i = 0; i < list.arraySize; i++) listed.Add(list.GetArrayElementAtIndex(i).objectReferenceValue as StageAsset);
+            foreach (var stage in stages)
             {
-                var stages = new[] { stage01, stage02, stage03 };
-                list.arraySize = stages.Length;
-                for (var i = 0; i < stages.Length; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = stages[i];
+                if (listed.Contains(stage)) continue;
+                list.arraySize++;
+                list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = stage;
             }
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private readonly struct StageDef
+        {
+            public readonly int Number;
+            public readonly string[] Rows;
+            public readonly string[] Routes;
+            public readonly Spawn[] Spawns;
+
+            public StageDef(int number, string[] rows, string[] routes, Spawn[] spawns)
+            {
+                Number = number;
+                Rows = rows;
+                Routes = routes;
+                Spawns = spawns;
+            }
         }
 
         private readonly struct Spawn
@@ -941,26 +1019,25 @@ namespace MoaKnights.EditorTools
             Stretch(host.GetComponent<RectTransform>());
 
             var root = CreateDim(host.transform, "Root");
-            var box = CreateBox(root.transform, "Box", new Vector2(520f, 520f));
-            var title = CreateText(box, "Title", new Vector2(0f, 205f), new Vector2(460f, 70f), 44);
+            // 스테이지 10개가 2열 5줄로 들어간다 (6-1). 버튼은 런타임에 닫기 버튼을 복제해 격자에 넣는다 (크기는 격자 칸).
+            var box = CreateBox(root.transform, "Box", new Vector2(940f, 620f));
+            var title = CreateText(box, "Title", new Vector2(0f, 255f), new Vector2(860f, 70f), 44);
 
-            var list = new GameObject("List", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            var list = new GameObject("List", typeof(RectTransform), typeof(GridLayoutGroup));
             list.transform.SetParent(box, false);
             var listRect = list.GetComponent<RectTransform>();
             listRect.anchorMin = listRect.anchorMax = new Vector2(0.5f, 0.5f);
-            listRect.sizeDelta = new Vector2(420f, 280f);
-            listRect.anchoredPosition = new Vector2(0f, 10f);
-            var layout = list.GetComponent<VerticalLayoutGroup>();
-            layout.spacing = 10f;
+            listRect.sizeDelta = new Vector2(860f, 380f);
+            listRect.anchoredPosition = new Vector2(0f, 15f);
+            var layout = list.GetComponent<GridLayoutGroup>();
+            layout.cellSize = new Vector2(420f, 64f);
+            layout.spacing = new Vector2(20f, 10f);
+            layout.constraint = GridLayoutGroup.Constraint.FixedRowCount;
+            layout.constraintCount = 5;
+            layout.startAxis = GridLayoutGroup.Axis.Vertical;   // 1 ~ 5는 왼쪽 열, 6 ~ 10은 오른쪽 열
             layout.childAlignment = TextAnchor.UpperCenter;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
 
-            var close = CreateButtonAt(box, "CloseButton", new Vector2(0f, -200f), new Vector2(200f, 60f), out var closeLabel);
-            var element = close.gameObject.AddComponent<LayoutElement>();
-            element.preferredHeight = 60f;   // 복제한 스테이지 버튼이 목록에서 쓰는 높이
+            var close = CreateButtonAt(box, "CloseButton", new Vector2(0f, -250f), new Vector2(200f, 60f), out var closeLabel);
 
             var panel = host.GetComponent<StageSelectPanel>();
             var so = new SerializedObject(panel);
