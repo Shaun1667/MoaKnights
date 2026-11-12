@@ -42,6 +42,12 @@ namespace MoaKnights.Core.Sim
         /// <summary>스킬로 회복했을 때. 값은 실제로 오른 HP.</summary>
         public event Action<Unit, int> UnitHealed;
 
+        /// <summary>치유 특성의 적이 다른 적을 회복했을 때. 값은 실제로 오른 HP.</summary>
+        public event Action<Enemy, int> EnemyHealed;
+
+        /// <summary>분열로 새 적이 생겼을 때 (EnemySpawned와 따로 온다 — 등장 목록과 상관없음).</summary>
+        public event Action<Enemy> EnemySplit;
+
         /// <summary>판이 끝났을 때 한 번 온다.</summary>
         public event Action<BattleOutcome> BattleEnded;
 
@@ -53,7 +59,7 @@ namespace MoaKnights.Core.Sim
             Definition = definition;
         }
 
-        /// <summary>한 틱: 코스트 회복 → 스킬 시간 · 자연 SP → 능력자 공격 → 막힌 적의 반격 → 적 이동(저지 · 누수) → 등장.</summary>
+        /// <summary>한 틱: 코스트 회복 → 스킬 시간 · 자연 SP → 능력자 공격(분열) → 적 행동(막힌 적의 반격 · 원거리 · 치유) → 적 이동(저지 · 누수) → 등장 → 승패.</summary>
         public void Step()
         {
             if (IsOver) return;
@@ -269,7 +275,7 @@ namespace MoaKnights.Core.Sim
                     if (unit.IsSkillActive) continue;
 
                     unit.ActiveSkillStage = 0;
-                    World.ReleaseExcessBlocked(unit.Id, BlockOf(unit));
+                    ReleaseExcessBlocked(unit);
                     SkillEnded?.Invoke(unit);
                     continue;
                 }
@@ -366,31 +372,107 @@ namespace MoaKnights.Core.Sim
             return best;
         }
 
+        /// <summary>능력자가 적을 친다. 방어 특성만큼 덜 받는다 (최소 1). 쓰러지면 분열 특성대로 나뉜다.</summary>
         private void DamageEnemy(Enemy enemy, int damage)
         {
+            var traits = Definition.Enemy(enemy.DefinitionId).Traits;
+            damage = Math.Max(1, damage - traits.Armor);
             enemy.Hp -= damage;
             EnemyDamaged?.Invoke(enemy, damage);
             if (enemy.Hp > 0) return;
 
             World.RemoveEnemy(enemy);
             EnemyKilled?.Invoke(enemy);
+            if (!traits.Splits) return;
+
+            var child = Definition.Enemy(traits.SplitInto);
+            for (var i = 0; i < traits.SplitCount; i++)
+            {
+                var split = World.SpawnSplit(child.Id, enemy.RouteIndex, enemy.Progress, child.Stats.MaxHp, child.Traits.HealIntervalTicks);
+                EnemySplit?.Invoke(split);
+            }
         }
 
+        /// <summary>적 행동: 치유 특성은 간격마다 둘레의 다른 적을 회복하고, 막힌 적은 막은 능력자를, 막히지 않은 원거리 적은 가까운 능력자를 친다.</summary>
         private void EnemiesAttack()
         {
             var enemies = World.Enemies;
             for (var i = 0; i < enemies.Count; i++)
             {
                 var enemy = enemies[i];
-                if (!enemy.IsBlocked) continue;
+                var definition = Definition.Enemy(enemy.DefinitionId);
+                if (definition.Traits.CanHeal) HealNearbyEnemies(enemy, definition.Traits);
 
-                var stats = Definition.Enemy(enemy.DefinitionId).Stats;
+                var stats = definition.Stats;
+                if (stats.Attack <= 0) continue;
                 if (enemy.AttackCooldown > 0) enemy.AttackCooldown--;
                 if (enemy.AttackCooldown > 0) continue;
 
-                var unit = World.UnitById(enemy.BlockedBy);
+                var unit = enemy.IsBlocked ? World.UnitById(enemy.BlockedBy) : RangedTarget(enemy, definition.Traits);
+                if (unit == null) continue;
                 enemy.AttackCooldown = stats.AttackIntervalTicks;
                 DamageUnit(unit, stats.Attack);
+            }
+        }
+
+        /// <summary>원거리 특성의 과녁: 가로 + 세로 거리가 사거리 안인 능력자 중 가장 가까운 하나 (같으면 먼저 놓은 쪽).</summary>
+        private Unit RangedTarget(Enemy enemy, EnemyTraits traits)
+        {
+            if (traits.RangedReach <= 0) return null;
+            var cell = EnemyCell(enemy);
+            Unit best = null;
+            var bestDistance = int.MaxValue;
+            foreach (var unit in World.Units)
+            {
+                var distance = Math.Abs(unit.Cell.X - cell.X) + Math.Abs(unit.Cell.Y - cell.Y);
+                if (distance > traits.RangedReach || distance >= bestDistance) continue;
+                best = unit;
+                bestDistance = distance;
+            }
+            return best;
+        }
+
+        /// <summary>치유 특성: 간격마다 둘레 1칸(대각 포함, 같은 칸 포함)의 다친 다른 적을 회복한다. 최대 HP를 넘지 않는다.</summary>
+        private void HealNearbyEnemies(Enemy healer, EnemyTraits traits)
+        {
+            if (healer.HealCooldown > 0) healer.HealCooldown--;
+            if (healer.HealCooldown > 0) return;
+            healer.HealCooldown = traits.HealIntervalTicks;
+
+            var cell = EnemyCell(healer);
+            foreach (var other in World.Enemies)
+            {
+                if (other == healer) continue;
+                var otherCell = EnemyCell(other);
+                if (Math.Abs(otherCell.X - cell.X) > 1 || Math.Abs(otherCell.Y - cell.Y) > 1) continue;
+                var maxHp = Definition.Enemy(other.DefinitionId).Stats.MaxHp;
+                var healed = Math.Min(traits.HealAmount, maxHp - other.Hp);
+                if (healed <= 0) continue;
+                other.Hp += healed;
+                EnemyHealed?.Invoke(other, healed);
+            }
+        }
+
+        /// <summary>이 능력자가 막고 있는 적의 무게 합 (무거움 특성은 무게가 크다).</summary>
+        public int BlockedWeight(Unit unit)
+        {
+            var weight = 0;
+            foreach (var enemy in World.Enemies)
+                if (enemy.BlockedBy == unit.Id) weight += Definition.Enemy(enemy.DefinitionId).Traits.BlockWeight;
+            return weight;
+        }
+
+        /// <summary>저지 수가 줄었을 때(스킬 끝) 무게 합이 넘치면 뒤에 막힌 적부터 푼다 (적 목록 순서 기준).</summary>
+        private void ReleaseExcessBlocked(Unit unit)
+        {
+            var capacity = BlockOf(unit);
+            var kept = 0;
+            foreach (var enemy in World.Enemies)
+            {
+                if (enemy.BlockedBy != unit.Id) continue;
+                var weight = Definition.Enemy(enemy.DefinitionId).Traits.BlockWeight;
+                if (kept + weight <= capacity) kept += weight;
+                else enemy.BlockedBy = 0;
             }
         }
 
@@ -435,12 +517,14 @@ namespace MoaKnights.Core.Sim
             }
         }
 
-        /// <summary>적이 들어선 칸의 능력자가 자리가 남으면 막는다. 자리가 없으면 그냥 지나간다.</summary>
+        /// <summary>적이 들어선 칸의 능력자가 자리(저지 수 - 막은 무게)가 이 적의 무게만큼 남으면 막는다. 비행 적과 자리가 없으면 그냥 지나간다.</summary>
         private void TryBlock(Enemy enemy)
         {
+            var traits = Definition.Enemy(enemy.DefinitionId).Traits;
+            if (traits.Flying) return;
             var unit = World.UnitAt(EnemyCell(enemy));
             if (unit == null) return;
-            if (World.BlockedCount(unit.Id) >= BlockOf(unit)) return;
+            if (BlockedWeight(unit) + traits.BlockWeight > BlockOf(unit)) return;
 
             enemy.BlockedBy = unit.Id;
             EnemyBlocked?.Invoke(enemy, unit);
@@ -452,10 +536,10 @@ namespace MoaKnights.Core.Sim
             while (World.NextSpawnIndex < spawns.Count && spawns[World.NextSpawnIndex].Tick <= World.Tick)
             {
                 var spawn = spawns[World.NextSpawnIndex];
-                var hp = Definition.Enemy(spawn.EnemyId).Stats.MaxHp;
+                var definition = Definition.Enemy(spawn.EnemyId);
 
                 // ?.Invoke의 인자는 구독자가 없으면 계산되지 않으므로 상태 변경을 인자에 넣지 않는다.
-                var enemy = World.SpawnEnemy(spawn.EnemyId, spawn.RouteIndex, hp);
+                var enemy = World.SpawnEnemy(spawn.EnemyId, spawn.RouteIndex, definition.Stats.MaxHp, definition.Traits.HealIntervalTicks);
                 EnemySpawned?.Invoke(enemy);
             }
         }

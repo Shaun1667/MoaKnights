@@ -294,6 +294,31 @@ namespace MoaKnights.Tests
             var tank = balance.Enemies.Single(e => e.Id == "dizes_tank");
             Assert.AreEqual((0.6f, 2, 150, 15, 1.5f), (tank.SpeedCellsPerSecond, tank.LeakDamage, tank.MaxHp, tank.Attack, tank.AttackIntervalSeconds));
             Assert.AreEqual(60, stage2.Enemy("dizes_tank").SpeedPerTick);
+
+            // 6-2 새 적 7종 (BALANCE 3-7 ~ 3-13): 속도 · 누수 · HP · 공격 · 간격 · 방어 · 비행 · 사거리 · 치유 · 무게 · 분열, 이름 글.
+            var traitRows = new (string Id, float Speed, int Leak, int Hp, int Attack, float Interval, int Armor, bool Flying, int Reach, int Heal, float HealSeconds, int Weight, string Split, int SplitCount)[]
+            {
+                ("dizes_shell", 0.8f, 1, 100, 10, 1.5f, 8, false, 0, 0, 0f, 1, "", 0),
+                ("dizes_wing", 1.4f, 1, 45, 0, 1f, 0, true, 0, 0, 0f, 1, "", 0),
+                ("dizes_spitter", 0.9f, 1, 70, 12, 2f, 0, false, 2, 0, 0f, 1, "", 0),
+                ("dizes_mender", 0.9f, 1, 90, 6, 1.5f, 0, false, 0, 15, 3f, 1, "", 0),
+                ("dizes_brute", 0.5f, 3, 450, 35, 2f, 0, false, 0, 0, 0f, 2, "", 0),
+                ("dizes_splitter", 0.8f, 1, 140, 12, 1.5f, 0, false, 0, 0, 0f, 1, "dizes_fast", 2),
+                ("dizes_lord", 0.4f, 10, 2500, 60, 2f, 10, false, 0, 0, 0f, 3, "", 0),
+            };
+            foreach (var expected in traitRows)
+            {
+                var row = balance.Enemies.Single(e => e.Id == expected.Id);
+                Assert.AreEqual((expected.Speed, expected.Leak, expected.Hp, expected.Attack, expected.Interval), (row.SpeedCellsPerSecond, row.LeakDamage, row.MaxHp, row.Attack, row.AttackIntervalSeconds), expected.Id);
+                Assert.AreEqual((expected.Armor, expected.Flying, expected.Reach, expected.Heal, expected.HealSeconds, expected.Weight, expected.Split ?? "", expected.SplitCount),
+                    (row.Armor, row.Flying, row.RangedReach, row.HealAmount, row.HealIntervalSeconds, row.BlockWeight, row.SplitInto ?? "", row.SplitCount), expected.Id);
+                Assert.IsTrue(table.Contains("enemy." + expected.Id + ".name"), expected.Id);
+            }
+            var lord = stage2.Enemy("dizes_lord").Traits;
+            Assert.AreEqual((10, 3), (lord.Armor, lord.BlockWeight));
+            Assert.AreEqual(90, stage2.Enemy("dizes_mender").Traits.HealIntervalTicks);
+            foreach (var key in new[] { "armor", "flying", "ranged", "heal", "heavy", "split", "joiner" })
+                Assert.IsTrue(table.Contains("enemy.trait." + key), key);
             Assert.AreEqual(50, balance.TwoStarHpPercent);
         }
 

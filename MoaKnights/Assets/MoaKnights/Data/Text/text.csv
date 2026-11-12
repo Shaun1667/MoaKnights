@@ -113,6 +113,21 @@ skill.irene_01_3.name,앙코르 III,Encore III
 enemy.dizes_01.name,디제스,Dizes
 enemy.dizes_fast.name,빠른 디제스,Swift Dizes
 enemy.dizes_tank.name,단단한 디제스,Hard Dizes
+enemy.dizes_shell.name,갑각 디제스,Shell Dizes
+enemy.dizes_wing.name,날개 디제스,Winged Dizes
+enemy.dizes_spitter.name,침뱉는 디제스,Spitting Dizes
+enemy.dizes_mender.name,치유 디제스,Mending Dizes
+enemy.dizes_brute.name,거대 디제스,Brute Dizes
+enemy.dizes_splitter.name,분열 디제스,Splitting Dizes
+enemy.dizes_lord.name,디제스 군주,Dizes Lord
+enemy.trait.armor,방어 {0},Armor {0}
+enemy.trait.flying,비행(저지 안 됨),Flying (cannot be blocked)
+enemy.trait.ranged,원거리 {0}칸,Ranged {0} cells
+enemy.trait.heal,치유 {0} / {1}초,Heals {0} every {1}s
+enemy.trait.heavy,무거움 {0} (저지 {0} 차지),Heavy {0} (takes {0} block)
+enemy.trait.split,분열 → {0} ×{1},Splits into {0} ×{1}
+enemy.trait.joiner, · , · 
+ui.formation.enemy_traits,   특성: {0},   Traits: {0}
 unit.guardian_01.name,세라,Sera
 unit.bulwark_01.name,그로브,Grove
 unit.warden_01.name,하린,Harin

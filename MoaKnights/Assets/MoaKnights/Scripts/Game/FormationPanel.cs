@@ -175,6 +175,8 @@ namespace MoaKnights.Game
             {
                 var row = _balance.Enemies.First(e => e.Id == id);
                 lines.Add(Text.Format("ui.formation.enemy_line", Text.Get("enemy." + id + ".name"), counts[id], row.MaxHp, row.SpeedCellsPerSecond, row.Attack, row.LeakDamage));
+                var traits = TraitsText(row);
+                if (traits.Length > 0) lines.Add(Text.Format("ui.formation.enemy_traits", traits));
             }
 
             _infoLabel.text = string.Join("\n", lines);
@@ -246,6 +248,20 @@ namespace MoaKnights.Game
                 case SpType.OnAttack: return Text.Get("ui.sp.on_attack");
                 default: return Text.Get("ui.sp.on_hit");
             }
+        }
+
+        /// <summary>적 특성 글 (6-2). 없으면 빈 글.</summary>
+        private static string TraitsText(BattleBalanceAsset.EnemyRow row)
+        {
+            var parts = new List<string>();
+            if (row.Armor > 0) parts.Add(Text.Format("enemy.trait.armor", row.Armor));
+            if (row.Flying) parts.Add(Text.Get("enemy.trait.flying"));
+            if (row.RangedReach > 0) parts.Add(Text.Format("enemy.trait.ranged", row.RangedReach));
+            if (row.HealAmount > 0) parts.Add(Text.Format("enemy.trait.heal", row.HealAmount, row.HealIntervalSeconds));
+            if (row.BlockWeight > 1) parts.Add(Text.Format("enemy.trait.heavy", row.BlockWeight));
+            if (!string.IsNullOrEmpty(row.SplitInto) && row.SplitCount > 0)
+                parts.Add(Text.Format("enemy.trait.split", Text.Get("enemy." + row.SplitInto + ".name"), row.SplitCount));
+            return string.Join(Text.Get("enemy.trait.joiner"), parts);
         }
     }
 }

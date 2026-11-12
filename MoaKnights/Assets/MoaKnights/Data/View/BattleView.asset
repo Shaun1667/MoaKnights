@@ -42,6 +42,34 @@ MonoBehaviour:
     Prefab: {fileID: 21614956107819799, guid: 5338595cf02b8154ca0ea1477d39af3c, type: 3}
     Color: {r: 0.4, g: 0.18, b: 0.55, a: 1}
     Size: 0.45
+  - Id: dizes_shell
+    Prefab: {fileID: 0}
+    Color: {r: 0.35, g: 0.3, b: 0.45, a: 1}
+    Size: 0.36
+  - Id: dizes_wing
+    Prefab: {fileID: 0}
+    Color: {r: 0.8, g: 0.4, b: 0.95, a: 1}
+    Size: 0.28
+  - Id: dizes_spitter
+    Prefab: {fileID: 0}
+    Color: {r: 0.55, g: 0.85, b: 0.35, a: 1}
+    Size: 0.32
+  - Id: dizes_mender
+    Prefab: {fileID: 0}
+    Color: {r: 0.95, g: 0.7, b: 0.9, a: 1}
+    Size: 0.32
+  - Id: dizes_brute
+    Prefab: {fileID: 0}
+    Color: {r: 0.3, g: 0.12, b: 0.4, a: 1}
+    Size: 0.55
+  - Id: dizes_splitter
+    Prefab: {fileID: 0}
+    Color: {r: 0.85, g: 0.3, b: 0.6, a: 1}
+    Size: 0.36
+  - Id: dizes_lord
+    Prefab: {fileID: 0}
+    Color: {r: 0.2, g: 0.05, b: 0.3, a: 1}
+    Size: 0.7
   _units:
   - Id: melee_01
     Prefab: {fileID: 655007039319250345, guid: fae8ad07d67cf9845b96d2d7f218e808, type: 3}

@@ -16,7 +16,10 @@ namespace MoaKnights.Core.Sim
         public int LeakDamage { get; }
         public CombatStats Stats { get; }
 
-        public EnemyDefinition(string id, int speedPerTick, int leakDamage, CombatStats stats)
+        /// <summary>특성 (방어 · 비행 · 원거리 · 치유 · 무거움 · 분열). 없으면 EnemyTraits.None.</summary>
+        public EnemyTraits Traits { get; }
+
+        public EnemyDefinition(string id, int speedPerTick, int leakDamage, CombatStats stats, EnemyTraits traits = null)
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentException("Enemy id is empty.");
             if (speedPerTick <= 0) throw new ArgumentOutOfRangeException(nameof(speedPerTick), "Enemy " + id);
@@ -25,6 +28,48 @@ namespace MoaKnights.Core.Sim
             SpeedPerTick = speedPerTick;
             LeakDamage = leakDamage;
             Stats = stats ?? throw new ArgumentNullException(nameof(stats), "Enemy " + id);
+            Traits = traits ?? EnemyTraits.None;
+        }
+    }
+
+    /// <summary>
+    /// 적의 특성 (6-2, BALANCE 3-7 ~ 3-13). 값이 0 · false · null이면 그 특성이 없다.
+    /// 방어: 능력자에게 받는 피해에서 뺀다 (최소 1). 비행: 저지되지 않는다 (공격 범위 안이면 맞는다).
+    /// 원거리: 막히지 않았을 때 가로 + 세로 거리가 이 칸 수 안인 능력자를 친다. 치유: 간격마다 둘레 1칸(대각 포함)의 다른 적을 회복한다.
+    /// 무거움: 막힐 때 능력자의 저지 수를 이만큼 쓴다 (최소 1). 분열: 쓰러지면 그 자리에서 다른 적 여러 마리로 나뉜다.
+    /// </summary>
+    public sealed class EnemyTraits
+    {
+        public static readonly EnemyTraits None = new EnemyTraits();
+
+        public int Armor { get; }
+        public bool Flying { get; }
+        public int RangedReach { get; }
+        public int HealAmount { get; }
+        public int HealIntervalTicks { get; }
+        public int BlockWeight { get; }
+        public string SplitInto { get; }
+        public int SplitCount { get; }
+
+        public bool CanHeal => HealAmount > 0 && HealIntervalTicks > 0;
+        public bool Splits => !string.IsNullOrEmpty(SplitInto) && SplitCount > 0;
+
+        public EnemyTraits(int armor = 0, bool flying = false, int rangedReach = 0, int healAmount = 0, int healIntervalTicks = 0,
+            int blockWeight = 1, string splitInto = null, int splitCount = 0)
+        {
+            if (armor < 0) throw new ArgumentOutOfRangeException(nameof(armor));
+            if (rangedReach < 0) throw new ArgumentOutOfRangeException(nameof(rangedReach));
+            if (healAmount < 0) throw new ArgumentOutOfRangeException(nameof(healAmount));
+            if (healAmount > 0 && healIntervalTicks <= 0) throw new ArgumentOutOfRangeException(nameof(healIntervalTicks));
+            if (splitCount < 0) throw new ArgumentOutOfRangeException(nameof(splitCount));
+            Armor = armor;
+            Flying = flying;
+            RangedReach = rangedReach;
+            HealAmount = healAmount;
+            HealIntervalTicks = healIntervalTicks;
+            BlockWeight = Math.Max(1, blockWeight);
+            SplitInto = string.IsNullOrEmpty(splitInto) ? null : splitInto;
+            SplitCount = SplitInto == null ? 0 : splitCount;
         }
     }
 
@@ -146,6 +191,12 @@ namespace MoaKnights.Core.Sim
             {
                 if (_enemies.ContainsKey(enemy.Id)) throw new ArgumentException("Duplicate enemy id: " + enemy.Id);
                 _enemies.Add(enemy.Id, enemy);
+            }
+            foreach (var enemy in _enemies.Values)
+            {
+                if (!enemy.Traits.Splits) continue;
+                if (!_enemies.ContainsKey(enemy.Traits.SplitInto)) throw new ArgumentException("Enemy " + enemy.Id + " splits into unknown enemy: " + enemy.Traits.SplitInto);
+                if (enemy.Traits.SplitInto == enemy.Id) throw new ArgumentException("Enemy " + enemy.Id + " splits into itself.");
             }
 
             var sorted = spawns.OrderBy(s => s.Tick).ToArray();

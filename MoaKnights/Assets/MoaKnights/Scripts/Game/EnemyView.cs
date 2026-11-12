@@ -36,6 +36,7 @@ namespace MoaKnights.Game
             _view = view;
 
             _simulation.EnemySpawned += OnSpawned;
+            _simulation.EnemySplit += OnSpawned;   // 분열로 생긴 적 (6-2)
             _simulation.EnemyLeaked += OnRemoved;
             _simulation.EnemyKilled += OnRemoved;
             foreach (var enemy in _simulation.World.Enemies) OnSpawned(enemy);
@@ -54,6 +55,7 @@ namespace MoaKnights.Game
         {
             if (_simulation == null) return;
             _simulation.EnemySpawned -= OnSpawned;
+            _simulation.EnemySplit -= OnSpawned;
             _simulation.EnemyLeaked -= OnRemoved;
             _simulation.EnemyKilled -= OnRemoved;
         }

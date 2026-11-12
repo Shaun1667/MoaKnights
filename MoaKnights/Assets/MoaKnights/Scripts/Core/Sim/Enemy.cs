@@ -20,7 +20,10 @@ namespace MoaKnights.Core.Sim
 
         public bool IsBlocked => BlockedBy != 0;
 
-        public Enemy(int id, string definitionId, int routeIndex, int progress, int hp, int attackCooldown, int blockedBy)
+        /// <summary>치유 특성: 다음 치유까지 남은 틱. 나온 직후에는 간격만큼 기다린다.</summary>
+        public int HealCooldown { get; internal set; }
+
+        public Enemy(int id, string definitionId, int routeIndex, int progress, int hp, int attackCooldown, int blockedBy, int healCooldown = 0)
         {
             Id = id;
             DefinitionId = definitionId;
@@ -29,6 +32,7 @@ namespace MoaKnights.Core.Sim
             Hp = hp;
             AttackCooldown = attackCooldown;
             BlockedBy = blockedBy;
+            HealCooldown = healCooldown;
         }
     }
 }

@@ -52,6 +52,13 @@ namespace MoaKnights.EditorTools
         private const string FirstEnemyId = "dizes_01";
         private const string FastEnemyId = "dizes_fast";
         private const string TankEnemyId = "dizes_tank";
+        private const string ShellEnemyId = "dizes_shell";
+        private const string WingEnemyId = "dizes_wing";
+        private const string SpitterEnemyId = "dizes_spitter";
+        private const string MenderEnemyId = "dizes_mender";
+        private const string BruteEnemyId = "dizes_brute";
+        private const string SplitterEnemyId = "dizes_splitter";
+        private const string LordEnemyId = "dizes_lord";
 
         // 스테이지 2: 입구 하나, 길 두 갈래가 출구 앞에서 만난다. 스테이지 3: 입구 둘이 가운데에서 합친다 (결정 2026-11-10, 사용자).
         private static readonly string[] Stage02Rows =
@@ -244,6 +251,15 @@ namespace MoaKnights.EditorTools
                 SetEnemyCombat(tank, 150, 15, 1.5f);
             }
 
+            // 6-2 새 적 7종 (BALANCE 3-7 ~ 3-13). 행이 없을 때만 만든다. 분열 대상(빠른 적)은 위에서 먼저 만든다.
+            AddEnemyIfMissing(enemies, ShellEnemyId, 0.8f, 1, 100, 10, 1.5f, 8, false, 0, 0, 0.0f, 1, null, 0);
+            AddEnemyIfMissing(enemies, WingEnemyId, 1.4f, 1, 45, 0, 1.0f, 0, true, 0, 0, 0.0f, 1, null, 0);
+            AddEnemyIfMissing(enemies, SpitterEnemyId, 0.9f, 1, 70, 12, 2.0f, 0, false, 2, 0, 0.0f, 1, null, 0);
+            AddEnemyIfMissing(enemies, MenderEnemyId, 0.9f, 1, 90, 6, 1.5f, 0, false, 0, 15, 3.0f, 1, null, 0);
+            AddEnemyIfMissing(enemies, BruteEnemyId, 0.5f, 3, 450, 35, 2.0f, 0, false, 0, 0, 0.0f, 2, null, 0);
+            AddEnemyIfMissing(enemies, SplitterEnemyId, 0.8f, 1, 140, 12, 1.5f, 0, false, 0, 0, 0.0f, 1, "dizes_fast", 2);
+            AddEnemyIfMissing(enemies, LordEnemyId, 0.4f, 10, 2500, 60, 2.0f, 10, false, 0, 0, 0.0f, 3, null, 0);
+
             FillIfZero(so.FindProperty("_twoStarHpPercent"), 50);
 
             // SP · 스킬 (BALANCE 7번). 비어 있는 행에만 넣는다.
@@ -409,6 +425,25 @@ namespace MoaKnights.EditorTools
 
             row.FindPropertyRelative("MaxSp").intValue = 0;   // FillSkills가 비었다고 보고 채우게 한다
             FillSkills(row, spType, maxSp, naturalSeconds, skills);
+        }
+
+        /// <summary>적 행이 없으면 끝에 만들고 모든 칸(특성 포함)을 채운다. 배열을 늘리면 Unity가 마지막 행 값을 복사하므로 조건 없이 덮어쓴다.</summary>
+        private static void AddEnemyIfMissing(SerializedProperty enemies, string id, float speed, int leak, int maxHp, int attack, float interval,
+            int armor, bool flying, int rangedReach, int healAmount, float healInterval, int blockWeight, string splitInto, int splitCount)
+        {
+            var row = RowById(enemies, id, out var created);
+            if (!created) return;
+            row.FindPropertyRelative("SpeedCellsPerSecond").floatValue = speed;
+            row.FindPropertyRelative("LeakDamage").intValue = leak;
+            SetEnemyCombat(row, maxHp, attack, interval);
+            row.FindPropertyRelative("Armor").intValue = armor;
+            row.FindPropertyRelative("Flying").boolValue = flying;
+            row.FindPropertyRelative("RangedReach").intValue = rangedReach;
+            row.FindPropertyRelative("HealAmount").intValue = healAmount;
+            row.FindPropertyRelative("HealIntervalSeconds").floatValue = healInterval;
+            row.FindPropertyRelative("BlockWeight").intValue = blockWeight;
+            row.FindPropertyRelative("SplitInto").stringValue = splitInto ?? string.Empty;
+            row.FindPropertyRelative("SplitCount").intValue = splitCount;
         }
 
         /// <summary>새로 만든 적 행에 쓴다. 배열을 늘리면 Unity가 마지막 행 값을 복사하므로 조건 없이 덮어쓴다.</summary>
@@ -592,6 +627,13 @@ namespace MoaKnights.EditorTools
 
             SetEnemyLookIfNew(enemies, FastEnemyId, new Color(0.95f, 0.45f, 0.75f), 0.28f);
             SetEnemyLookIfNew(enemies, TankEnemyId, new Color(0.40f, 0.18f, 0.55f), 0.45f);
+            SetEnemyLookIfNew(enemies, ShellEnemyId, new Color(0.35f, 0.30f, 0.45f), 0.36f);
+            SetEnemyLookIfNew(enemies, WingEnemyId, new Color(0.80f, 0.40f, 0.95f), 0.28f);
+            SetEnemyLookIfNew(enemies, SpitterEnemyId, new Color(0.55f, 0.85f, 0.35f), 0.32f);
+            SetEnemyLookIfNew(enemies, MenderEnemyId, new Color(0.95f, 0.70f, 0.90f), 0.32f);
+            SetEnemyLookIfNew(enemies, BruteEnemyId, new Color(0.30f, 0.12f, 0.40f), 0.55f);
+            SetEnemyLookIfNew(enemies, SplitterEnemyId, new Color(0.85f, 0.30f, 0.60f), 0.36f);
+            SetEnemyLookIfNew(enemies, LordEnemyId, new Color(0.20f, 0.05f, 0.30f), 0.70f);
             FillModelPrefabs(enemies, EnemyArtFolder);
             FillIfEmpty(so.FindProperty("_victoryColor"), new Color(1.00f, 0.85f, 0.35f));
             FillIfEmpty(so.FindProperty("_defeatColor"), new Color(0.90f, 0.35f, 0.30f));
@@ -785,6 +827,8 @@ namespace MoaKnights.EditorTools
         {
             var row = RowById(enemies, id, out var created);
             if (!created) return;
+            // 배열을 늘리면 Unity가 마지막 행을 복사하므로 프리팹을 비운다 — 모델 연결은 모델이 있을 때 따로 한다 (6-2에서 고침).
+            row.FindPropertyRelative("Prefab").objectReferenceValue = null;
             row.FindPropertyRelative("Color").colorValue = color;
             row.FindPropertyRelative("Size").floatValue = size;
         }

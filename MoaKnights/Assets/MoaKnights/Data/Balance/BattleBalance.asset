@@ -24,18 +24,140 @@ MonoBehaviour:
     MaxHp: 60
     Attack: 10
     AttackIntervalSeconds: 1.5
+    Armor: 0
+    Flying: 0
+    RangedReach: 0
+    HealAmount: 0
+    HealIntervalSeconds: 0
+    BlockWeight: 0
+    SplitInto: 
+    SplitCount: 0
   - Id: dizes_fast
     SpeedCellsPerSecond: 2
     LeakDamage: 1
     MaxHp: 30
     Attack: 5
     AttackIntervalSeconds: 1
+    Armor: 0
+    Flying: 0
+    RangedReach: 0
+    HealAmount: 0
+    HealIntervalSeconds: 0
+    BlockWeight: 0
+    SplitInto: 
+    SplitCount: 0
   - Id: dizes_tank
     SpeedCellsPerSecond: 0.6
     LeakDamage: 2
     MaxHp: 150
     Attack: 15
     AttackIntervalSeconds: 1.5
+    Armor: 0
+    Flying: 0
+    RangedReach: 0
+    HealAmount: 0
+    HealIntervalSeconds: 0
+    BlockWeight: 0
+    SplitInto: 
+    SplitCount: 0
+  - Id: dizes_shell
+    SpeedCellsPerSecond: 0.8
+    LeakDamage: 1
+    MaxHp: 100
+    Attack: 10
+    AttackIntervalSeconds: 1.5
+    Armor: 8
+    Flying: 0
+    RangedReach: 0
+    HealAmount: 0
+    HealIntervalSeconds: 0
+    BlockWeight: 1
+    SplitInto: 
+    SplitCount: 0
+  - Id: dizes_wing
+    SpeedCellsPerSecond: 1.4
+    LeakDamage: 1
+    MaxHp: 45
+    Attack: 0
+    AttackIntervalSeconds: 1
+    Armor: 0
+    Flying: 1
+    RangedReach: 0
+    HealAmount: 0
+    HealIntervalSeconds: 0
+    BlockWeight: 1
+    SplitInto: 
+    SplitCount: 0
+  - Id: dizes_spitter
+    SpeedCellsPerSecond: 0.9
+    LeakDamage: 1
+    MaxHp: 70
+    Attack: 12
+    AttackIntervalSeconds: 2
+    Armor: 0
+    Flying: 0
+    RangedReach: 2
+    HealAmount: 0
+    HealIntervalSeconds: 0
+    BlockWeight: 1
+    SplitInto: 
+    SplitCount: 0
+  - Id: dizes_mender
+    SpeedCellsPerSecond: 0.9
+    LeakDamage: 1
+    MaxHp: 90
+    Attack: 6
+    AttackIntervalSeconds: 1.5
+    Armor: 0
+    Flying: 0
+    RangedReach: 0
+    HealAmount: 15
+    HealIntervalSeconds: 3
+    BlockWeight: 1
+    SplitInto: 
+    SplitCount: 0
+  - Id: dizes_brute
+    SpeedCellsPerSecond: 0.5
+    LeakDamage: 3
+    MaxHp: 450
+    Attack: 35
+    AttackIntervalSeconds: 2
+    Armor: 0
+    Flying: 0
+    RangedReach: 0
+    HealAmount: 0
+    HealIntervalSeconds: 0
+    BlockWeight: 2
+    SplitInto: 
+    SplitCount: 0
+  - Id: dizes_splitter
+    SpeedCellsPerSecond: 0.8
+    LeakDamage: 1
+    MaxHp: 140
+    Attack: 12
+    AttackIntervalSeconds: 1.5
+    Armor: 0
+    Flying: 0
+    RangedReach: 0
+    HealAmount: 0
+    HealIntervalSeconds: 0
+    BlockWeight: 1
+    SplitInto: dizes_fast
+    SplitCount: 2
+  - Id: dizes_lord
+    SpeedCellsPerSecond: 0.4
+    LeakDamage: 10
+    MaxHp: 2500
+    Attack: 60
+    AttackIntervalSeconds: 2
+    Armor: 10
+    Flying: 0
+    RangedReach: 0
+    HealAmount: 0
+    HealIntervalSeconds: 0
+    BlockWeight: 3
+    SplitInto: 
+    SplitCount: 0
   _units:
   - Id: melee_01
     Cost: 10

@@ -17,6 +17,18 @@ namespace MoaKnights.Game
             public int MaxHp;
             public int Attack;
             public float AttackIntervalSeconds;
+
+            // 특성 (6-2, BALANCE 3-7 ~ 3-13). 0 · false · 빈 칸이면 없음.
+            public int Armor;
+            public bool Flying;
+            public int RangedReach;
+            public int HealAmount;
+            public float HealIntervalSeconds;
+
+            /// <summary>막힐 때 쓰는 저지 수. 0이면 1로 본다.</summary>
+            public int BlockWeight;
+            public string SplitInto;
+            public int SplitCount;
         }
 
         [Serializable]

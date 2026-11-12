@@ -14,6 +14,7 @@ namespace MoaKnights.Core.Sim
         public int Hp;
         public int AttackCooldown;
         public int BlockedBy;
+        public int HealCooldown;
     }
 
     [Serializable]
@@ -65,7 +66,7 @@ namespace MoaKnights.Core.Sim
     /// <summary>한 판의 상태. 시스템은 상태를 갖지 않고 여기만 읽고 쓴다.</summary>
     public sealed class World
     {
-        public const int SnapshotVersion = 7;
+        public const int SnapshotVersion = 8;
 
         private readonly SeededRandom[] _streams;
         private readonly List<Enemy> _enemies = new List<Enemy>();
@@ -125,7 +126,7 @@ namespace MoaKnights.Core.Sim
             var world = new World(snapshot.Seed, snapshot.StageId, snapshot.Tick, snapshot.NextEntityId, snapshot.RngStates,
                 snapshot.DefenseHp, snapshot.NextSpawnIndex, snapshot.Cost, snapshot.CostRegenTicks);
             foreach (var enemy in snapshot.Enemies)
-                world._enemies.Add(new Enemy(enemy.Id, enemy.DefinitionId, enemy.RouteIndex, enemy.Progress, enemy.Hp, enemy.AttackCooldown, enemy.BlockedBy));
+                world._enemies.Add(new Enemy(enemy.Id, enemy.DefinitionId, enemy.RouteIndex, enemy.Progress, enemy.Hp, enemy.AttackCooldown, enemy.BlockedBy, enemy.HealCooldown));
             foreach (var unit in snapshot.Units)
             {
                 world._units.Add(new Unit(unit.Id, unit.DefinitionId, new GridPos(unit.CellX, unit.CellY), (Direction)unit.Direction, unit.Hp, unit.AttackCooldown, unit.Stage, unit.SpentCost)
@@ -160,6 +161,7 @@ namespace MoaKnights.Core.Sim
                     Hp = enemy.Hp,
                     AttackCooldown = enemy.AttackCooldown,
                     BlockedBy = enemy.BlockedBy,
+                    HealCooldown = enemy.HealCooldown,
                 };
             }
 
@@ -218,10 +220,18 @@ namespace MoaKnights.Core.Sim
             if (NextSpawnIndex < spawnCount) NextSpawnIndex = spawnCount;
         }
 
-        public Enemy SpawnEnemy(string definitionId, int routeIndex, int hp)
+        public Enemy SpawnEnemy(string definitionId, int routeIndex, int hp, int healCooldown = 0)
         {
             NextSpawnIndex++;
-            var enemy = new Enemy(AllocateEntityId(), definitionId, routeIndex, 0, hp, 0, 0);
+            var enemy = new Enemy(AllocateEntityId(), definitionId, routeIndex, 0, hp, 0, 0, healCooldown);
+            _enemies.Add(enemy);
+            return enemy;
+        }
+
+        /// <summary>분열로 생긴 적. 등장 목록과 상관없이 같은 길 · 같은 진행도에서 시작한다.</summary>
+        public Enemy SpawnSplit(string definitionId, int routeIndex, int progress, int hp, int healCooldown = 0)
+        {
+            var enemy = new Enemy(AllocateEntityId(), definitionId, routeIndex, progress, hp, 0, 0, healCooldown);
             _enemies.Add(enemy);
             return enemy;
         }

@@ -60,7 +60,9 @@ namespace MoaKnights.Game
             {
                 var speed = Mathf.RoundToInt(row.SpeedCellsPerSecond * SpeedPerTickPerCellPerSecond);
                 var stats = new CombatStats(row.MaxHp, row.Attack, Ticks(row.AttackIntervalSeconds, ticksPerSecond));
-                enemies.Add(new EnemyDefinition(row.Id, speed, row.LeakDamage, stats));
+                var traits = new EnemyTraits(row.Armor, row.Flying, row.RangedReach, row.HealAmount, Ticks(row.HealIntervalSeconds, ticksPerSecond),
+                    row.BlockWeight, row.SplitInto, row.SplitCount);
+                enemies.Add(new EnemyDefinition(row.Id, speed, row.LeakDamage, stats, traits));
             }
 
             var routes = new List<EnemyRoute>();
