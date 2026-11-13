@@ -80,6 +80,7 @@ MoaKnights/Assets/MoaKnights/
 - 난수는 `World.Rng(RngStream.X)`로만, `UnityEngine.Random` · `System.Random` 금지. 새 용도 = enum 끝에 추가.
 - 맵은 `GridMap.Parse` 한 곳, 데이터 `StageAsset`(글자 격자: `#` 막힘, `.` 지상, `H` 언덕, `S` 입구, `E` 출구), 새 스테이지 = `ProjectSetup.LaterStages` 한 줄(맵 · 길 · 등장, 에셋 `StageNN`을 만들고 목록 끝에 붙임) + 이름 글 한 줄(순서 = 진행 순서, 지금 10개). 스테이지 이름 글 키는 `stage.<스테이지ID>.name`. 씬을 다시 불러올 때 넘기는 값은 `GameRoot`의 시드 · 스테이지 번호 · 편성(출전 능력자 ID 목록) 셋뿐. 편성은 `BattleDefinitionFactory.IsValidDeck` · `DefaultDeck`(목록 앞 `DeckSize`명) 한 곳에서 판정하고, 판 정의에는 출전 능력자만 들어간다. 적의 길은 `EnemyRoute.Parse` 한 곳, 꺾이는 칸을 `6,3 3,3 3,1`처럼 적고 입구에서 출구까지 지상 칸만 지난다.
 - 전투 화면 표현값은 `BattleViewAsset` 한 곳, 새 칸 종류 = 표 한 줄. 그리기는 `MapView` · `EnemyView` · `UnitView`(단계 점 포함) · `CardBar`(얼굴 `UnitVisual.Portrait` · 이름 · 코스트) · `BattleHud` · `DamageNumbers`(떠오르는 피해 숫자) · `HealthBar` · `RangeView`(범위 판), 배치 · 중첩 입력은 `PlacementController`, 능력자 클릭 · 퇴각 · 스킬 버튼은 `UnitActionPanel`, 일시정지 · 배속 버튼과 단축키는 `SpeedControls`, 결과 창은 `ResultPanel`, 스테이지 선택 창은 `StageSelectPanel`, 판 시작 전 편성 창(능력자 · 이번 판 적 탭, 뽑기 버튼)은 `FormationPanel`, 뽑기 창 · 연출(빛 색 예고 → 번쩍 → 펼침 → 한 장씩 뒤집기, 누르면 건너뛰기)은 `GachaPanel` · `GachaCard`(연출 색 · 시간은 `BattleViewAsset`의 `Gacha…`), 카메라는 `BattleCameraRig`(원근이면 맵 전체가 위 글(`CameraTopReserve`)과 카드 줄 사이에 들어오게 거리 · 초점을 맞춤, 카드는 많으면 한 줄에 들어가게 작아짐).
+- 난이도 측정은 `Tools/BalanceSim/run.sh` (데이터 에셋을 읽어 규칙 코드만 Unity의 Mono로 돌리는 자동 배치 봇, Unity 실행 불필요). 등장 표를 바꾸면 돌려 보고 BALANCE 4c 봇 결과 표를 고친다.
 - enum은 끝에만 추가한다.
 
 ## 핵심 설계 규칙 (변경 금지)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -267,16 +268,16 @@ namespace MoaKnights.Tests
             Assert.AreEqual(20, stage3.Spawns.Count);
             Assert.AreEqual(2, stage3.Map.Entrances.Count);
 
-            // 6-1 스테이지 4 ~ 10 (BALANCE 4-7 ~ 4-13): 맵 크기 · 입구 수 · 길 길이 · 등장 수. 길은 팩토리가 지상 칸만 지나는지 검사한다.
+            // 6-1 · 6-4 스테이지 4 ~ 10 (BALANCE 4-7 ~ 4-13): 맵 크기 · 입구 수 · 길 길이 · 등장 수. 길은 팩토리가 지상 칸만 지나는지 검사한다.
             var later = new (int Width, int Height, int Entrances, int[] Routes, int Spawns)[]
             {
-                (9, 7, 1, new[] { 22 }, 20),
-                (9, 7, 1, new[] { 12, 8, 12 }, 23),
-                (9, 7, 3, new[] { 8, 7, 7 }, 25),
-                (11, 7, 2, new[] { 13, 13 }, 29),
-                (11, 9, 1, new[] { 43 }, 29),
-                (11, 7, 2, new[] { 11, 11 }, 36),
-                (11, 9, 3, new[] { 18, 18, 13 }, 45),
+                (9, 7, 1, new[] { 22 }, 24),
+                (9, 7, 1, new[] { 12, 8, 12 }, 29),
+                (9, 7, 3, new[] { 8, 7, 7 }, 39),
+                (11, 7, 2, new[] { 13, 13 }, 44),
+                (11, 9, 1, new[] { 43 }, 69),
+                (11, 7, 2, new[] { 11, 11 }, 56),
+                (11, 9, 3, new[] { 18, 18, 13 }, 63),
             };
             for (var i = 0; i < later.Length; i++)
             {
@@ -288,6 +289,13 @@ namespace MoaKnights.Tests
                 CollectionAssert.AreEqual(expected.Routes, definition.Routes.Select(r => r.Length).ToArray(), label);
                 Assert.AreEqual(expected.Spawns, definition.Spawns.Count, label);
             }
+            var firstStage = new Dictionary<string, int> { { "dizes_shell", 4 }, { "dizes_wing", 5 }, { "dizes_spitter", 6 }, { "dizes_mender", 7 }, { "dizes_brute", 7 }, { "dizes_splitter", 8 }, { "dizes_lord", 10 } };
+            foreach (var pair in firstStage)
+            {
+                var first = Enumerable.Range(0, catalog.Count).First(i => catalog[i].SpawnGroups.Any(g => g.EnemyId == pair.Key)) + 1;
+                Assert.AreEqual(pair.Value, first, pair.Key);
+            }
+            Assert.AreEqual(1, BattleDefinitionFactory.Create(catalog[9], balance).Spawns.Count(e => e.EnemyId == "dizes_lord"));
 
             var fast = balance.Enemies.Single(e => e.Id == "dizes_fast");
             Assert.AreEqual((2f, 1, 30, 5, 1f), (fast.SpeedCellsPerSecond, fast.LeakDamage, fast.MaxHp, fast.Attack, fast.AttackIntervalSeconds));

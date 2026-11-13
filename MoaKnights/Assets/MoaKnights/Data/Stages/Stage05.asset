@@ -41,13 +41,18 @@ MonoBehaviour:
     StartSeconds: 2
     IntervalSeconds: 3
     Count: 6
-  - EnemyId: dizes_fast
+  - EnemyId: dizes_wing
     RouteIndex: 1
-    StartSeconds: 25
-    IntervalSeconds: 3
-    Count: 3
-  - EnemyId: dizes_tank
+    StartSeconds: 20
+    IntervalSeconds: 5
+    Count: 4
+  - EnemyId: dizes_shell
     RouteIndex: 2
     StartSeconds: 30
-    IntervalSeconds: 8
-    Count: 2
+    IntervalSeconds: 6
+    Count: 3
+  - EnemyId: dizes_fast
+    RouteIndex: 0
+    StartSeconds: 45
+    IntervalSeconds: 2
+    Count: 4

@@ -88,52 +88,69 @@ namespace MoaKnights.EditorTools
         private static readonly string[] Stage03Routes = { "0,6 3,6 3,3 8,3", "0,0 3,0 3,3 8,3" };
 
         // 6-1 스테이지 4 ~ 10 (결정 2026-11-12, 사용자 "이대로 6-1 시작"). 4 ~ 6은 9x7, 7 ~ 10은 11x7 ~ 11x9.
-        // 등장 표는 지금 적 3종으로 만든 임시값이다 — 새 적과 난이도는 6-4에서 맞춘다.
+        // 등장 표: 6-4에서 새 적 7종을 넣고 자동 배치 봇으로 난이도를 맞춤 (1 ~ 5는 3성 편성, 6 ~ 10은 4 · 5성 편성 기준, BALANCE 4c).
         private static readonly StageDef[] LaterStages =
         {
             new StageDef(4, new[] { "S......HH", "HHHHHH.HH", "HH.....HH", "HH.HHHHHH", "HH.....HH", "HHHHHH.HH", "HHHHHH..E" },
                 new[] { "0,6 6,6 6,4 2,4 2,2 6,2 6,0 8,0" },
-                new[] { new Spawn(FirstEnemyId, 0, 0f, 2.5f, 14), new Spawn(FastEnemyId, 0, 25f, 3f, 4), new Spawn(TankEnemyId, 0, 35f, 8f, 2) }),
+                new[]
+                {
+                    new Spawn(FirstEnemyId, 0, 0.0f, 2.5f, 12), new Spawn(ShellEnemyId, 0, 15.0f, 6.0f, 4), new Spawn(FastEnemyId, 0, 40.0f, 2.0f, 6),
+                    new Spawn(TankEnemyId, 0, 55.0f, 8.0f, 2),
+                }),
             new StageDef(5, new[] { "#HHHHHHH#", "H.......H", "H.HHHHH.H", "S.......E", "H.HHHHH.H", "H.......H", "#HHHHHHH#" },
                 new[] { "0,3 1,3 1,5 7,5 7,3 8,3", "0,3 8,3", "0,3 1,3 1,1 7,1 7,3 8,3" },
                 new[]
                 {
-                    new Spawn(FirstEnemyId, 0, 0f, 3f, 6), new Spawn(FirstEnemyId, 1, 1f, 3f, 6), new Spawn(FirstEnemyId, 2, 2f, 3f, 6),
-                    new Spawn(FastEnemyId, 1, 25f, 3f, 3), new Spawn(TankEnemyId, 2, 30f, 8f, 2),
+                    new Spawn(FirstEnemyId, 0, 0.0f, 3.0f, 6), new Spawn(FirstEnemyId, 1, 1.0f, 3.0f, 6), new Spawn(FirstEnemyId, 2, 2.0f, 3.0f, 6),
+                    new Spawn(WingEnemyId, 1, 20.0f, 5.0f, 4), new Spawn(ShellEnemyId, 2, 30.0f, 6.0f, 3), new Spawn(FastEnemyId, 0, 45.0f, 2.0f, 4),
                 }),
             new StageDef(6, new[] { "HHHHSHHHH", "HHHH.HHHH", "HHHH.HHHH", "S.......E", "HHHH.HHHH", "HHHH.HHHH", "HHHHSHHHH" },
                 new[] { "0,3 8,3", "4,6 4,3 8,3", "4,0 4,3 8,3" },
                 new[]
                 {
-                    new Spawn(FirstEnemyId, 0, 0f, 3f, 6), new Spawn(FirstEnemyId, 1, 1f, 3f, 6), new Spawn(FirstEnemyId, 2, 2f, 3f, 6),
-                    new Spawn(TankEnemyId, 0, 25f, 8f, 1), new Spawn(TankEnemyId, 1, 27f, 8f, 1), new Spawn(TankEnemyId, 2, 29f, 8f, 1),
-                    new Spawn(FastEnemyId, 0, 40f, 2f, 4),
+                    new Spawn(FirstEnemyId, 0, 0.0f, 3.0f, 6), new Spawn(FirstEnemyId, 1, 1.0f, 3.0f, 6), new Spawn(FirstEnemyId, 2, 2.0f, 3.0f, 6),
+                    new Spawn(SpitterEnemyId, 0, 18.0f, 8.0f, 3), new Spawn(SpitterEnemyId, 1, 20.0f, 8.0f, 3), new Spawn(SpitterEnemyId, 2, 22.0f, 8.0f, 3),
+                    new Spawn(ShellEnemyId, 0, 30.0f, 6.0f, 2), new Spawn(ShellEnemyId, 1, 31.0f, 6.0f, 2), new Spawn(ShellEnemyId, 2, 32.0f, 6.0f, 2),
+                    new Spawn(TankEnemyId, 0, 40.0f, 8.0f, 2), new Spawn(WingEnemyId, 1, 50.0f, 3.0f, 4),
                 }),
             new StageDef(7, new[] { "S..HHHHHHHH", "HH.HHHHHHHH", "HH.HHHHHHHH", "HH........E", "HH.HHHHHHHH", "HH.HHHHHHHH", "S..HHHHHHHH" },
                 new[] { "0,6 2,6 2,3 10,3", "0,0 2,0 2,3 10,3" },
                 new[]
                 {
-                    new Spawn(FirstEnemyId, 0, 0f, 2.5f, 9), new Spawn(FirstEnemyId, 1, 1.25f, 2.5f, 9),
-                    new Spawn(TankEnemyId, 0, 20f, 8f, 3), new Spawn(TankEnemyId, 1, 24f, 8f, 3), new Spawn(FastEnemyId, 1, 45f, 2f, 5),
+                    new Spawn(FirstEnemyId, 0, 0.0f, 2.5f, 10), new Spawn(FirstEnemyId, 1, 1.25f, 2.5f, 10), new Spawn(MenderEnemyId, 0, 15.0f, 10.0f, 3),
+                    new Spawn(MenderEnemyId, 1, 18.0f, 10.0f, 3), new Spawn(BruteEnemyId, 0, 25.0f, 15.0f, 2), new Spawn(BruteEnemyId, 1, 30.0f, 15.0f, 2),
+                    new Spawn(ShellEnemyId, 0, 35.0f, 5.0f, 4), new Spawn(ShellEnemyId, 1, 37.0f, 5.0f, 4), new Spawn(WingEnemyId, 1, 55.0f, 2.0f, 6),
                 }),
             new StageDef(8, new[] { "S.........H", "HHHHHHHHH.H", "H.......H.H", "H.HHHHH.H.H", "H.HEHHH.H.H", "H.H.....H.H", "H.HHHHHHH.H", "H.........H", "HHHHHHHHHHH" },
                 new[] { "0,8 9,8 9,1 1,1 1,6 7,6 7,3 3,3 3,4" },
-                new[] { new Spawn(FirstEnemyId, 0, 0f, 2f, 16), new Spawn(TankEnemyId, 0, 15f, 6f, 5), new Spawn(FastEnemyId, 0, 40f, 1.5f, 8) }),
+                new[]
+                {
+                    new Spawn(FirstEnemyId, 0, 0.0f, 1.5f, 24), new Spawn(SplitterEnemyId, 0, 10.0f, 4.0f, 12), new Spawn(MenderEnemyId, 0, 20.0f, 8.0f, 6),
+                    new Spawn(BruteEnemyId, 0, 30.0f, 10.0f, 5), new Spawn(ShellEnemyId, 0, 45.0f, 3.0f, 10), new Spawn(WingEnemyId, 0, 55.0f, 1.2f, 12),
+                }),
             new StageDef(9, new[] { "S...HHH...S", "HHH.HHH.HHH", "HHH.HHH.HHH", "HHH.....HHH", "HHHHH.HHHHH", "HHHHH.HHHHH", "HHHHHEHHHHH" },
                 new[] { "0,6 3,6 3,3 5,3 5,0", "10,6 7,6 7,3 5,3 5,0" },
                 new[]
                 {
-                    new Spawn(FirstEnemyId, 0, 0f, 2.5f, 10), new Spawn(FirstEnemyId, 1, 1.25f, 2.5f, 10),
-                    new Spawn(TankEnemyId, 0, 25f, 8f, 3), new Spawn(TankEnemyId, 1, 29f, 8f, 3),
-                    new Spawn(FastEnemyId, 0, 45f, 2f, 5), new Spawn(FastEnemyId, 1, 46f, 2f, 5),
+                    new Spawn(FirstEnemyId, 0, 0.0f, 2.5f, 10), new Spawn(FirstEnemyId, 1, 1.25f, 2.5f, 10), new Spawn(SpitterEnemyId, 0, 20.0f, 10.0f, 3),
+                    new Spawn(SpitterEnemyId, 1, 22.0f, 10.0f, 3), new Spawn(MenderEnemyId, 0, 25.0f, 15.0f, 2), new Spawn(MenderEnemyId, 1, 28.0f, 15.0f, 2),
+                    new Spawn(BruteEnemyId, 0, 35.0f, 20.0f, 2), new Spawn(BruteEnemyId, 1, 40.0f, 20.0f, 2), new Spawn(ShellEnemyId, 0, 40.0f, 6.0f, 3),
+                    new Spawn(ShellEnemyId, 1, 42.0f, 6.0f, 3), new Spawn(SplitterEnemyId, 0, 50.0f, 8.0f, 3), new Spawn(SplitterEnemyId, 1, 52.0f, 8.0f, 3),
+                    new Spawn(WingEnemyId, 0, 70.0f, 2.0f, 5), new Spawn(WingEnemyId, 1, 71.0f, 2.0f, 5),
                 }),
             new StageDef(10, new[] { "S..HHSHHHHH", "HH.HH.HHHHH", "HH.HH.HHHHH", "HH.HH.HHHHH", "HH......H.E", "HH.HHHH.H.H", "HH.HHHH...H", "HH.HHHHHHHH", "S..HHHHHHHH" },
                 new[] { "0,8 2,8 2,4 7,4 7,2 9,2 9,4 10,4", "0,0 2,0 2,4 7,4 7,2 9,2 9,4 10,4", "5,8 5,4 7,4 7,2 9,2 9,4 10,4" },
                 new[]
                 {
-                    new Spawn(FirstEnemyId, 0, 0f, 3f, 8), new Spawn(FirstEnemyId, 1, 1f, 3f, 8), new Spawn(FirstEnemyId, 2, 2f, 3f, 8),
-                    new Spawn(TankEnemyId, 0, 20f, 7f, 3), new Spawn(TankEnemyId, 1, 23f, 7f, 3), new Spawn(TankEnemyId, 2, 26f, 7f, 3),
-                    new Spawn(FastEnemyId, 0, 40f, 2f, 4), new Spawn(FastEnemyId, 1, 41f, 2f, 4), new Spawn(FastEnemyId, 2, 42f, 2f, 4),
+                    new Spawn(FirstEnemyId, 0, 0.0f, 3.0f, 8), new Spawn(FirstEnemyId, 1, 1.0f, 3.0f, 8), new Spawn(FirstEnemyId, 2, 2.0f, 3.0f, 8),
+                    new Spawn(ShellEnemyId, 0, 15.0f, 6.0f, 3), new Spawn(ShellEnemyId, 1, 16.0f, 6.0f, 3), new Spawn(ShellEnemyId, 2, 17.0f, 6.0f, 3),
+                    new Spawn(SpitterEnemyId, 0, 25.0f, 10.0f, 2), new Spawn(SpitterEnemyId, 1, 27.0f, 10.0f, 2), new Spawn(SpitterEnemyId, 2, 29.0f, 10.0f, 2),
+                    new Spawn(MenderEnemyId, 0, 35.0f, 15.0f, 2), new Spawn(MenderEnemyId, 1, 37.0f, 15.0f, 2), new Spawn(MenderEnemyId, 2, 39.0f, 15.0f, 2),
+                    new Spawn(BruteEnemyId, 0, 45.0f, 15.0f, 1), new Spawn(BruteEnemyId, 1, 48.0f, 15.0f, 1), new Spawn(BruteEnemyId, 2, 51.0f, 15.0f, 1),
+                    new Spawn(BruteEnemyId, 0, 65.0f, 1.0f, 1), new Spawn(BruteEnemyId, 1, 70.0f, 1.0f, 1), new Spawn(SplitterEnemyId, 0, 60.0f, 8.0f, 2),
+                    new Spawn(SplitterEnemyId, 1, 62.0f, 8.0f, 2), new Spawn(SplitterEnemyId, 2, 64.0f, 8.0f, 2), new Spawn(WingEnemyId, 0, 75.0f, 3.0f, 2),
+                    new Spawn(WingEnemyId, 1, 76.0f, 3.0f, 2), new Spawn(WingEnemyId, 2, 77.0f, 3.0f, 2), new Spawn(LordEnemyId, 2, 90.0f, 1.0f, 1),
                 }),
         };
         private const string MeleeUnitId = "melee_01";

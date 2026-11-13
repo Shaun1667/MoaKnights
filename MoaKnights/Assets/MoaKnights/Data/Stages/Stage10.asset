@@ -43,33 +43,108 @@ MonoBehaviour:
     StartSeconds: 2
     IntervalSeconds: 3
     Count: 8
-  - EnemyId: dizes_tank
+  - EnemyId: dizes_shell
     RouteIndex: 0
-    StartSeconds: 20
-    IntervalSeconds: 7
+    StartSeconds: 15
+    IntervalSeconds: 6
     Count: 3
-  - EnemyId: dizes_tank
+  - EnemyId: dizes_shell
     RouteIndex: 1
-    StartSeconds: 23
-    IntervalSeconds: 7
+    StartSeconds: 16
+    IntervalSeconds: 6
     Count: 3
-  - EnemyId: dizes_tank
+  - EnemyId: dizes_shell
     RouteIndex: 2
-    StartSeconds: 26
-    IntervalSeconds: 7
+    StartSeconds: 17
+    IntervalSeconds: 6
     Count: 3
-  - EnemyId: dizes_fast
+  - EnemyId: dizes_spitter
     RouteIndex: 0
-    StartSeconds: 40
-    IntervalSeconds: 2
-    Count: 4
-  - EnemyId: dizes_fast
+    StartSeconds: 25
+    IntervalSeconds: 10
+    Count: 2
+  - EnemyId: dizes_spitter
     RouteIndex: 1
-    StartSeconds: 41
-    IntervalSeconds: 2
-    Count: 4
-  - EnemyId: dizes_fast
+    StartSeconds: 27
+    IntervalSeconds: 10
+    Count: 2
+  - EnemyId: dizes_spitter
     RouteIndex: 2
-    StartSeconds: 42
-    IntervalSeconds: 2
-    Count: 4
+    StartSeconds: 29
+    IntervalSeconds: 10
+    Count: 2
+  - EnemyId: dizes_mender
+    RouteIndex: 0
+    StartSeconds: 35
+    IntervalSeconds: 15
+    Count: 2
+  - EnemyId: dizes_mender
+    RouteIndex: 1
+    StartSeconds: 37
+    IntervalSeconds: 15
+    Count: 2
+  - EnemyId: dizes_mender
+    RouteIndex: 2
+    StartSeconds: 39
+    IntervalSeconds: 15
+    Count: 2
+  - EnemyId: dizes_brute
+    RouteIndex: 0
+    StartSeconds: 45
+    IntervalSeconds: 15
+    Count: 1
+  - EnemyId: dizes_brute
+    RouteIndex: 1
+    StartSeconds: 48
+    IntervalSeconds: 15
+    Count: 1
+  - EnemyId: dizes_brute
+    RouteIndex: 2
+    StartSeconds: 51
+    IntervalSeconds: 15
+    Count: 1
+  - EnemyId: dizes_brute
+    RouteIndex: 0
+    StartSeconds: 65
+    IntervalSeconds: 1
+    Count: 1
+  - EnemyId: dizes_brute
+    RouteIndex: 1
+    StartSeconds: 70
+    IntervalSeconds: 1
+    Count: 1
+  - EnemyId: dizes_splitter
+    RouteIndex: 0
+    StartSeconds: 60
+    IntervalSeconds: 8
+    Count: 2
+  - EnemyId: dizes_splitter
+    RouteIndex: 1
+    StartSeconds: 62
+    IntervalSeconds: 8
+    Count: 2
+  - EnemyId: dizes_splitter
+    RouteIndex: 2
+    StartSeconds: 64
+    IntervalSeconds: 8
+    Count: 2
+  - EnemyId: dizes_wing
+    RouteIndex: 0
+    StartSeconds: 75
+    IntervalSeconds: 3
+    Count: 2
+  - EnemyId: dizes_wing
+    RouteIndex: 1
+    StartSeconds: 76
+    IntervalSeconds: 3
+    Count: 2
+  - EnemyId: dizes_wing
+    RouteIndex: 2
+    StartSeconds: 77
+    IntervalSeconds: 3
+    Count: 2
+  - EnemyId: dizes_lord
+    RouteIndex: 2
+    StartSeconds: 90
+    IntervalSeconds: 1
+    Count: 1

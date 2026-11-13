@@ -28,14 +28,19 @@ MonoBehaviour:
     RouteIndex: 0
     StartSeconds: 0
     IntervalSeconds: 2.5
-    Count: 14
+    Count: 12
+  - EnemyId: dizes_shell
+    RouteIndex: 0
+    StartSeconds: 15
+    IntervalSeconds: 6
+    Count: 4
   - EnemyId: dizes_fast
     RouteIndex: 0
-    StartSeconds: 25
-    IntervalSeconds: 3
-    Count: 4
+    StartSeconds: 40
+    IntervalSeconds: 2
+    Count: 6
   - EnemyId: dizes_tank
     RouteIndex: 0
-    StartSeconds: 35
+    StartSeconds: 55
     IntervalSeconds: 8
     Count: 2

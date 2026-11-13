@@ -41,23 +41,43 @@ MonoBehaviour:
     StartSeconds: 2
     IntervalSeconds: 3
     Count: 6
-  - EnemyId: dizes_tank
+  - EnemyId: dizes_spitter
     RouteIndex: 0
-    StartSeconds: 25
+    StartSeconds: 18
     IntervalSeconds: 8
-    Count: 1
-  - EnemyId: dizes_tank
+    Count: 3
+  - EnemyId: dizes_spitter
     RouteIndex: 1
-    StartSeconds: 27
+    StartSeconds: 20
     IntervalSeconds: 8
-    Count: 1
-  - EnemyId: dizes_tank
+    Count: 3
+  - EnemyId: dizes_spitter
     RouteIndex: 2
-    StartSeconds: 29
+    StartSeconds: 22
     IntervalSeconds: 8
-    Count: 1
-  - EnemyId: dizes_fast
+    Count: 3
+  - EnemyId: dizes_shell
+    RouteIndex: 0
+    StartSeconds: 30
+    IntervalSeconds: 6
+    Count: 2
+  - EnemyId: dizes_shell
+    RouteIndex: 1
+    StartSeconds: 31
+    IntervalSeconds: 6
+    Count: 2
+  - EnemyId: dizes_shell
+    RouteIndex: 2
+    StartSeconds: 32
+    IntervalSeconds: 6
+    Count: 2
+  - EnemyId: dizes_tank
     RouteIndex: 0
     StartSeconds: 40
-    IntervalSeconds: 2
+    IntervalSeconds: 8
+    Count: 2
+  - EnemyId: dizes_wing
+    RouteIndex: 1
+    StartSeconds: 50
+    IntervalSeconds: 3
     Count: 4
