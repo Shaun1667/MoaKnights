@@ -16,6 +16,13 @@ height_of() {
     dizes_fast) echo 0.7 ;;
     dizes_tank) echo 1.0 ;;
     dizes_01) echo 0.7 ;;
+    dizes_shell) echo 0.6 ;;
+    dizes_wing) echo 0.6 ;;
+    dizes_spitter) echo 0.7 ;;
+    dizes_mender) echo 0.8 ;;
+    dizes_brute) echo 1.2 ;;
+    dizes_splitter) echo 0.75 ;;
+    dizes_lord) echo 1.5 ;;
     *) echo 0.9 ;;
   esac
 }
@@ -66,6 +73,22 @@ depth_align_of() {
   esac
 }
 
+# 적 삼각형 수: 보통 3천, 보스(군주)는 화면에서 커서 8천.
+enemy_tris_of() {
+  case "$1" in
+    dizes_lord) echo 8000 ;;
+    *) echo 3000 ;;
+  esac
+}
+
+# 떠 있는 적: 모델 바닥을 키의 이 비율만큼 땅 위로 띄운다 (비행 특성, 6-3).
+lift_of() {
+  case "$1" in
+    dizes_wing) echo 0.5 ;;
+    *) echo 0 ;;
+  esac
+}
+
 for id in "$@"; do
   tris=$(tris_of "$id")
   export DEPTH_ALIGN="$(depth_align_of "$id")"
@@ -82,8 +105,9 @@ for id in "$@"; do
     "$BLENDER" -b -P "$(w Tools/Blender/combine_character.py)" -- "$(w $src/body.glb)" "$(w $src/outfit.glb)" "$(w $src/body.png)" "$(w $src/outfit.png)" "$(w $out)" "$id" "$tris" "$h" | grep '\[combine\]'
   else
     out=$ASSETS/Enemies/$id
+    export LIFT="$(lift_of "$id")"
     mkdir -p "$out"
-    "$BLENDER" -b -P "$(w Tools/Blender/combine_character.py)" -- "$(w $src/model.glb)" - - - "$(w $out)" "$id" 3000 "$h" | grep '\[combine\]'
+    "$BLENDER" -b -P "$(w Tools/Blender/combine_character.py)" -- "$(w $src/model.glb)" - - - "$(w $out)" "$id" "$(enemy_tris_of "$id")" "$h" | grep '\[combine\]'
   fi
   mv "$out"/"${id}"_preview_*.png "$src"/
   rm -f "$out"/"${id}"_*_normal.png   # 노멀맵은 쓰지 않는다 (화면에서 작음)

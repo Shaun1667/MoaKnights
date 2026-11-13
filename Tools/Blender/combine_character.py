@@ -459,6 +459,11 @@ merged.rotation_euler = (0, 0, -1.5707963)   # -Y(앞) → Blender -X. Unity가 
 s = height_m / (hi.z - lo.z)
 merged.scale = (s, s, s)
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+lift = float(os.environ.get("LIFT", "0") or 0)   # 떠 있는 적: 바닥을 키의 이 비율만큼 띄운다 (원점은 땅에 남는다)
+if lift > 0:
+    merged.location.z += height_m * lift
+    bpy.ops.object.transform_apply(location=True)
+    log("lifted", height_m * lift)
 lo, hi = world_box(merged)
 log("final box", tuple(lo), tuple(hi))
 
